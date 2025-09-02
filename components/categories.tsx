@@ -1,0 +1,78 @@
+import { Card, CardContent } from "@/components/ui/card"
+import Link from "next/link"
+import Image from "next/image"
+
+const categories = [
+  {
+    id: 1,
+    name: "Electronics",
+    image: "/placeholder.svg?height=200&width=200",
+    count: 150,
+  },
+  {
+    id: 2,
+    name: "Fashion",
+    image: "/placeholder.svg?height=200&width=200",
+    count: 300,
+  },
+  {
+    id: 3,
+    name: "Home & Garden",
+    image: "/placeholder.svg?height=200&width=200",
+    count: 200,
+  },
+  {
+    id: 4,
+    name: "Sports",
+    image: "/placeholder.svg?height=200&width=200",
+    count: 120,
+  },
+  {
+    id: 5,
+    name: "Books",
+    image: "/placeholder.svg?height=200&width=200",
+    count: 80,
+  },
+  {
+    id: 6,
+    name: "Beauty",
+    image: "/placeholder.svg?height=200&width=200",
+    count: 90,
+  },
+]
+
+export function Categories() {
+  return (
+    <section className="py-16 bg-muted/50">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">Shop by Category</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Explore our wide range of categories and find exactly what you're looking for
+          </p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          {categories.map((category) => (
+            <Link key={category.id} href={`/categories/${category.id}`}>
+              <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <CardContent className="p-4 text-center">
+                  <div className="relative mb-4 overflow-hidden rounded-lg">
+                    <Image
+                      src={category.image || "/placeholder.svg"}
+                      alt={category.name}
+                      width={200}
+                      height={200}
+                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <h3 className="font-semibold mb-1">{category.name}</h3>
+                  <p className="text-sm text-muted-foreground">{category.count} items</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
