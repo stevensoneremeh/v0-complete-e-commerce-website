@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
-import { Sparkles, Shield, Truck, Clock, Crown } from "lucide-react"
+import { Sparkles, Shield, Truck, Clock, Building2, Home } from "lucide-react"
 
 export function HeroSection() {
   return (
@@ -14,20 +14,20 @@ export function HeroSection() {
           <div className="space-y-8">
             <div className="inline-flex items-center space-x-2 bg-card border border-primary/20 rounded-full px-4 py-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Premium Collection 2024</span>
+              <span className="text-sm font-medium text-primary">ABL Natasha Enterprises 2024</span>
             </div>
 
             <div className="space-y-6">
               <h1 className="text-5xl md:text-7xl font-bold leading-tight text-balance">
-                Discover
+                Premium
                 <span className="block bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                  Luxury
+                  Shopping
                 </span>
-                <span className="block">Redefined</span>
+                <span className="block">& Luxury Stays</span>
               </h1>
               <p className="text-xl text-muted-foreground max-w-lg leading-relaxed text-pretty">
-                Curated collection of premium products crafted for those who appreciate excellence. Experience luxury
-                shopping with unmatched quality and service.
+                Discover curated premium products and luxury apartment rentals. ABL Natasha Enterprises offers
+                exceptional quality in both shopping and accommodation experiences.
               </p>
             </div>
 
@@ -37,7 +37,7 @@ export function HeroSection() {
                 asChild
                 className="luxury-gradient text-white font-semibold px-8 py-4 rounded-xl hover:scale-105 transition-transform duration-300 premium-shadow"
               >
-                <Link href="/products">Explore Collection</Link>
+                <Link href="/products">Shop Products</Link>
               </Button>
               <Button
                 size="lg"
@@ -45,7 +45,7 @@ export function HeroSection() {
                 asChild
                 className="border-2 border-primary/20 hover:border-primary/40 px-8 py-4 rounded-xl hover:bg-card transition-all duration-300 bg-transparent"
               >
-                <Link href="/categories">Browse Categories</Link>
+                <Link href="/properties">Book Apartments</Link>
               </Button>
             </div>
 
@@ -73,7 +73,7 @@ export function HeroSection() {
               </div>
               <div className="flex flex-col items-center text-center space-y-2">
                 <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <Sparkles className="h-6 w-6 text-accent" />
+                  <Building2 className="h-6 w-6 text-accent" />
                 </div>
                 <span className="text-sm font-medium">Premium Quality</span>
                 <span className="text-xs text-muted-foreground">Curated selection</span>
@@ -96,7 +96,7 @@ export function HeroSection() {
                 <Sparkles className="h-6 w-6" />
               </div>
               <div className="absolute -bottom-4 -left-4 bg-primary text-white rounded-full p-3 premium-shadow">
-                <Crown className="h-6 w-6" />
+                <Home className="h-6 w-6" />
               </div>
             </div>
           </div>

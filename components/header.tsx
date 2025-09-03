@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { Search, User, Menu, Heart, Sun, Moon, Crown } from "lucide-react"
+import { Search, User, Menu, Heart, Sun, Moon, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -109,17 +109,15 @@ export function Header() {
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="relative">
             <div className="h-12 w-12 rounded-xl luxury-gradient flex items-center justify-center premium-shadow group-hover:scale-105 transition-transform duration-300">
-              <Crown className="h-6 w-6 text-white" />
+              <Building2 className="h-6 w-6 text-white" />
             </div>
             <div className="absolute -top-1 -right-1 h-4 w-4 bg-accent rounded-full animate-pulse"></div>
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ShopHub
+            <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              ABL Natasha
             </span>
-            <span className="text-xs text-muted-foreground font-medium tracking-wider uppercase">
-              Premium Collection
-            </span>
+            <span className="text-xs text-muted-foreground font-medium tracking-wider uppercase">Enterprises</span>
           </div>
         </Link>
 
@@ -131,6 +129,10 @@ export function Header() {
           </Link>
           <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors relative group">
             Products
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+          </Link>
+          <Link href="/properties" className="text-sm font-medium hover:text-primary transition-colors relative group">
+            Properties
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
           </Link>
           <Link href="/categories" className="text-sm font-medium hover:text-primary transition-colors relative group">
@@ -153,7 +155,7 @@ export function Header() {
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search luxury products..."
+              placeholder="Search products & properties..."
               className="pl-10 h-12 bg-card border-2 border-transparent focus:border-primary/20 rounded-xl transition-all duration-300"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
@@ -270,6 +272,9 @@ export function Header() {
                 </Link>
                 <Link href="/products" className="text-lg font-medium hover:text-primary transition-colors">
                   Products
+                </Link>
+                <Link href="/properties" className="text-lg font-medium hover:text-primary transition-colors">
+                  Properties
                 </Link>
                 <Link href="/categories" className="text-lg font-medium hover:text-primary transition-colors">
                   Categories

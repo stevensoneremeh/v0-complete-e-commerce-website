@@ -18,9 +18,9 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "ShopHub - Premium E-Commerce Experience",
-  description: "Luxury shopping platform with curated products and exceptional service",
-  keywords: "luxury ecommerce, premium shopping, designer products, high-end retail",
+  title: "ABL Natasha Enterprises - Luxury Shopping & Premium Stays",
+  description: "Premium e-commerce platform and luxury apartment rentals by ABL Natasha Enterprises",
+  keywords: "luxury ecommerce, premium shopping, apartment rentals, luxury stays, ABL Natasha Enterprises",
   generator: "v0.app",
 }
 

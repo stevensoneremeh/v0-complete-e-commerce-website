@@ -4,6 +4,8 @@ import { FeaturedProducts } from "@/components/featured-products"
 import { Categories } from "@/components/categories"
 import { Footer } from "@/components/footer"
 import { CouponBanner } from "@/components/coupon-banner"
+import { FeaturedProperties } from "@/components/featured-properties"
+import { PropertyCategories } from "@/components/property-categories"
 
 export default function HomePage() {
   return (
@@ -16,6 +18,8 @@ export default function HomePage() {
         </div>
         <Categories />
         <FeaturedProducts />
+        <PropertyCategories />
+        <FeaturedProperties />
       </main>
       <Footer />
     </div>
