@@ -104,11 +104,11 @@ export default function ContactPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  General: info@shophub.com
+                  General: info@ablnatasha.com
                   <br />
-                  Support: support@shophub.com
+                  Support: support@ablnatasha.com
                   <br />
-                  Business: business@shophub.com
+                  Business: business@ablnatasha.com
                 </p>
               </CardContent>
             </Card>

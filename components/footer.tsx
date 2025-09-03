@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Facebook, Twitter, Instagram, Youtube } from "lucide-react"
+import Image from "next/image"
 
 export function Footer() {
   return (
@@ -9,14 +10,20 @@ export function Footer() {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">S</span>
+              <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center overflow-hidden">
+                <Image
+                  src="/abl-natasha-logo.png"
+                  alt="ABL Natasha Enterprises"
+                  width={24}
+                  height={24}
+                  className="object-contain"
+                />
               </div>
-              <span className="font-bold text-xl">ShopHub</span>
+              <span className="font-bold text-xl">ABL Natasha Enterprises</span>
             </div>
             <p className="text-muted-foreground">
-              Your one-stop destination for quality products at great prices. Shop with confidence and enjoy fast,
-              reliable delivery.
+              Your premier destination for luxury products and premium apartment rentals. Experience excellence in both
+              shopping and accommodation with ABL Natasha Enterprises.
             </p>
             <div className="flex space-x-4">
               <Link href="#" className="text-muted-foreground hover:text-primary">
@@ -93,7 +100,7 @@ export function Footer() {
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
-          <p>&copy; 2024 ShopHub. All rights reserved.</p>
+          <p>&copy; 2024 ABL Natasha Enterprises. All rights reserved.</p>
         </div>
       </div>
     </footer>

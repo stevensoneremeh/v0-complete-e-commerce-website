@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-
+import Image from "next/image"
 import { useState } from "react"
 import Link from "next/link"
-import { Search, User, Menu, Heart, Sun, Moon, Building2 } from "lucide-react"
+import { Search, User, Menu, Heart, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -108,8 +108,14 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="relative">
-            <div className="h-12 w-12 rounded-xl luxury-gradient flex items-center justify-center premium-shadow group-hover:scale-105 transition-transform duration-300">
-              <Building2 className="h-6 w-6 text-white" />
+            <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center premium-shadow group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+              <Image
+                src="/abl-natasha-logo.png"
+                alt="ABL Natasha Enterprises"
+                width={40}
+                height={40}
+                className="object-contain"
+              />
             </div>
             <div className="absolute -top-1 -right-1 h-4 w-4 bg-accent rounded-full animate-pulse"></div>
           </div>

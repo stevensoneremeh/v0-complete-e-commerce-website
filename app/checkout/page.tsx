@@ -19,29 +19,18 @@ import { useAuth } from "@/components/auth-provider"
 import { useCoupon } from "@/components/coupon-provider"
 import { useOrders } from "@/components/order-provider"
 import { useToast } from "@/hooks/use-toast"
-import { CreditCard, Smartphone, Building, Banknote, Lock, MapPin, Tag, X, Percent } from "lucide-react"
+import { PaystackPayment } from "@/components/paystack-payment"
+import { CreditCard, Building, Banknote, Lock, MapPin, Tag, X, Percent } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 const paymentMethods = [
   {
-    id: "card",
-    name: "Debit/Credit Card",
+    id: "paystack",
+    name: "Paystack (Recommended)",
     icon: CreditCard,
-    description: "Visa, Mastercard, American Express",
-  },
-  {
-    id: "jazzcash",
-    name: "JazzCash",
-    icon: Smartphone,
-    description: "Pay with your JazzCash mobile wallet",
-  },
-  {
-    id: "easypaisa",
-    name: "EasyPaisa",
-    icon: Smartphone,
-    description: "Pay with your EasyPaisa mobile wallet",
+    description: "Secure payment with cards, bank transfer, USSD",
   },
   {
     id: "bank",
@@ -78,17 +67,13 @@ export default function CheckoutPage() {
   const [city, setCity] = useState("")
   const [state, setState] = useState("")
   const [zipCode, setZipCode] = useState("")
-  const [country, setCountry] = useState("Pakistan")
+  const [country, setCountry] = useState("Nigeria")
 
   // Payment Information
-  const [paymentMethod, setPaymentMethod] = useState("card")
-  const [cardNumber, setCardNumber] = useState("")
-  const [expiryDate, setExpiryDate] = useState("")
-  const [cvv, setCvv] = useState("")
-  const [cardName, setCardName] = useState("")
-  const [mobileNumber, setMobileNumber] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState("paystack")
   const [bankAccount, setBankAccount] = useState("")
   const [bankName, setBankName] = useState("")
+  const [paymentReference, setPaymentReference] = useState("")
 
   const [orderNotes, setOrderNotes] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
@@ -97,6 +82,9 @@ export default function CheckoutPage() {
   const tax = total * 0.08
   const discount = calculateDiscount(total)
   const finalTotal = total + shippingCost + tax - discount
+
+  const ngnRate = 1650 // 1 USD = 1650 NGN (update as needed)
+  const finalTotalNGN = finalTotal * ngnRate
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
@@ -139,12 +127,26 @@ export default function CheckoutPage() {
     })
   }
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handlePaystackSuccess = (reference: string) => {
+    console.log("[v0] Paystack payment successful, creating order:", reference)
+    setPaymentReference(reference)
+    completeOrder(reference)
+  }
+
+  const handlePaystackError = (error: string) => {
+    console.log("[v0] Paystack payment error:", error)
+    toast({
+      title: "Payment Failed",
+      description: error,
+      variant: "destructive",
+    })
+  }
+
+  const completeOrder = async (reference?: string) => {
     setIsProcessing(true)
 
     // Simulate order processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     // Create order
     const orderId = addOrder({
@@ -167,13 +169,14 @@ export default function CheckoutPage() {
         country,
       },
       paymentMethod: paymentMethods.find((pm) => pm.id === paymentMethod)?.name || paymentMethod,
+      paymentReference: reference || paymentReference,
       couponCode: appliedCoupon?.code,
       discount,
     })
 
     toast({
       title: "Order placed successfully!",
-      description: `Thank you for your purchase. Order ${orderId} has been created. ${appliedCoupon ? `You saved $${discount.toFixed(2)} with coupon ${appliedCoupon.code}!` : ""} You will receive a confirmation email shortly.`,
+      description: `Thank you for your purchase with ABL Natasha Enterprises. Order ${orderId} has been created. ${appliedCoupon ? `You saved $${discount.toFixed(2)} with coupon ${appliedCoupon.code}!` : ""} You will receive a confirmation email shortly.`,
     })
 
     clearCart()
@@ -182,6 +185,18 @@ export default function CheckoutPage() {
     }
     router.push("/orders")
     setIsProcessing(false)
+  }
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (paymentMethod === "paystack") {
+      // Paystack payment will handle order completion
+      return
+    }
+
+    // For other payment methods, complete order directly
+    completeOrder()
   }
 
   if (items.length === 0) {
@@ -206,7 +221,7 @@ export default function CheckoutPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Checkout</h1>
-          <p className="text-muted-foreground">Complete your purchase</p>
+          <p className="text-muted-foreground">Complete your purchase with ABL Natasha Enterprises</p>
         </div>
 
         <form onSubmit={handlePlaceOrder}>
@@ -249,7 +264,7 @@ export default function CheckoutPage() {
                         id="phone"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+92 300 1234567"
+                        placeholder="+234 800 1234567"
                         required
                       />
                     </div>
@@ -270,18 +285,18 @@ export default function CheckoutPage() {
                       <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} required />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="state">State/Province *</Label>
+                      <Label htmlFor="state">State *</Label>
                       <Select value={state} onValueChange={setState} required>
                         <SelectTrigger>
                           <SelectValue placeholder="Select state" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="punjab">Punjab</SelectItem>
-                          <SelectItem value="sindh">Sindh</SelectItem>
-                          <SelectItem value="kpk">Khyber Pakhtunkhwa</SelectItem>
-                          <SelectItem value="balochistan">Balochistan</SelectItem>
-                          <SelectItem value="gilgit">Gilgit-Baltistan</SelectItem>
-                          <SelectItem value="azad">Azad Kashmir</SelectItem>
+                          <SelectItem value="lagos">Lagos</SelectItem>
+                          <SelectItem value="abuja">Abuja (FCT)</SelectItem>
+                          <SelectItem value="kano">Kano</SelectItem>
+                          <SelectItem value="rivers">Rivers</SelectItem>
+                          <SelectItem value="oyo">Oyo</SelectItem>
+                          <SelectItem value="kaduna">Kaduna</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -297,9 +312,9 @@ export default function CheckoutPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Pakistan">Pakistan</SelectItem>
-                        <SelectItem value="India">India</SelectItem>
-                        <SelectItem value="Bangladesh">Bangladesh</SelectItem>
+                        <SelectItem value="Nigeria">Nigeria</SelectItem>
+                        <SelectItem value="Ghana">Ghana</SelectItem>
+                        <SelectItem value="Kenya">Kenya</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -334,70 +349,14 @@ export default function CheckoutPage() {
                   </RadioGroup>
 
                   {/* Payment Details */}
-                  {paymentMethod === "card" && (
-                    <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-                      <div className="space-y-2">
-                        <Label htmlFor="cardName">Cardholder Name *</Label>
-                        <Input
-                          id="cardName"
-                          value={cardName}
-                          onChange={(e) => setCardName(e.target.value)}
-                          placeholder="John Doe"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cardNumber">Card Number *</Label>
-                        <Input
-                          id="cardNumber"
-                          value={cardNumber}
-                          onChange={(e) => setCardNumber(e.target.value)}
-                          placeholder="1234 5678 9012 3456"
-                          required
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="expiryDate">Expiry Date *</Label>
-                          <Input
-                            id="expiryDate"
-                            value={expiryDate}
-                            onChange={(e) => setExpiryDate(e.target.value)}
-                            placeholder="MM/YY"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="cvv">CVV *</Label>
-                          <Input
-                            id="cvv"
-                            value={cvv}
-                            onChange={(e) => setCvv(e.target.value)}
-                            placeholder="123"
-                            required
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {(paymentMethod === "jazzcash" || paymentMethod === "easypaisa") && (
-                    <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
-                      <div className="space-y-2">
-                        <Label htmlFor="mobileNumber">Mobile Number *</Label>
-                        <Input
-                          id="mobileNumber"
-                          value={mobileNumber}
-                          onChange={(e) => setMobileNumber(e.target.value)}
-                          placeholder="+92 300 1234567"
-                          required
-                        />
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        You will receive a payment request on your{" "}
-                        {paymentMethod === "jazzcash" ? "JazzCash" : "EasyPaisa"} app.
-                      </p>
-                    </div>
+                  {paymentMethod === "paystack" && (
+                    <PaystackPayment
+                      amount={finalTotalNGN}
+                      email={email}
+                      onSuccess={handlePaystackSuccess}
+                      onError={handlePaystackError}
+                      disabled={!email || !firstName || !lastName || !address}
+                    />
                   )}
 
                   {paymentMethod === "bank" && (
@@ -409,12 +368,12 @@ export default function CheckoutPage() {
                             <SelectValue placeholder="Select your bank" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="hbl">HBL - Habib Bank Limited</SelectItem>
-                            <SelectItem value="ubl">UBL - United Bank Limited</SelectItem>
-                            <SelectItem value="mcb">MCB - Muslim Commercial Bank</SelectItem>
-                            <SelectItem value="nbl">NBP - National Bank of Pakistan</SelectItem>
-                            <SelectItem value="allied">Allied Bank Limited</SelectItem>
-                            <SelectItem value="standard">Standard Chartered</SelectItem>
+                            <SelectItem value="gtb">GTBank - Guaranty Trust Bank</SelectItem>
+                            <SelectItem value="access">Access Bank</SelectItem>
+                            <SelectItem value="zenith">Zenith Bank</SelectItem>
+                            <SelectItem value="uba">UBA - United Bank for Africa</SelectItem>
+                            <SelectItem value="firstbank">First Bank of Nigeria</SelectItem>
+                            <SelectItem value="fidelity">Fidelity Bank</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -594,6 +553,11 @@ export default function CheckoutPage() {
                       <span>Total</span>
                       <div className="text-right">
                         <span>${finalTotal.toFixed(2)}</span>
+                        {paymentMethod === "paystack" && (
+                          <div className="text-sm text-muted-foreground font-normal">
+                            ≈ ₦{finalTotalNGN.toLocaleString()}
+                          </div>
+                        )}
                         {discount > 0 && (
                           <div className="text-sm text-green-600 font-normal">You save ${discount.toFixed(2)}!</div>
                         )}
@@ -601,9 +565,11 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
-                    {isProcessing ? "Processing..." : `Place Order - $${finalTotal.toFixed(2)}`}
-                  </Button>
+                  {paymentMethod !== "paystack" && (
+                    <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
+                      {isProcessing ? "Processing..." : `Place Order - $${finalTotal.toFixed(2)}`}
+                    </Button>
+                  )}
 
                   <p className="text-xs text-muted-foreground text-center">
                     By placing your order, you agree to our{" "}

@@ -64,10 +64,11 @@ export default function AboutPage() {
         {/* Hero Section */}
         <section className="py-20 bg-gradient-to-r from-primary/10 to-secondary/10">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">About ShopHub</h1>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">About ABL Natasha Enterprises</h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              We're on a mission to make online shopping simple, secure, and enjoyable for everyone. Since 2020, we've
-              been connecting customers with quality products from trusted sellers worldwide.
+              We're on a mission to provide exceptional luxury experiences through premium products and exclusive
+              apartment rentals. Since 2020, ABL Natasha Enterprises has been setting new standards in both e-commerce
+              and hospitality.
             </p>
             <Badge variant="secondary" className="text-lg px-6 py-2">
               Trusted by millions worldwide
@@ -97,19 +98,18 @@ export default function AboutPage() {
                 <h2 className="text-3xl font-bold mb-6">Our Story</h2>
                 <div className="space-y-4 text-muted-foreground">
                   <p>
-                    ShopHub was born from a simple idea: online shopping should be easy, trustworthy, and accessible to
-                    everyone. Our founders, frustrated with complicated checkout processes and unreliable sellers,
-                    decided to create a platform that puts customers first.
+                    ABL Natasha Enterprises was born from a vision to create exceptional experiences in both luxury
+                    shopping and premium accommodations. Our founders recognized the need for a platform that seamlessly
+                    combines high-quality products with exclusive property rentals.
                   </p>
                   <p>
-                    What started as a small team of passionate developers has grown into a global marketplace serving
-                    millions of customers worldwide. We've maintained our core values of transparency, quality, and
-                    customer satisfaction throughout our journey.
+                    What started as a boutique enterprise has evolved into a comprehensive luxury platform serving
+                    discerning customers worldwide. We've maintained our commitment to excellence, quality, and
+                    personalized service throughout our growth.
                   </p>
                   <p>
-                    Today, ShopHub connects buyers with carefully vetted sellers, ensuring every transaction is secure
-                    and every product meets our high standards. We're not just a marketplace – we're your trusted
-                    shopping partner.
+                    Today, ABL Natasha Enterprises stands as a premier destination for luxury products and exclusive
+                    apartment rentals, offering curated experiences that exceed expectations in every interaction.
                   </p>
                 </div>
               </div>
@@ -130,10 +130,10 @@ export default function AboutPage() {
         <section className="py-16 bg-muted/50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Why Choose ShopHub?</h2>
+              <h2 className="text-3xl font-bold mb-4">Why Choose ABL Natasha Enterprises?</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                We're committed to providing the best online shopping experience with features designed around your
-                needs.
+                We're committed to providing exceptional luxury experiences with services designed around your
+                sophisticated needs.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -159,7 +159,8 @@ export default function AboutPage() {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Meet Our Team</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                The passionate people behind ShopHub who work tirelessly to make your shopping experience exceptional.
+                The passionate people behind ABL Natasha Enterprises who work tirelessly to make your shopping
+                experience exceptional.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -188,8 +189,8 @@ export default function AboutPage() {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
             <p className="text-xl max-w-3xl mx-auto mb-8 opacity-90">
-              To democratize commerce by creating a platform where anyone can buy and sell with confidence, fostering
-              connections between people and products that improve their lives.
+              To redefine luxury experiences by creating a platform where premium products and exclusive accommodations
+              meet, fostering connections that enhance lifestyles and create lasting memories.
             </p>
             <div className="flex items-center justify-center space-x-8">
               <div className="flex items-center space-x-2">

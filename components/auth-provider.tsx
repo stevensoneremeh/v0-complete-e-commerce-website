@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>({
     id: "1",
     name: "Admin User",
-    email: "admin@shophub.com",
+    email: "admin@ablnatasha.com",
     role: "admin",
   })
   const [isLoading, setIsLoading] = useState(false)
@@ -35,18 +35,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     // Mock authentication
-    if (email === "admin@shophub.com" && password === "admin") {
+    if (email === "admin@ablnatasha.com" && password === "admin") {
       setUser({
         id: "1",
         name: "Admin User",
-        email: "admin@shophub.com",
+        email: "admin@ablnatasha.com",
         role: "admin",
       })
-    } else if (email === "user@shophub.com" && password === "user") {
+    } else if (email === "user@ablnatasha.com" && password === "user") {
       setUser({
         id: "2",
         name: "John Doe",
-        email: "user@shophub.com",
+        email: "user@ablnatasha.com",
         role: "user",
       })
     } else {

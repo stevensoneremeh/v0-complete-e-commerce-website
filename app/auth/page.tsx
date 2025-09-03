@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -26,7 +26,7 @@ export default function AuthPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loginError, setLoginError] = useState("")
   const [signupError, setSignupError] = useState("")
-  const { login, signup, isLoading } = useAuth()
+  const { login, signup, isLoading, setUser } = useAuth()
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -68,10 +68,16 @@ export default function AuthPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">S</span>
+            <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center overflow-hidden">
+              <Image
+                src="/abl-natasha-logo.png"
+                alt="ABL Natasha Enterprises"
+                width={24}
+                height={24}
+                className="object-contain"
+              />
             </div>
-            <span className="font-bold text-xl">ShopHub</span>
+            <span className="font-bold text-xl">ABL Natasha Enterprises</span>
           </div>
           <CardTitle>Welcome</CardTitle>
           <CardDescription>Sign in to your account or create a new one</CardDescription>
@@ -226,9 +232,9 @@ export default function AuthPage() {
           <div className="mt-4 p-4 bg-muted rounded-lg">
             <p className="text-sm font-medium mb-2">Demo Credentials:</p>
             <p className="text-xs text-muted-foreground">
-              Admin: admin@shophub.com / admin
+              Admin: admin@ablnatasha.com / admin
               <br />
-              User: user@shophub.com / user
+              User: user@ablnatasha.com / user
             </p>
           </div>
         </CardContent>
