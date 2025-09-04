@@ -17,6 +17,8 @@ import { useReviews } from "@/components/reviews-provider"
 import { useToast } from "@/hooks/use-toast"
 import { ReviewForm } from "@/components/review-form"
 import { ReviewsList } from "@/components/reviews-list"
+import { WhatsAppButton } from "@/components/whatsapp-button"
+import { CurrencySelector } from "@/components/currency-selector"
 
 // Dynamic product data based on ID
 const productDatabase = {
@@ -201,7 +203,7 @@ const productDatabase = {
     ],
     specifications: {
       Weight: "8.5 oz (men's size 9)",
-      Drop: "10mm heel-to-toe",
+      Drop: "10mm heel-toe",
       "Upper Material": "Engineered mesh",
       Midsole: "EVA foam with air cushioning",
       Outsole: "Durable rubber with flex grooves",
@@ -255,6 +257,8 @@ export default function ProductDetailPage() {
   const productId = Number.parseInt(params.id as string)
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
+  const [selectedCurrency, setSelectedCurrency] = useState<"USD" | "NGN">("USD")
+  const [convertedPrice, setConvertedPrice] = useState(0)
 
   const { addItem } = useCart()
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
@@ -289,6 +293,11 @@ export default function ProductDetailPage() {
   }
 
   const { average: rating, count: reviewCount } = getProductRating(product.id)
+
+  const handleCurrencyChange = (currency: "USD" | "NGN", convertedAmount: number) => {
+    setSelectedCurrency(currency)
+    setConvertedPrice(convertedAmount)
+  }
 
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
@@ -412,13 +421,14 @@ export default function ProductDetailPage() {
                   {rating > 0 ? `${rating} (${reviewCount} reviews)` : "No reviews yet"}
                 </span>
               </div>
-              <div className="flex items-center space-x-4 mb-6">
-                <span className="text-3xl font-bold text-primary">${product.price}</span>
+
+              <div className="mb-6">
+                <CurrencySelector amount={product.price} onCurrencyChange={handleCurrencyChange} />
                 {product.originalPrice > product.price && (
-                  <span className="text-xl text-muted-foreground line-through">${product.originalPrice}</span>
-                )}
-                {product.originalPrice > product.price && (
-                  <Badge variant="destructive">Save ${(product.originalPrice - product.price).toFixed(2)}</Badge>
+                  <div className="mt-2 flex items-center space-x-2">
+                    <span className="text-lg text-muted-foreground line-through">${product.originalPrice}</span>
+                    <Badge variant="destructive">Save ${(product.originalPrice - product.price).toFixed(2)}</Badge>
+                  </div>
                 )}
               </div>
             </div>
@@ -464,6 +474,14 @@ export default function ProductDetailPage() {
                   <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
                 </Button>
               </div>
+
+              <WhatsAppButton
+                productName={product.name}
+                productPrice={convertedPrice || product.price}
+                productUrl={typeof window !== "undefined" ? window.location.href : ""}
+                className="w-full"
+                size="lg"
+              />
             </div>
 
             {/* Stock Status */}

@@ -5,39 +5,33 @@ import Image from "next/image"
 const categories = [
   {
     id: 1,
-    name: "Electronics",
-    image: "/placeholder.svg?height=200&width=200",
+    name: "Perfumes",
+    image: "/placeholder.svg?height=200&width=200&text=Perfumes",
     count: 150,
   },
   {
     id: 2,
-    name: "Fashion",
-    image: "/placeholder.svg?height=200&width=200",
+    name: "Wigs",
+    image: "/placeholder.svg?height=200&width=200&text=Wigs",
     count: 300,
   },
   {
     id: 3,
-    name: "Home & Garden",
-    image: "/placeholder.svg?height=200&width=200",
+    name: "Cars",
+    image: "/placeholder.svg?height=200&width=200&text=Cars",
     count: 200,
   },
   {
     id: 4,
-    name: "Sports",
-    image: "/placeholder.svg?height=200&width=200",
+    name: "Wines",
+    image: "/placeholder.svg?height=200&width=200&text=Wines",
     count: 120,
   },
   {
     id: 5,
-    name: "Books",
-    image: "/placeholder.svg?height=200&width=200",
+    name: "Body Creams",
+    image: "/placeholder.svg?height=200&width=200&text=Body+Creams",
     count: 80,
-  },
-  {
-    id: 6,
-    name: "Beauty",
-    image: "/placeholder.svg?height=200&width=200",
-    count: 90,
   },
 ]
 

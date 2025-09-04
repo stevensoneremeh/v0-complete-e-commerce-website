@@ -12,15 +12,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { PlusCircle, Edit, Trash } from "lucide-react"
-import {
-  type Product,
-  type Category,
-  getProducts,
-  addProduct,
-  updateProduct,
-  deleteProduct,
-  getCategories,
-} from "@/lib/local-storage"
 import Image from "next/image"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
@@ -28,67 +19,136 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search, Package, TrendingUp, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
+interface Product {
+  id: string
+  name: string
+  slug: string
+  description: string
+  short_description?: string
+  price: number
+  compare_at_price?: number
+  category_id: string
+  sku: string
+  stock_quantity: number
+  low_stock_threshold: number
+  weight?: number
+  dimensions?: string
+  images: string[]
+  features: string[]
+  specifications: Record<string, any>
+  is_featured: boolean
+  is_active: boolean
+  status: string
+  meta_title?: string
+  meta_description?: string
+  created_at: string
+  updated_at: string
+}
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  image_url?: string
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false)
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null)
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false)
-  const [productToDelete, setProductToDelete] = useState<number | null>(null)
+  const [productToDelete, setProductToDelete] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
   useEffect(() => {
     loadData()
   }, [])
 
-  const loadData = () => {
-    setProducts(getProducts())
-    setCategories(getCategories())
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const [productsRes, categoriesRes] = await Promise.all([fetch("/api/products"), fetch("/api/categories")])
+
+      if (productsRes.ok && categoriesRes.ok) {
+        const productsData = await productsRes.json()
+        const categoriesData = await categoriesRes.json()
+        setProducts(productsData)
+        setCategories(categoriesData)
+      }
+    } catch (error) {
+      console.error("Error loading data:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load data. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === "all" || product.category === categoryFilter
+      product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = categoryFilter === "all" || product.category_id === categoryFilter
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "in-stock" && product.inStock) ||
-      (statusFilter === "out-of-stock" && !product.inStock)
+      (statusFilter === "in-stock" && product.stock_quantity > 0) ||
+      (statusFilter === "out-of-stock" && product.stock_quantity === 0)
 
     return matchesSearch && matchesCategory && matchesStatus
   })
 
-  const handleAddEditProduct = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    const name = formData.get("name") as string
-    const description = formData.get("description") as string
-    const price = Number.parseFloat(formData.get("price") as string)
-    const originalPrice = formData.get("originalPrice")
-      ? Number.parseFloat(formData.get("originalPrice") as string)
-      : undefined
-    const category = formData.get("category") as string
-    const brand = formData.get("brand") as string
-    const inStock = formData.get("inStock") === "on"
-    const stockQuantity = Number.parseInt(formData.get("stockQuantity") as string)
-    const badge = (formData.get("badge") as string) || undefined
-    const images = (formData.get("images") as string)
-      .split(",")
-      .map((img) => img.trim())
-      .filter(Boolean)
-    const features = (formData.get("features") as string)
-      .split(",")
-      .map((f) => f.trim())
-      .filter(Boolean)
+
+    const productData = {
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+      short_description: formData.get("short_description") as string,
+      price: Number.parseFloat(formData.get("price") as string),
+      compare_at_price: formData.get("compare_at_price")
+        ? Number.parseFloat(formData.get("compare_at_price") as string)
+        : null,
+      category_id: formData.get("category_id") as string,
+      sku: formData.get("sku") as string,
+      stock_quantity: Number.parseInt(formData.get("stock_quantity") as string),
+      low_stock_threshold: Number.parseInt(formData.get("low_stock_threshold") as string) || 5,
+      weight: formData.get("weight") ? Number.parseFloat(formData.get("weight") as string) : null,
+      dimensions: (formData.get("dimensions") as string) || null,
+      images: (formData.get("images") as string)
+        .split(",")
+        .map((img) => img.trim())
+        .filter(Boolean),
+      features: (formData.get("features") as string)
+        .split(",")
+        .map((f) => f.trim())
+        .filter(Boolean),
+      specifications: {},
+      is_featured: formData.get("is_featured") === "on",
+      is_active: formData.get("is_active") === "on",
+      status: (formData.get("status") as string) || "active",
+      meta_title: (formData.get("meta_title") as string) || null,
+      meta_description: (formData.get("meta_description") as string) || null,
+    }
+
+    // Parse specifications
     const specificationsInput = formData.get("specifications") as string
-    let specifications: Record<string, string> = {}
     try {
       if (specificationsInput) {
-        specifications = JSON.parse(specificationsInput)
+        productData.specifications = JSON.parse(specificationsInput)
       }
     } catch (error) {
       toast({
@@ -99,42 +159,37 @@ export default function AdminProductsPage() {
       return
     }
 
-    const productData: Omit<Product, "id" | "createdAt" | "updatedAt"> = {
-      name,
-      description,
-      price,
-      originalPrice,
-      category,
-      brand,
-      images: images.length > 0 ? images : ["/placeholder.svg?height=300&width=300&text=" + encodeURIComponent(name)],
-      inStock,
-      stockQuantity,
-      badge,
-      features,
-      specifications,
-    }
+    try {
+      const method = currentProduct ? "PUT" : "POST"
+      const url = currentProduct ? `/api/products/${currentProduct.id}` : "/api/products"
 
-    if (currentProduct) {
-      const updated = updateProduct(currentProduct.id, productData)
-      if (updated) {
-        setProducts(getProducts())
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(productData),
+      })
+
+      if (response.ok) {
+        await loadData()
         toast({
-          title: "Product Updated",
-          description: `Product "${updated.name}" has been updated.`,
+          title: currentProduct ? "Product Updated" : "Product Added",
+          description: `Product "${productData.name}" has been ${currentProduct ? "updated" : "added"}.`,
         })
+        setIsAddEditModalOpen(false)
+        setCurrentProduct(null)
+      } else {
+        throw new Error("Failed to save product")
       }
-    } else {
-      const added = addProduct(productData)
-      if (added) {
-        setProducts(getProducts())
-        toast({
-          title: "Product Added",
-          description: `Product "${added.name}" has been added.`,
-        })
-      }
+    } catch (error) {
+      console.error("Error saving product:", error)
+      toast({
+        title: "Error",
+        description: "Failed to save product. Please try again.",
+        variant: "destructive",
+      })
     }
-    setIsAddEditModalOpen(false)
-    setCurrentProduct(null)
   }
 
   const openAddModal = () => {
@@ -147,29 +202,65 @@ export default function AdminProductsPage() {
     setIsAddEditModalOpen(true)
   }
 
-  const openDeleteConfirmModal = (id: number) => {
+  const openDeleteConfirmModal = (id: string) => {
     setProductToDelete(id)
     setIsDeleteConfirmModalOpen(true)
   }
 
-  const handleDeleteProduct = () => {
-    if (productToDelete !== null) {
-      deleteProduct(productToDelete)
-      setProducts(getProducts())
-      setIsDeleteConfirmModalOpen(false)
-      setProductToDelete(null)
-      toast({
-        title: "Product Deleted",
-        description: "The product has been successfully deleted.",
-      })
+  const handleDeleteProduct = async () => {
+    if (productToDelete) {
+      try {
+        const response = await fetch(`/api/products/${productToDelete}`, {
+          method: "DELETE",
+        })
+
+        if (response.ok) {
+          await loadData()
+          toast({
+            title: "Product Deleted",
+            description: "The product has been successfully deleted.",
+          })
+        } else {
+          throw new Error("Failed to delete product")
+        }
+      } catch (error) {
+        console.error("Error deleting product:", error)
+        toast({
+          title: "Error",
+          description: "Failed to delete product. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsDeleteConfirmModalOpen(false)
+        setProductToDelete(null)
+      }
     }
   }
 
   const stats = {
     total: products.length,
-    inStock: products.filter((p) => p.inStock).length,
-    outOfStock: products.filter((p) => !p.inStock).length,
-    lowStock: products.filter((p) => p.inStock && p.stockQuantity < 10).length,
+    inStock: products.filter((p) => p.stock_quantity > 0).length,
+    outOfStock: products.filter((p) => p.stock_quantity === 0).length,
+    lowStock: products.filter((p) => p.stock_quantity > 0 && p.stock_quantity <= p.low_stock_threshold).length,
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-background">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <AdminHeader />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-muted/50 p-6">
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
+                <p className="text-muted-foreground">Loading products...</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -252,7 +343,7 @@ export default function AdminProductsPage() {
                     <SelectContent>
                       <SelectItem value="all">All Categories</SelectItem>
                       {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.name}>
+                        <SelectItem key={category.id} value={category.id}>
                           {category.name}
                         </SelectItem>
                       ))}
@@ -279,62 +370,59 @@ export default function AdminProductsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {filteredProducts.map((product) => (
-                    <div key={product.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                      <Image
-                        src={product.images[0] || "/placeholder.svg"}
-                        alt={product.name}
-                        width={60}
-                        height={60}
-                        className="rounded-md object-cover"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-semibold">{product.name}</h3>
-                          {product.badge && <Badge variant="secondary">{product.badge}</Badge>}
-                          <Badge variant={product.inStock ? "default" : "destructive"}>
-                            {product.inStock ? "In Stock" : "Out of Stock"}
-                          </Badge>
-                          {product.inStock && product.stockQuantity < 10 && (
-                            <Badge variant="outline" className="text-orange-600">
-                              Low Stock
+                  {filteredProducts.map((product) => {
+                    const category = categories.find((c) => c.id === product.category_id)
+                    return (
+                      <div key={product.id} className="flex items-center space-x-4 p-4 border rounded-lg">
+                        <Image
+                          src={product.images[0] || "/placeholder.svg"}
+                          alt={product.name}
+                          width={60}
+                          height={60}
+                          className="rounded-md object-cover"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-semibold">{product.name}</h3>
+                            {product.is_featured && <Badge variant="secondary">Featured</Badge>}
+                            <Badge variant={product.stock_quantity > 0 ? "default" : "destructive"}>
+                              {product.stock_quantity > 0 ? "In Stock" : "Out of Stock"}
                             </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {product.brand} • {product.category}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className="font-bold">${product.price.toFixed(2)}</span>
-                          {product.originalPrice && (
-                            <span className="text-sm text-muted-foreground line-through">
-                              ${product.originalPrice.toFixed(2)}
-                            </span>
-                          )}
-                          <span className="text-sm text-muted-foreground">Stock: {product.stockQuantity}</span>
-                        </div>
-                        {product.features && product.features.length > 0 && (
-                          <p className="text-xs text-muted-foreground mt-1">Features: {product.features.join(", ")}</p>
-                        )}
-                        {product.specifications && Object.keys(product.specifications).length > 0 && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Specs:{" "}
-                            {Object.entries(product.specifications)
-                              .map(([key, value]) => `${key}: ${value}`)
-                              .join(", ")}
+                            {product.stock_quantity > 0 && product.stock_quantity <= product.low_stock_threshold && (
+                              <Badge variant="outline" className="text-orange-600">
+                                Low Stock
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {product.sku} • {category?.name || "Unknown Category"}
                           </p>
-                        )}
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="font-bold">${product.price.toFixed(2)}</span>
+                            {product.compare_at_price && (
+                              <span className="text-sm text-muted-foreground line-through">
+                                ${product.compare_at_price.toFixed(2)}
+                              </span>
+                            )}
+                            <span className="text-sm text-muted-foreground">Stock: {product.stock_quantity}</span>
+                          </div>
+                          {product.features && product.features.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Features: {product.features.join(", ")}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => openEditModal(product)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => openDeleteConfirmModal(product.id)}>
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Button variant="outline" size="sm" onClick={() => openEditModal(product)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => openDeleteConfirmModal(product.id)}>
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                   {filteredProducts.length === 0 && (
                     <div className="text-center py-8">
                       <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -363,6 +451,12 @@ export default function AdminProductsPage() {
               <Input id="name" name="name" defaultValue={currentProduct?.name || ""} className="col-span-3" required />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="sku" className="text-right">
+                SKU
+              </Label>
+              <Input id="sku" name="sku" defaultValue={currentProduct?.sku || ""} className="col-span-3" required />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="description" className="text-right">
                 Description
               </Label>
@@ -372,6 +466,17 @@ export default function AdminProductsPage() {
                 defaultValue={currentProduct?.description || ""}
                 className="col-span-3"
                 required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="short_description" className="text-right">
+                Short Description
+              </Label>
+              <Textarea
+                id="short_description"
+                name="short_description"
+                defaultValue={currentProduct?.short_description || ""}
+                className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -389,46 +494,34 @@ export default function AdminProductsPage() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="originalPrice" className="text-right">
-                Original Price
+              <Label htmlFor="compare_at_price" className="text-right">
+                Compare Price
               </Label>
               <Input
-                id="originalPrice"
-                name="originalPrice"
+                id="compare_at_price"
+                name="compare_at_price"
                 type="number"
                 step="0.01"
-                defaultValue={currentProduct?.originalPrice || ""}
+                defaultValue={currentProduct?.compare_at_price || ""}
                 className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
+              <Label htmlFor="category_id" className="text-right">
                 Category
               </Label>
-              <Select name="category" defaultValue={currentProduct?.category || ""} required>
+              <Select name="category_id" defaultValue={currentProduct?.category_id || ""} required>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.name}>
+                    <SelectItem key={category.id} value={category.id}>
                       {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="brand" className="text-right">
-                Brand
-              </Label>
-              <Input
-                id="brand"
-                name="brand"
-                defaultValue={currentProduct?.brand || ""}
-                className="col-span-3"
-                required
-              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="images" className="text-right">
@@ -443,28 +536,53 @@ export default function AdminProductsPage() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="stockQuantity" className="text-right">
+              <Label htmlFor="stock_quantity" className="text-right">
                 Stock Quantity
               </Label>
               <Input
-                id="stockQuantity"
-                name="stockQuantity"
+                id="stock_quantity"
+                name="stock_quantity"
                 type="number"
-                defaultValue={currentProduct?.stockQuantity || 0}
+                defaultValue={currentProduct?.stock_quantity || 0}
                 className="col-span-3"
                 required
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="badge" className="text-right">
-                Badge
+              <Label htmlFor="low_stock_threshold" className="text-right">
+                Low Stock Threshold
               </Label>
               <Input
-                id="badge"
-                name="badge"
-                defaultValue={currentProduct?.badge || ""}
+                id="low_stock_threshold"
+                name="low_stock_threshold"
+                type="number"
+                defaultValue={currentProduct?.low_stock_threshold || 5}
                 className="col-span-3"
-                placeholder="e.g., Best Seller, New"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="weight" className="text-right">
+                Weight (kg)
+              </Label>
+              <Input
+                id="weight"
+                name="weight"
+                type="number"
+                step="0.01"
+                defaultValue={currentProduct?.weight || ""}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="dimensions" className="text-right">
+                Dimensions
+              </Label>
+              <Input
+                id="dimensions"
+                name="dimensions"
+                defaultValue={currentProduct?.dimensions || ""}
+                className="col-span-3"
+                placeholder="L x W x H"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -492,13 +610,61 @@ export default function AdminProductsPage() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="inStock" className="text-right">
-                In Stock
+              <Label htmlFor="status" className="text-right">
+                Status
+              </Label>
+              <Select name="status" defaultValue={currentProduct?.status || "active"}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="meta_title" className="text-right">
+                Meta Title
+              </Label>
+              <Input
+                id="meta_title"
+                name="meta_title"
+                defaultValue={currentProduct?.meta_title || ""}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="meta_description" className="text-right">
+                Meta Description
+              </Label>
+              <Textarea
+                id="meta_description"
+                name="meta_description"
+                defaultValue={currentProduct?.meta_description || ""}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="is_featured" className="text-right">
+                Featured
               </Label>
               <Checkbox
-                id="inStock"
-                name="inStock"
-                defaultChecked={currentProduct?.inStock ?? true}
+                id="is_featured"
+                name="is_featured"
+                defaultChecked={currentProduct?.is_featured ?? false}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="is_active" className="text-right">
+                Active
+              </Label>
+              <Checkbox
+                id="is_active"
+                name="is_active"
+                defaultChecked={currentProduct?.is_active ?? true}
                 className="col-span-3"
               />
             </div>

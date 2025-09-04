@@ -20,6 +20,8 @@ import { useCoupon } from "@/components/coupon-provider"
 import { useOrders } from "@/components/order-provider"
 import { useToast } from "@/hooks/use-toast"
 import { PaystackPayment } from "@/components/paystack-payment"
+import { WhatsAppButton } from "@/components/whatsapp-button"
+import { CurrencySelector } from "@/components/currency-selector"
 import { CreditCard, Building, Banknote, Lock, MapPin, Tag, X, Percent } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -54,6 +56,10 @@ export default function CheckoutPage() {
   const { toast } = useToast()
   const router = useRouter()
 
+  // Currency state
+  const [selectedCurrency, setSelectedCurrency] = useState<"USD" | "NGN">("USD")
+  const [convertedTotal, setConvertedTotal] = useState(0)
+
   // Coupon state
   const [couponCode, setCouponCode] = useState("")
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false)
@@ -83,8 +89,10 @@ export default function CheckoutPage() {
   const discount = calculateDiscount(total)
   const finalTotal = total + shippingCost + tax - discount
 
-  const ngnRate = 1650 // 1 USD = 1650 NGN (update as needed)
-  const finalTotalNGN = finalTotal * ngnRate
+  const handleCurrencyChange = (currency: "USD" | "NGN", convertedAmount: number) => {
+    setSelectedCurrency(currency)
+    setConvertedTotal(convertedAmount)
+  }
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
@@ -197,6 +205,21 @@ export default function CheckoutPage() {
 
     // For other payment methods, complete order directly
     completeOrder()
+  }
+
+  const generateCartWhatsAppMessage = () => {
+    let message = "Hello! I'm interested in purchasing the following items:\n\n"
+
+    items.forEach((item, index) => {
+      message += `${index + 1}. *${item.name}*\n`
+      message += `   Price: $${item.price}\n`
+      message += `   Quantity: ${item.quantity}\n\n`
+    })
+
+    message += `Total: $${finalTotal.toFixed(2)}\n\n`
+    message += "Could you please help me complete this purchase or provide more information?"
+
+    return message
   }
 
   if (items.length === 0) {
@@ -351,7 +374,7 @@ export default function CheckoutPage() {
                   {/* Payment Details */}
                   {paymentMethod === "paystack" && (
                     <PaystackPayment
-                      amount={finalTotalNGN}
+                      amount={convertedTotal || finalTotal * 1650}
                       email={email}
                       onSuccess={handlePaystackSuccess}
                       onError={handlePaystackError}
@@ -444,6 +467,16 @@ export default function CheckoutPage() {
                         <span className="font-medium">${(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
+                  </div>
+
+                  <Separator />
+
+                  {/* Currency Selector */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">Currency</span>
+                    </div>
+                    <CurrencySelector amount={finalTotal} onCurrencyChange={handleCurrencyChange} />
                   </div>
 
                   <Separator />
@@ -553,9 +586,9 @@ export default function CheckoutPage() {
                       <span>Total</span>
                       <div className="text-right">
                         <span>${finalTotal.toFixed(2)}</span>
-                        {paymentMethod === "paystack" && (
+                        {selectedCurrency === "NGN" && (
                           <div className="text-sm text-muted-foreground font-normal">
-                            ≈ ₦{finalTotalNGN.toLocaleString()}
+                            ≈ ₦{(convertedTotal || finalTotal * 1650).toLocaleString()}
                           </div>
                         )}
                         {discount > 0 && (
@@ -563,6 +596,10 @@ export default function CheckoutPage() {
                         )}
                       </div>
                     </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <WhatsAppButton message={generateCartWhatsAppMessage()} className="w-full" variant="outline" />
                   </div>
 
                   {paymentMethod !== "paystack" && (
