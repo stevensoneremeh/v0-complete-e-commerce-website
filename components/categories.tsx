@@ -8,30 +8,35 @@ const categories = [
     name: "Perfumes",
     image: "/placeholder.svg?height=200&width=200&text=Perfumes",
     count: 150,
+    slug: "perfumes",
   },
   {
     id: 2,
     name: "Wigs",
     image: "/placeholder.svg?height=200&width=200&text=Wigs",
     count: 300,
+    slug: "wigs",
   },
   {
     id: 3,
     name: "Cars",
     image: "/placeholder.svg?height=200&width=200&text=Cars",
     count: 200,
+    slug: "cars",
   },
   {
     id: 4,
     name: "Wines",
     image: "/placeholder.svg?height=200&width=200&text=Wines",
     count: 120,
+    slug: "wines",
   },
   {
     id: 5,
     name: "Body Creams",
     image: "/placeholder.svg?height=200&width=200&text=Body+Creams",
     count: 80,
+    slug: "body-creams",
   },
 ]
 
@@ -47,7 +52,7 @@ export function Categories() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {categories.map((category) => (
-            <Link key={category.id} href={`/categories/${category.id}`}>
+            <Link key={category.id} href={`/categories/${category.slug}`}>
               <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
                 <CardContent className="p-4 text-center">
                   <div className="relative mb-4 overflow-hidden rounded-lg">
