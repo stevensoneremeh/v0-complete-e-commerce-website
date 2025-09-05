@@ -376,6 +376,8 @@ export default function CheckoutPage() {
                     <PaystackPayment
                       amount={convertedTotal || finalTotal * 1650}
                       email={email}
+                      currency={selectedCurrency}
+                      customerName={`${firstName} ${lastName}`}
                       onSuccess={handlePaystackSuccess}
                       onError={handlePaystackError}
                       disabled={!email || !firstName || !lastName || !address}

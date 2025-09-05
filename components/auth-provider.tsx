@@ -1,6 +1,8 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createBrowserClient } from "@supabase/ssr"
+import type { User as SupabaseUser } from "@supabase/supabase-js"
 
 interface User {
   id: string
@@ -16,61 +18,153 @@ interface AuthContextType {
   logout: () => void
   signup: (name: string, email: string, password: string) => Promise<void>
   isLoading: boolean
+  setUser: (user: User | null) => void
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>({
-    id: "1",
-    name: "Admin User",
-    email: "admin@ablnatasha.com",
-    role: "admin",
-  })
-  const [isLoading, setIsLoading] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+
+  useEffect(() => {
+    const getSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (session?.user) {
+          await fetchUserProfile(session.user)
+        }
+      } catch (error) {
+        console.error("Error getting session:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    getSession()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await fetchUserProfile(session.user)
+      } else {
+        setUser(null)
+      }
+      setIsLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
+    try {
+      const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", supabaseUser.id).single()
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Error fetching profile:", error)
+        return
+      }
+
+      const userData: User = {
+        id: supabaseUser.id,
+        name: profile?.full_name || supabaseUser.user_metadata?.full_name || "User",
+        email: supabaseUser.email || "",
+        role: profile?.is_admin ? "admin" : "user",
+        avatar: supabaseUser.user_metadata?.avatar_url,
+      }
+
+      setUser(userData)
+    } catch (error) {
+      console.error("Error in fetchUserProfile:", error)
+    }
+  }
 
   const login = async (email: string, password: string) => {
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    // Mock authentication
-    if (email === "admin@ablnatasha.com" && password === "admin") {
-      setUser({
-        id: "1",
-        name: "Admin User",
-        email: "admin@ablnatasha.com",
-        role: "admin",
-      })
-    } else if (email === "user@ablnatasha.com" && password === "user") {
-      setUser({
-        id: "2",
-        name: "John Doe",
-        email: "user@ablnatasha.com",
-        role: "user",
-      })
-    } else {
-      throw new Error("Invalid credentials")
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      if (data.user) {
+        await fetchUserProfile(data.user)
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      throw error
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
-  const logout = () => {
-    setUser(null)
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
   }
 
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo:
+            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`,
+          data: {
+            full_name: name,
+          },
+        },
+      })
 
-    setUser({
-      id: Date.now().toString(),
-      name,
-      email,
-      role: "user",
-    })
-    setIsLoading(false)
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      // Create profile record
+      if (data.user) {
+        const { error: profileError } = await supabase.from("profiles").insert([
+          {
+            id: data.user.id,
+            email: data.user.email,
+            full_name: name,
+            is_admin: false,
+            role: "user",
+          },
+        ])
+
+        if (profileError) {
+          console.error("Error creating profile:", profileError)
+        }
+
+        // If user is immediately confirmed, fetch profile
+        if (data.user.email_confirmed_at) {
+          await fetchUserProfile(data.user)
+        }
+      }
+    } catch (error) {
+      console.error("Signup error:", error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -81,6 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         signup,
         isLoading,
+        setUser,
       }}
     >
       {children}

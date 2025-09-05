@@ -2,8 +2,8 @@
 
 import type React from "react"
 import Image from "next/image"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,8 +26,25 @@ export default function AuthPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loginError, setLoginError] = useState("")
   const [signupError, setSignupError] = useState("")
-  const { login, signup, isLoading, setUser } = useAuth()
+  const [signupSuccess, setSignupSuccess] = useState("")
+  const { login, signup, isLoading, user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (user) {
+      router.push("/")
+    }
+  }, [user, router])
+
+  useEffect(() => {
+    const error = searchParams.get("error")
+    if (error === "callback_error") {
+      setLoginError("Authentication failed. Please try again.")
+    } else if (error === "unexpected_error") {
+      setLoginError("An unexpected error occurred. Please try again.")
+    }
+  }, [searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,14 +53,15 @@ export default function AuthPage() {
     try {
       await login(loginEmail, loginPassword)
       router.push("/")
-    } catch (err) {
-      setLoginError("Invalid email or password")
+    } catch (err: any) {
+      setLoginError(err.message || "Invalid email or password")
     }
   }
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setSignupError("")
+    setSignupSuccess("")
 
     if (signupPassword !== confirmPassword) {
       setSignupError("Passwords do not match")
@@ -57,9 +75,14 @@ export default function AuthPage() {
 
     try {
       await signup(signupName, signupEmail, signupPassword)
-      router.push("/")
-    } catch (err) {
-      setSignupError("Failed to create account")
+      setSignupSuccess("Account created successfully! Please check your email to verify your account.")
+      // Clear form
+      setSignupName("")
+      setSignupEmail("")
+      setSignupPassword("")
+      setConfirmPassword("")
+    } catch (err: any) {
+      setSignupError(err.message || "Failed to create account")
     }
   }
 
@@ -149,6 +172,12 @@ export default function AuthPage() {
                 {signupError && (
                   <Alert variant="destructive">
                     <AlertDescription>{signupError}</AlertDescription>
+                  </Alert>
+                )}
+
+                {signupSuccess && (
+                  <Alert>
+                    <AlertDescription>{signupSuccess}</AlertDescription>
                   </Alert>
                 )}
 

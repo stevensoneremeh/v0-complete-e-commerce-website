@@ -1,9 +1,18 @@
 "use client"
 
+import type React from "react"
+
 import { Button } from "@/components/ui/button"
 import { MessageCircle } from "lucide-react"
 
+interface Product {
+  name: string
+  price: number
+  category?: string
+}
+
 interface WhatsAppButtonProps {
+  product?: Product
   productName?: string
   productPrice?: number
   productUrl?: string
@@ -11,9 +20,11 @@ interface WhatsAppButtonProps {
   className?: string
   variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive"
   size?: "default" | "sm" | "lg" | "icon"
+  children?: React.ReactNode
 }
 
 export function WhatsAppButton({
+  product,
   productName,
   productPrice,
   productUrl,
@@ -21,28 +32,43 @@ export function WhatsAppButton({
   className,
   variant = "outline",
   size = "default",
+  children,
 }: WhatsAppButtonProps) {
   const whatsappNumber = "+2349030944943"
 
   const generateMessage = () => {
     if (message) return message
 
-    let defaultMessage = "Hello! I'm interested in "
+    let defaultMessage = "Hello ABL Natasha Enterprises! 👋\n\n"
 
-    if (productName) {
-      defaultMessage += `*${productName}*`
+    const name = product?.name || productName
+    const price = product?.price || productPrice
+    const category = product?.category
 
-      if (productPrice) {
-        defaultMessage += ` (Price: $${productPrice})`
+    if (name) {
+      defaultMessage += `I'm interested in: *${name}*\n`
+
+      if (price) {
+        defaultMessage += `💰 Price: $${price.toLocaleString()}\n`
+      }
+
+      if (category) {
+        defaultMessage += `📂 Category: ${category}\n`
       }
 
       if (productUrl) {
-        defaultMessage += `\n\nProduct Link: ${productUrl}`
+        defaultMessage += `🔗 Link: ${productUrl}\n`
       }
 
-      defaultMessage += "\n\nCould you please provide more information or help me with the purchase?"
+      defaultMessage += "\n❓ Could you please provide more information or help me with the purchase?\n\n"
+      defaultMessage += "I'm ready to buy! 🛒"
     } else {
-      defaultMessage += "your products. Could you please assist me?"
+      defaultMessage += "I'm interested in your products and services.\n\n"
+      defaultMessage += "Could you please assist me with:\n"
+      defaultMessage += "• Product information\n"
+      defaultMessage += "• Pricing details\n"
+      defaultMessage += "• Purchase process\n\n"
+      defaultMessage += "Thank you! 😊"
     }
 
     return defaultMessage
@@ -51,6 +77,15 @@ export function WhatsAppButton({
   const handleWhatsAppClick = () => {
     const encodedMessage = encodeURIComponent(generateMessage())
     const whatsappUrl = `https://wa.me/${whatsappNumber.replace("+", "")}?text=${encodedMessage}`
+
+    if (typeof window !== "undefined" && window.gtag) {
+      window.gtag("event", "whatsapp_click", {
+        event_category: "engagement",
+        event_label: product?.name || productName || "general_inquiry",
+        value: product?.price || productPrice || 0,
+      })
+    }
+
     window.open(whatsappUrl, "_blank")
   }
 
@@ -59,10 +94,12 @@ export function WhatsAppButton({
       variant={variant}
       size={size}
       onClick={handleWhatsAppClick}
-      className={`bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 ${className}`}
+      className={`bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 ${
+        variant === "outline" ? "bg-transparent text-green-600 hover:bg-green-600 hover:text-white" : ""
+      } ${className}`}
     >
       <MessageCircle className="h-4 w-4 mr-2" />
-      {productName ? "Ask via WhatsApp" : "Contact via WhatsApp"}
+      {children || (product?.name || productName ? "Buy via WhatsApp" : "Contact via WhatsApp")}
     </Button>
   )
 }

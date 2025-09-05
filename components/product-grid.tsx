@@ -12,73 +12,64 @@ import { useCart } from "@/components/cart-provider"
 import { useWishlist } from "@/components/wishlist-provider"
 import { useReviews } from "@/components/reviews-provider"
 import { useToast } from "@/hooks/use-toast"
+import { WhatsAppButton } from "@/components/whatsapp-button"
+import { createBrowserClient } from "@supabase/ssr"
 
-const allProducts = [
+const fallbackProducts = [
   {
-    id: 1,
-    name: "Wireless Headphones Pro",
-    price: 99.99,
-    originalPrice: 129.99,
-    image: "/placeholder.svg?height=300&width=300&text=Headphones",
-    badge: "Best Seller",
-    inStock: false,
-    category: "electronics",
-    brand: "sony",
-  },
-  {
-    id: 2,
-    name: "Smart Fitness Watch",
-    price: 199.99,
-    originalPrice: 249.99,
-    image: "/placeholder.svg?height=300&width=300&text=Smart+Watch",
-    badge: "New",
-    inStock: true,
-    category: "electronics",
-    brand: "apple",
-  },
-  {
-    id: 3,
-    name: "Premium Laptop Backpack",
-    price: 49.99,
-    originalPrice: 69.99,
-    image: "/placeholder.svg?height=300&width=300&text=Backpack",
-    badge: "Sale",
-    inStock: true,
-    category: "fashion",
-    brand: "nike",
-  },
-  {
-    id: 4,
-    name: "Portable Bluetooth Speaker",
-    price: 79.99,
-    originalPrice: 99.99,
-    image: "/placeholder.svg?height=300&width=300&text=Speaker",
-    badge: "Popular",
-    inStock: false,
-    category: "electronics",
-    brand: "sony",
-  },
-  {
-    id: 5,
-    name: "Running Shoes",
+    id: "perfume-sample-1",
+    name: "Luxury French Perfume Collection",
     price: 89.99,
     originalPrice: 119.99,
-    image: "/placeholder.svg?height=300&width=300&text=Running+Shoes",
-    badge: "Sale",
+    image: "/placeholder.svg?height=300&width=300&text=Luxury+Perfume",
+    badge: "Best Seller",
     inStock: true,
-    category: "sports",
-    brand: "nike",
+    category: "perfumes",
+    brand: "chanel",
   },
   {
-    id: 6,
-    name: "Coffee Maker Deluxe",
+    id: "wig-sample-1",
+    name: "Premium Human Hair Wig",
+    price: 299.99,
+    originalPrice: 399.99,
+    image: "/placeholder.svg?height=300&width=300&text=Premium+Wig",
+    badge: "New",
+    inStock: true,
+    category: "wigs",
+    brand: "premium",
+  },
+  {
+    id: "car-sample-1",
+    name: "2023 Toyota Camry - Sale",
+    price: 28999.99,
+    originalPrice: 32999.99,
+    image: "/placeholder.svg?height=300&width=300&text=Toyota+Camry",
+    badge: "Sale",
+    inStock: true,
+    category: "cars",
+    brand: "toyota",
+  },
+  {
+    id: "wine-sample-1",
+    name: "Premium Red Wine Collection",
     price: 149.99,
-    originalPrice: 179.99,
-    image: "/placeholder.svg?height=300&width=300&text=Coffee+Maker",
+    originalPrice: 199.99,
+    image: "/placeholder.svg?height=300&width=300&text=Premium+Wine",
+    badge: "Popular",
+    inStock: true,
+    category: "wines",
+    brand: "bordeaux",
+  },
+  {
+    id: "cream-sample-1",
+    name: "Luxury Body Cream Set",
+    price: 59.99,
+    originalPrice: 79.99,
+    image: "/placeholder.svg?height=300&width=300&text=Body+Cream",
     badge: "Featured",
     inStock: true,
-    category: "home",
-    brand: "samsung",
+    category: "body-creams",
+    brand: "luxury",
   },
 ]
 
@@ -95,12 +86,67 @@ interface ProductGridProps {
 export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("featured")
-  const [filteredProducts, setFilteredProducts] = useState(allProducts)
+  const [allProducts, setAllProducts] = useState(fallbackProducts)
+  const [filteredProducts, setFilteredProducts] = useState(fallbackProducts)
+  const [loading, setLoading] = useState(true)
 
   const { addItem } = useCart()
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
   const { getProductRating } = useReviews()
   const { toast } = useToast()
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        )
+
+        const { data, error } = await supabase
+          .from("products")
+          .select(`
+            *,
+            categories (
+              name,
+              slug
+            )
+          `)
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+
+        if (data && !error) {
+          const formattedProducts = data.map((product) => ({
+            id: product.id,
+            name: product.name,
+            price: Number.parseFloat(product.price),
+            originalPrice: product.compare_at_price ? Number.parseFloat(product.compare_at_price) : null,
+            image:
+              product.images?.[0] || "/placeholder.svg?height=300&width=300&text=" + encodeURIComponent(product.name),
+            badge: product.compare_at_price ? "Sale" : product.is_featured ? "Featured" : "New",
+            inStock: product.stock_quantity > 0,
+            category: product.categories?.slug || "general",
+            brand: "premium", // Default brand since we don't have brands table yet
+            description:
+              product.short_description || product.description || "High-quality product with excellent features.",
+            sku: product.sku,
+          }))
+          setAllProducts(formattedProducts)
+        } else {
+          console.error("Error fetching products:", error)
+          // Keep fallback products
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error)
+        // Keep fallback products
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
 
   // Apply filters
   useEffect(() => {
@@ -113,7 +159,8 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
         (product) =>
           product.name.toLowerCase().includes(query) ||
           product.category.toLowerCase().includes(query) ||
-          product.brand.toLowerCase().includes(query),
+          product.brand.toLowerCase().includes(query) ||
+          (product.description && product.description.toLowerCase().includes(query)),
       )
     }
 
@@ -160,7 +207,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
         })
         break
       case "newest":
-        filtered.sort((a, b) => b.id - a.id)
+        filtered.reverse() // Since we already order by created_at desc
         break
       default:
         // Keep original order for featured
@@ -168,7 +215,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
     }
 
     setFilteredProducts(filtered)
-  }, [filters, sortBy, searchQuery, getProductRating])
+  }, [filters, sortBy, searchQuery, getProductRating, allProducts])
 
   const handleAddToCart = (product: any) => {
     addItem({
@@ -203,6 +250,25 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
         description: `${product.name} has been added to your wishlist.`,
       })
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-4 bg-gray-200 rounded w-48 animate-pulse"></div>
+          <div className="flex space-x-4">
+            <div className="h-10 bg-gray-200 rounded w-48 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-20 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-gray-200 rounded-lg h-96 animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -323,21 +389,18 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                           </div>
                           <div className="flex items-center space-x-3 mb-3">
                             <span className="text-2xl font-bold text-primary">${product.price}</span>
-                            {product.originalPrice > product.price && (
+                            {product.originalPrice && product.originalPrice > product.price && (
                               <span className="text-lg text-muted-foreground line-through">
                                 ${product.originalPrice}
                               </span>
                             )}
-                            {product.originalPrice > product.price && (
+                            {product.originalPrice && product.originalPrice > product.price && (
                               <Badge variant="destructive" className="text-xs">
                                 Save ${(product.originalPrice - product.price).toFixed(2)}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                            High-quality product with excellent features and great value for money. Perfect for everyday
-                            use.
-                          </p>
+                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
                           <div className="flex items-center space-x-2">
                             <Badge variant="secondary" className="text-xs">
                               {product.badge}
@@ -364,15 +427,15 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                             <ShoppingCart className="h-4 w-4 mr-2" />
                             {product.inStock ? "Add to Cart" : "Out of Stock"}
                           </Button>
-                          <Button
-                            size="default"
+                          <WhatsAppButton
+                            product={{
+                              name: product.name,
+                              price: product.price,
+                              category: product.category,
+                            }}
+                            className="min-w-[140px] h-10"
                             variant="outline"
-                            onClick={() => handleWishlistToggle(product)}
-                            className={`min-w-[140px] h-10 ${isInWishlist(product.id) ? "text-red-500 border-red-200" : ""}`}
-                          >
-                            <Heart className={`h-4 w-4 mr-2 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
-                            {isInWishlist(product.id) ? "In Wishlist" : "Add to Wishlist"}
-                          </Button>
+                          />
                         </div>
                       </div>
                     </div>
@@ -404,17 +467,26 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-2">
                           <span className="text-lg font-bold">${product.price}</span>
-                          {product.originalPrice > product.price && (
+                          {product.originalPrice && product.originalPrice > product.price && (
                             <span className="text-sm text-muted-foreground line-through">${product.originalPrice}</span>
                           )}
                         </div>
                       </div>
                     </div>
-                    <CardFooter className="p-4 pt-0">
+                    <CardFooter className="p-4 pt-0 space-y-2">
                       <Button className="w-full" disabled={!product.inStock} onClick={() => handleAddToCart(product)}>
                         <ShoppingCart className="h-4 w-4 mr-2" />
                         {product.inStock ? "Add to Cart" : "Out of Stock"}
                       </Button>
+                      <WhatsAppButton
+                        product={{
+                          name: product.name,
+                          price: product.price,
+                          category: product.category,
+                        }}
+                        className="w-full"
+                        variant="outline"
+                      />
                     </CardFooter>
                   </>
                 )}
