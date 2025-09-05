@@ -9,20 +9,22 @@ import { Badge } from "@/components/ui/badge"
 import { X } from "lucide-react"
 
 const categories = [
-  { id: "electronics", name: "Electronics", count: 150 },
-  { id: "fashion", name: "Fashion", count: 300 },
-  { id: "home", name: "Home & Garden", count: 200 },
-  { id: "sports", name: "Sports", count: 120 },
-  { id: "books", name: "Books", count: 80 },
-  { id: "beauty", name: "Beauty", count: 90 },
+  { id: "perfumes", name: "Perfumes", count: 45 },
+  { id: "wigs", name: "Wigs", count: 32 },
+  { id: "cars", name: "Cars (Sales & Hire)", count: 18 },
+  { id: "wines", name: "Wines", count: 28 },
+  { id: "body-creams", name: "Body Creams", count: 35 },
 ]
 
 const brands = [
-  { id: "apple", name: "Apple", count: 45 },
-  { id: "samsung", name: "Samsung", count: 38 },
-  { id: "nike", name: "Nike", count: 52 },
-  { id: "adidas", name: "Adidas", count: 41 },
-  { id: "sony", name: "Sony", count: 29 },
+  { id: "chanel", name: "Chanel", count: 12 },
+  { id: "dior", name: "Dior", count: 8 },
+  { id: "premium", name: "Premium Collection", count: 25 },
+  { id: "luxury", name: "Luxury Brand", count: 18 },
+  { id: "toyota", name: "Toyota", count: 6 },
+  { id: "honda", name: "Honda", count: 4 },
+  { id: "bordeaux", name: "Bordeaux", count: 10 },
+  { id: "champagne", name: "Champagne", count: 8 },
 ]
 
 interface ProductFiltersProps {

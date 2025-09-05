@@ -15,6 +15,7 @@ import { CalendarIcon } from "lucide-react"
 import { format, differenceInDays } from "date-fns"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
+import { DualCurrencyDisplay } from "@/components/dual-currency-display"
 
 interface PropertyBookingProps {
   property: {
@@ -96,7 +97,10 @@ export function PropertyBooking({ property }: PropertyBookingProps) {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Book Your Stay</span>
-          <span className="text-2xl font-bold text-primary">${property.pricePerNight}/night</span>
+          <span className="text-2xl font-bold text-primary">
+            <DualCurrencyDisplay usdAmount={property.pricePerNight} size="lg" variant="primary" compact={true} />
+            /night
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -223,13 +227,18 @@ export function PropertyBooking({ property }: PropertyBookingProps) {
             <div className="space-y-2 pt-4 border-t">
               <div className="flex justify-between text-sm">
                 <span>
-                  ${property.pricePerNight} × {nights} nights
+                  <DualCurrencyDisplay usdAmount={property.pricePerNight} size="sm" variant="default" compact={true} />{" "}
+                  × {nights} nights
                 </span>
-                <span>${totalAmount.toLocaleString()}</span>
+                <span>
+                  <DualCurrencyDisplay usdAmount={totalAmount} size="sm" variant="default" compact={true} />
+                </span>
               </div>
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total</span>
-                <span>${totalAmount.toLocaleString()}</span>
+                <span>
+                  <DualCurrencyDisplay usdAmount={totalAmount} size="lg" variant="primary" compact={true} />
+                </span>
               </div>
               {nights < property.minimumStay && (
                 <p className="text-sm text-red-600">Minimum stay: {property.minimumStay} nights</p>

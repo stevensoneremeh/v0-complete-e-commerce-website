@@ -13,6 +13,7 @@ import { useWishlist } from "@/components/wishlist-provider"
 import { useReviews } from "@/components/reviews-provider"
 import { useToast } from "@/hooks/use-toast"
 import { WhatsAppButton } from "@/components/whatsapp-button"
+import { DualCurrencyDisplay } from "@/components/dual-currency-display"
 import { createBrowserClient } from "@supabase/ssr"
 
 const fallbackProducts = [
@@ -388,11 +389,15 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                             </span>
                           </div>
                           <div className="flex items-center space-x-3 mb-3">
-                            <span className="text-2xl font-bold text-primary">${product.price}</span>
+                            <DualCurrencyDisplay usdAmount={product.price} size="lg" variant="primary" compact={true} />
                             {product.originalPrice && product.originalPrice > product.price && (
-                              <span className="text-lg text-muted-foreground line-through">
-                                ${product.originalPrice}
-                              </span>
+                              <DualCurrencyDisplay
+                                usdAmount={product.originalPrice}
+                                size="md"
+                                variant="muted"
+                                compact={true}
+                                className="line-through"
+                              />
                             )}
                             {product.originalPrice && product.originalPrice > product.price && (
                               <Badge variant="destructive" className="text-xs">
@@ -466,9 +471,15 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                       </div>
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-2">
-                          <span className="text-lg font-bold">${product.price}</span>
+                          <DualCurrencyDisplay usdAmount={product.price} size="md" variant="primary" compact={true} />
                           {product.originalPrice && product.originalPrice > product.price && (
-                            <span className="text-sm text-muted-foreground line-through">${product.originalPrice}</span>
+                            <DualCurrencyDisplay
+                              usdAmount={product.originalPrice}
+                              size="sm"
+                              variant="muted"
+                              compact={true}
+                              className="line-through"
+                            />
                           )}
                         </div>
                       </div>

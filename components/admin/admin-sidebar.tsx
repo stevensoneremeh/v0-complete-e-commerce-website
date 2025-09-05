@@ -2,7 +2,19 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Package, ShoppingCart, Users, BarChart, Tag, TicketPercent, Bell, Settings, Home } from "lucide-react"
+import {
+  Package,
+  ShoppingCart,
+  Users,
+  BarChart,
+  Tag,
+  TicketPercent,
+  Bell,
+  Settings,
+  Home,
+  Building2,
+  Calendar,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function AdminSidebar() {
@@ -12,6 +24,8 @@ export function AdminSidebar() {
     { href: "/admin", icon: Home, label: "Dashboard" },
     { href: "/admin/products", icon: Package, label: "Products" },
     { href: "/admin/categories", icon: Tag, label: "Categories" },
+    { href: "/admin/properties", icon: Building2, label: "Properties" },
+    { href: "/admin/bookings", icon: Calendar, label: "Bookings" },
     { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
     { href: "/admin/customers", icon: Users, label: "Customers" },
     { href: "/admin/coupons", icon: TicketPercent, label: "Coupons" },

@@ -44,13 +44,13 @@ export default function ProductsPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-4">
-                {searchQuery ? `Search Results for "${searchQuery}"` : "All Products"}
+              <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                {searchQuery ? `Search Results for "${searchQuery}"` : "ABL Natasha Premium Collection"}
               </h1>
               <p className="text-muted-foreground">
                 {searchQuery
                   ? `Showing products matching "${searchQuery}"`
-                  : "Discover our complete collection of quality products"}
+                  : "Discover our exclusive collection of perfumes, luxury wigs, premium cars, fine wines, and body creams"}
               </p>
             </div>
             {searchQuery && (

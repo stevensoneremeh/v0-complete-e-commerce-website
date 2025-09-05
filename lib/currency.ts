@@ -44,6 +44,39 @@ export function formatCurrency(amount: number, currency: "USD" | "NGN"): string 
   return amount.toString()
 }
 
+export function formatDualCurrency(
+  usdAmount: number,
+  options?: {
+    showBoth?: boolean
+    primaryCurrency?: "USD" | "NGN"
+    compact?: boolean
+  },
+): {
+  primary: string
+  secondary: string
+  both: string
+} {
+  const { showBoth = true, primaryCurrency = "USD", compact = false } = options || {}
+
+  const ngnAmount = convertCurrency(usdAmount, "USD", "NGN")
+  const usdFormatted = formatCurrency(usdAmount, "USD")
+  const ngnFormatted = formatCurrency(ngnAmount, "NGN")
+
+  if (compact) {
+    return {
+      primary: primaryCurrency === "USD" ? `$${usdAmount.toLocaleString()}` : `₦${ngnAmount.toLocaleString()}`,
+      secondary: primaryCurrency === "USD" ? `₦${ngnAmount.toLocaleString()}` : `$${usdAmount.toLocaleString()}`,
+      both: `$${usdAmount.toLocaleString()} / ₦${ngnAmount.toLocaleString()}`,
+    }
+  }
+
+  return {
+    primary: primaryCurrency === "USD" ? usdFormatted : ngnFormatted,
+    secondary: primaryCurrency === "USD" ? ngnFormatted : usdFormatted,
+    both: `${usdFormatted} / ${ngnFormatted}`,
+  }
+}
+
 export function getExchangeRate(): CurrencyRate {
   return EXCHANGE_RATES
 }

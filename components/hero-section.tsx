@@ -1,38 +1,62 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
-import { Sparkles, Shield, Clock, Building2, Home, Play } from "lucide-react"
+import { Sparkles, Shield, Clock, Building2, Play, Pause } from "lucide-react"
+import { useState, useRef } from "react"
 
 export function HeroSection() {
+  const [isPlaying, setIsPlaying] = useState(true)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  const toggleVideo = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause()
+      } else {
+        videoRef.current.play()
+      }
+      setIsPlaying(!isPlaying)
+    }
+  }
+
   return (
-    <section className="relative overflow-hidden min-h-screen flex items-center">
+    <section className="relative overflow-hidden h-[80vh] flex items-center">
       <div className="absolute inset-0 z-0">
-        <video autoPlay muted loop playsInline className="w-full h-full object-cover">
+        <video ref={videoRef} autoPlay muted loop playsInline className="w-full h-full object-cover">
           <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/64bb5c83-2bb1-4c22-8f9f-642334f46cac-d87osryg91ycSMO0JRVMoOSmYnhH4e.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-black/40"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent"></div>
+        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
       </div>
 
-      <div className="container mx-auto px-4 py-24 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="space-y-8">
-            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2">
+      <button
+        onClick={toggleVideo}
+        className="absolute top-6 right-6 z-20 bg-black/30 backdrop-blur-sm hover:bg-black/50 rounded-full p-3 transition-all duration-300 border border-white/20"
+      >
+        {isPlaying ? <Pause className="h-5 w-5 text-white" /> : <Play className="h-5 w-5 text-white fill-white" />}
+      </button>
+
+      <div className="container mx-auto px-4 py-16 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 backdrop-blur-sm border border-yellow-400/30 rounded-full px-4 py-2">
               <Sparkles className="h-4 w-4 text-yellow-400" />
               <span className="text-sm font-medium text-white">ABL Natasha Enterprises 2024</span>
             </div>
 
-            <div className="space-y-6">
-              <h1 className="text-5xl md:text-7xl font-bold leading-tight text-balance text-white">
-                Luxury
-                <span className="block bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent">
-                  Living
+            <div className="space-y-4">
+              <h1 className="text-4xl md:text-6xl font-bold leading-tight text-balance text-white">
+                Premium
+                <span className="block bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 bg-clip-text text-transparent">
+                  Lifestyle
                 </span>
-                <span className="block text-white">& Premium Shopping</span>
+                <span className="block text-white">& Luxury Living</span>
               </h1>
-              <p className="text-xl text-white/90 max-w-lg leading-relaxed text-pretty">
-                Experience the finest in luxury apartment rentals and premium product shopping. ABL Natasha Enterprises
-                delivers exceptional quality and unmatched elegance.
+              <p className="text-lg text-white/90 max-w-lg leading-relaxed text-pretty">
+                Discover exceptional luxury apartments, premium products, and unmatched elegance. ABL Natasha
+                Enterprises - Where luxury meets lifestyle.
               </p>
             </div>
 
@@ -88,31 +112,35 @@ export function HeroSection() {
 
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-500/20 rounded-3xl blur-3xl scale-110"></div>
-            <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20 shadow-2xl">
-              <div className="relative group cursor-pointer">
+            <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-2xl">
+              <div className="relative group cursor-pointer" onClick={toggleVideo}>
                 <Image
                   src="/luxury-living-room.jpeg"
                   alt="Luxury Living Room - ABL Natasha Enterprises"
-                  width={600}
-                  height={400}
+                  width={500}
+                  height={300}
                   className="rounded-2xl shadow-2xl w-full h-auto object-cover"
                   priority
                 />
                 <div className="absolute inset-0 bg-black/20 rounded-2xl group-hover:bg-black/10 transition-all duration-300"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 group-hover:scale-110 transition-transform duration-300">
-                    <Play className="h-8 w-8 text-white fill-white" />
+                    {isPlaying ? (
+                      <Pause className="h-6 w-6 text-white" />
+                    ) : (
+                      <Play className="h-6 w-6 text-white fill-white" />
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 text-center">
-                <h3 className="text-xl font-semibold text-white mb-2">Experience Luxury Living</h3>
-                <p className="text-white/80 text-sm">Premium furnished apartments with world-class amenities</p>
+              <div className="mt-4 text-center">
+                <h3 className="text-lg font-semibold text-white mb-2">Experience ABL Natasha</h3>
+                <p className="text-white/80 text-sm">Premium lifestyle and luxury living redefined</p>
               </div>
 
-              <div className="absolute -top-4 -right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full p-3 shadow-2xl animate-pulse">
-                <Home className="h-6 w-6" />
+              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full p-2 shadow-2xl">
+                <Building2 className="h-5 w-5" />
               </div>
             </div>
           </div>

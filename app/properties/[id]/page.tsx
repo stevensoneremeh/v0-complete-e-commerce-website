@@ -12,6 +12,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { PropertyBooking } from "@/components/property-booking"
 import { WhatsAppButton } from "@/components/whatsapp-button"
+import { DualCurrencyDisplay } from "@/components/dual-currency-display"
 import { useWishlist } from "@/components/wishlist-provider"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@supabase/ssr"
@@ -321,7 +322,7 @@ export default function PropertyDetailPage() {
               </div>
 
               <div className="text-3xl font-bold text-primary mb-4">
-                ${property.price.toLocaleString()}
+                <DualCurrencyDisplay usdAmount={property.price} size="lg" variant="primary" showBoth={true} />
                 {property.listing_type === "rent" && (
                   <span className="text-lg font-normal text-muted-foreground">/month</span>
                 )}
