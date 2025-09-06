@@ -56,8 +56,8 @@ export default function CategoriesPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Shop by Category</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore our wide range of categories and find exactly what you're looking for. From electronics to fashion,
-            we have everything you need.
+            Explore our curated collection of luxury products across premium categories. From designer perfumes to
+            luxury cars, discover the finest selection at ABL Natasha Enterprises.
           </p>
         </div>
 

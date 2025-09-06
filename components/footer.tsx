@@ -64,17 +64,20 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-semibold">Categories</h3>
             <div className="space-y-2">
-              <Link href="/categories/electronics" className="block text-muted-foreground hover:text-primary">
-                Electronics
+              <Link href="/categories/perfumes" className="block text-muted-foreground hover:text-primary">
+                Perfumes
               </Link>
-              <Link href="/categories/fashion" className="block text-muted-foreground hover:text-primary">
-                Fashion
+              <Link href="/categories/wigs" className="block text-muted-foreground hover:text-primary">
+                Wigs
               </Link>
-              <Link href="/categories/home" className="block text-muted-foreground hover:text-primary">
-                Home & Garden
+              <Link href="/categories/cars" className="block text-muted-foreground hover:text-primary">
+                Cars
               </Link>
-              <Link href="/categories/sports" className="block text-muted-foreground hover:text-primary">
-                Sports
+              <Link href="/categories/wines" className="block text-muted-foreground hover:text-primary">
+                Wines
+              </Link>
+              <Link href="/categories/body-creams" className="block text-muted-foreground hover:text-primary">
+                Body Creams
               </Link>
             </div>
           </div>
