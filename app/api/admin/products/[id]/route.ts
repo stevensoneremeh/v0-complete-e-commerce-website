@@ -2,8 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const cookieStore = await cookies()
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
       cookies: {
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
           slug
         )
       `)
-      .eq("id", params.id)
+      .eq("id", id)
       .single()
 
     if (error) {
@@ -44,8 +45,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const cookieStore = await cookies()
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
       cookies: {
@@ -70,7 +72,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         ...updates,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .select(`
         *,
         categories (
@@ -92,8 +94,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const cookieStore = await cookies()
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
       cookies: {
@@ -112,12 +115,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const updates = await request.json()
 
-    const { data: product, error } = await supabase
-      .from("products")
-      .update(updates)
-      .eq("id", params.id)
-      .select()
-      .single()
+    const { data: product, error } = await supabase.from("products").update(updates).eq("id", id).select().single()
 
     if (error) {
       console.error("Error updating product:", error)
@@ -131,8 +129,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params
     const cookieStore = await cookies()
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
       cookies: {
@@ -149,7 +148,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       },
     })
 
-    const { error } = await supabase.from("products").delete().eq("id", params.id)
+    const { error } = await supabase.from("products").delete().eq("id", id)
 
     if (error) {
       console.error("Error deleting product:", error)
