@@ -108,7 +108,7 @@ export default function CheckoutPage() {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    const result = applyCoupon(couponCode, total)
+    const result = applyCoupon(couponCode)
 
     if (result.success) {
       toast({
