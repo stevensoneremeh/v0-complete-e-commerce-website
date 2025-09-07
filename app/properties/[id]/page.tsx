@@ -156,19 +156,19 @@ export default function PropertyDetailPage() {
       removeFromWishlist(propertyIdNum)
       toast({
         title: "Removed from wishlist",
-        description: `${property.name} has been removed from your wishlist.`,
+        description: `${property.title} has been removed from your wishlist.`,
         variant: "destructive",
       })
     } else {
       addToWishlist({
         id: propertyIdNum,
-        name: property.name,
+        name: property.title, // Use title instead of name
         price: property.price,
         image: property.images[0],
       })
       toast({
         title: "Added to wishlist!",
-        description: `${property.name} has been added to your wishlist.`,
+        description: `${property.title} has been added to your wishlist.`,
       })
     }
   }
