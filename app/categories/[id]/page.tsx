@@ -180,13 +180,13 @@ const categoryProducts = {
 }
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const { id } = params
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const { id } = await params
   const category = categoryData[id as keyof typeof categoryData]
 
   if (!category) {
