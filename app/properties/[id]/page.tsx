@@ -162,7 +162,7 @@ export default function PropertyDetailPage() {
     } else {
       addToWishlist({
         id: propertyIdNum,
-        name: property.title, // Use title instead of name
+        name: property.title,
         price: property.price,
         image: property.images[0],
       })
@@ -307,9 +307,9 @@ export default function PropertyDetailPage() {
                     variant="outline"
                     size="icon"
                     onClick={handleWishlistToggle}
-                    className={isInWishlist(property.id) ? "text-red-500" : ""}
+                    className={isInWishlist(Number(property.id)) ? "text-red-500" : ""}
                   >
-                    <Heart className={`h-4 w-4 ${isInWishlist(property.id) ? "fill-current" : ""}`} />
+                    <Heart className={`h-4 w-4 ${isInWishlist(Number(property.id)) ? "fill-current" : ""}`} />
                   </Button>
                   <Button variant="outline" size="icon" onClick={handleShare}>
                     <Share2 className="h-4 w-4" />
