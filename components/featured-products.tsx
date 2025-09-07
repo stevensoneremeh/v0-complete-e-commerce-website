@@ -70,10 +70,17 @@ const featuredProducts = [
 
 export function FeaturedProducts() {
   const { addItem } = useCart()
-  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
+  const {
+    addItem: addToWishlist,
+    removeItem: removeFromWishlist,
+    isInWishlist: _isInWishlist,
+  } = useWishlist()
   const { getProductRating } = useReviews()
   const { toast } = useToast()
   const [products, setProducts] = useState(featuredProducts)
+
+  // ✅ Ensure isInWishlist works with string IDs
+  const isInWishlist = (id: string) => _isInWishlist(id)
 
   useEffect(() => {
     const fetchProducts = async () => {
