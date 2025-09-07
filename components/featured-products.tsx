@@ -97,16 +97,17 @@ export function FeaturedProducts() {
           .limit(5)
 
         if (data && !error) {
-          const formattedProducts = data.map((product) => ({
-            id: product.id,
-            name: product.name,
-            price: Number.parseFloat(product.price),
-            originalPrice: product.compare_at_price ? Number.parseFloat(product.compare_at_price) : null,
+          const formattedProducts = data.map((product: any) => ({
+            id: String(product.id),
+            name: String(product.name),
+            price: Number(product.price) || 0,
+            originalPrice: product.compare_at_price ? Number(product.compare_at_price) : 0,
             image:
-              product.images?.[0] || "/placeholder.svg?height=300&width=300&text=" + encodeURIComponent(product.name),
+              product.images?.[0] ||
+              "/placeholder.svg?height=300&width=300&text=" + encodeURIComponent(product.name || "Product"),
             badge: product.compare_at_price ? "Sale" : "Featured",
             inStock: product.stock_quantity > 0,
-            category: product.categories?.name || "General",
+            category: product.categories?.name ? String(product.categories.name) : "General",
           }))
           setProducts(formattedProducts)
         }
@@ -229,7 +230,7 @@ export function FeaturedProducts() {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
                         <DualCurrencyDisplay usdAmount={product.price} size="md" variant="primary" compact={true} />
-                        {product.originalPrice && product.originalPrice > product.price && (
+                        {product.originalPrice > product.price && (
                           <DualCurrencyDisplay
                             usdAmount={product.originalPrice}
                             size="sm"
