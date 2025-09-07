@@ -177,7 +177,6 @@ export default function CheckoutPage() {
         country,
       },
       paymentMethod: paymentMethods.find((pm) => pm.id === paymentMethod)?.name || paymentMethod,
-      paymentReference: reference || paymentReference,
       couponCode: appliedCoupon?.code,
       discount,
     })

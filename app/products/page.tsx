@@ -12,7 +12,13 @@ import { Button } from "@/components/ui/button"
 export default function ProductsPage() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
-  const [filters, setFilters] = useState({
+  // Explicitly type filters state to match ProductFilters expected type
+  const [filters, setFilters] = useState<{
+    categories: string[]
+    brands: string[]
+    priceRange: number[]
+    rating: number[]
+  }>({
     categories: [],
     brands: [],
     priceRange: [0, 1000],

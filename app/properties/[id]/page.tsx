@@ -150,23 +150,25 @@ export default function PropertyDetailPage() {
   const handleWishlistToggle = () => {
     if (!property) return
 
-    if (isInWishlist(property.id)) {
-      removeFromWishlist(property.id)
+    const propertyIdNum = Number(property.id)
+
+    if (isInWishlist(propertyIdNum)) {
+      removeFromWishlist(propertyIdNum)
       toast({
         title: "Removed from wishlist",
-        description: `${property.title} has been removed from your wishlist.`,
+        description: `${property.name} has been removed from your wishlist.`,
         variant: "destructive",
       })
     } else {
       addToWishlist({
-        id: property.id,
-        name: property.title,
+        id: propertyIdNum,
+        name: property.name,
         price: property.price,
         image: property.images[0],
       })
       toast({
         title: "Added to wishlist!",
-        description: `${property.title} has been added to your wishlist.`,
+        description: `${property.name} has been added to your wishlist.`,
       })
     }
   }
