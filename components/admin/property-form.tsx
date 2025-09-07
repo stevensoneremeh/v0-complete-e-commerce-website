@@ -480,4 +480,62 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     <Switch
                       id="featured"
                       checked={formData.featured}
+                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, featured: checked }))}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="is_available">Available for Booking</Label>
+                    <Switch
+                      id="is_available"
+                      checked={formData.is_available_for_booking}
                       onCheckedChange={(checked) =>
+                        setFormData((prev) => ({ ...prev, is_available_for_booking: checked }))
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label>Tags</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    placeholder="Add tag"
+                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                  />
+                  <Button type="button" onClick={addTag} size="sm">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.tags.map((tag) => (
+                    <Badge key={tag} variant="outline" className="flex items-center gap-1">
+                      {tag}
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-destructive"
+                        onClick={() => removeTag(tag)}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                <Save className="h-4 w-4 mr-2" />
+                {isLoading ? "Saving..." : property ? "Update Property" : "Create Property"}
+              </Button>
+            </div>
+          </form>
+        </Tabs>
+      </CardContent>
+    </Card>
+  )
+}
