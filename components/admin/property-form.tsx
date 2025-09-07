@@ -15,12 +15,6 @@ import { Switch } from "@/components/ui/switch"
 import { X, Plus, Upload, Save, Eye, Tag, MapPin, Home } from "lucide-react"
 import { toast } from "sonner"
 
-interface LocationDetails {
-  address: string
-  city: string
-  country: string
-}
-
 interface PropertyFormData {
   title: string
   description: string
@@ -29,7 +23,7 @@ interface PropertyFormData {
   bathrooms: number
   square_feet: number
   booking_price_per_night: number
-  location_details: LocationDetails
+  location_details: { address: string; city: string; country: string }
   amenities: string[]
   images: string[]
   is_available_for_booking: boolean
@@ -46,7 +40,7 @@ interface PropertyFormData {
 }
 
 interface PropertyFormProps {
-  property?: Partial<PropertyFormData> & { id?: string }
+  property?: (Partial<PropertyFormData> & { id?: string }) | null
   onSave: (property: any) => void
   onCancel: () => void
 }
@@ -81,7 +75,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
   const [newTag, setNewTag] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
@@ -187,14 +181,303 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
           </TabsList>
 
           <form onSubmit={handleSubmit} className="mt-6">
-            {/* unchanged JSX structure — all inputs remain the same */}
-            {/* (I only updated filter/map callbacks and event handler types above) */}
+            {/* BASIC TAB */}
+            <TabsContent value="basic" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Property Title</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                    placeholder="Luxury Downtown Apartment"
+                    required
+                  />
+                </div>
 
-            {/* ... rest of the JSX identical to what you pasted ... */}
+                <div className="space-y-2">
+                  <Label htmlFor="property_type">Property Type</Label>
+                  <Select
+                    value={formData.property_type}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, property_type: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="apartment">Apartment</SelectItem>
+                      <SelectItem value="house">House</SelectItem>
+                      <SelectItem value="villa">Villa</SelectItem>
+                      <SelectItem value="penthouse">Penthouse</SelectItem>
+                      <SelectItem value="studio">Studio</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          </form>
-        </Tabs>
-      </CardContent>
-    </Card>
-  )
-}
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe the property features and highlights..."
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bedrooms">Bedrooms</Label>
+                  <Input
+                    id="bedrooms"
+                    type="number"
+                    min="0"
+                    value={formData.bedrooms}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, bedrooms: Number.parseInt(e.target.value) }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bathrooms">Bathrooms</Label>
+                  <Input
+                    id="bathrooms"
+                    type="number"
+                    min="0"
+                    value={formData.bathrooms}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, bathrooms: Number.parseInt(e.target.value) }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="square_feet">Square Feet</Label>
+                  <Input
+                    id="square_feet"
+                    type="number"
+                    min="0"
+                    value={formData.square_feet}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, square_feet: Number.parseInt(e.target.value) }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price per Night ($)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.booking_price_per_night}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, booking_price_per_night: Number.parseFloat(e.target.value) }))
+                    }
+                    required
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* DETAILS TAB */}
+            <TabsContent value="details" className="space-y-6">
+              <div className="space-y-4">
+                <Label>Location Details</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      value={formData.location_details.address}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          location_details: { ...prev.location_details, address: e.target.value },
+                        }))
+                      }
+                      placeholder="123 Main Street"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={formData.location_details.city}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          location_details: { ...prev.location_details, city: e.target.value },
+                        }))}
+                      placeholder="New York"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Input
+                      id="country"
+                      value={formData.location_details.country}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          location_details: { ...prev.location_details, country: e.target.value },
+                        }))}
+                      placeholder="USA"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label>Amenities</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newAmenity}
+                    onChange={(e) => setNewAmenity(e.target.value)}
+                    placeholder="Add amenity (e.g., WiFi, Pool, Gym)"
+                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addAmenity())}
+                  />
+                  <Button type="button" onClick={addAmenity} size="sm">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {formData.amenities.map((amenity) => (
+                    <Badge key={amenity} variant="secondary" className="flex items-center gap-1">
+                      {amenity}
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-destructive"
+                        onClick={() => removeAmenity(amenity)}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="year_built">Year Built</Label>
+                  <Input
+                    id="year_built"
+                    type="number"
+                    min="1800"
+                    max={new Date().getFullYear() + 5}
+                    value={formData.year_built}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, year_built: Number.parseInt(e.target.value) }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="minimum_stay">Minimum Stay (nights)</Label>
+                  <Input
+                    id="minimum_stay"
+                    type="number"
+                    min="1"
+                    value={formData.minimum_stay_nights}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, minimum_stay_nights: Number.parseInt(e.target.value) }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="virtual_tour">Virtual Tour URL</Label>
+                  <Input
+                    id="virtual_tour"
+                    type="url"
+                    value={formData.virtual_tour_url}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, virtual_tour_url: e.target.value }))}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* MEDIA TAB */}
+            <TabsContent value="media" className="space-y-6">
+              <div className="space-y-4">
+                <Label>Property Images</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={newImage}
+                    onChange={(e) => setNewImage(e.target.value)}
+                    placeholder="Image URL"
+                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addImage())}
+                  />
+                  <Button type="button" onClick={addImage} size="sm">
+                    <Upload className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image || "/placeholder.svg"}
+                        alt={`Property ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeImage(image)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label>SEO & Meta Information</Label>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="meta_title">Meta Title</Label>
+                    <Input
+                      id="meta_title"
+                      value={formData.meta_title}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, meta_title: e.target.value }))}
+                      placeholder="SEO title for search engines"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="meta_description">Meta Description</Label>
+                    <Textarea
+                      id="meta_description"
+                      value={formData.meta_description}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, meta_description: e.target.value }))}
+                      placeholder="SEO description for search engines"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* MANAGEMENT TAB */}
+            <TabsContent value="management" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <Label>Property Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="booked">Booked</SelectItem>
+                      <SelectItem value="sold">Sold</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="featured">Featured Property</Label>
+                    <Switch
+                      id="featured"
+                      checked={formData.featured}
+                      onCheckedChange={(checked) =>
