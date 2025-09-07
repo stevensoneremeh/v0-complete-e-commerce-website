@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function PATCH(request: NextRequest, context: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies()
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
     cookies: {
@@ -16,7 +16,7 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
   })
 
   try {
-    const { id: propertyId } = context.params
+    const { id: propertyId } = await context.params
     const updates = await request.json()
 
     // Update property with partial data (typically status changes)
@@ -61,7 +61,7 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
   }
 }
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies()
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
     cookies: {
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest, context: { params: { id: string 
   })
 
   try {
-    const { id: propertyId } = context.params
+    const { id: propertyId } = await context.params
 
     const { data: property, error } = await supabase
       .from("real_estate_properties")
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest, context: { params: { id: string 
   }
 }
 
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies()
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
     cookies: {
@@ -116,7 +116,7 @@ export async function DELETE(request: NextRequest, context: { params: { id: stri
   })
 
   try {
-    const { id: propertyId } = context.params
+    const { id: propertyId } = await context.params
 
     // Get property to find linked product
     const { data: property } = await supabase
