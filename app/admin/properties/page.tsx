@@ -10,7 +10,6 @@ import { PropertyForm } from "@/components/admin/property-form"
 import { Plus, Search, Edit, Trash2, Eye, Building2, MapPin, DollarSign, Filter } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
-import { crypto } from "crypto"
 
 interface Property {
   id: string
@@ -158,7 +157,7 @@ export default function AdminPropertiesPage() {
       // Add new property
       const newProperty: Property = {
         ...savedProperty,
-        id: savedProperty.id || crypto.randomUUID(),
+        id: savedProperty.id || globalThis.crypto.randomUUID(),
         created_at: now,
         last_updated: now,
       }
