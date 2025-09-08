@@ -41,7 +41,7 @@ interface PropertyFormData {
 
 interface PropertyFormProps {
   property?: (Partial<PropertyFormData> & { id?: string }) | null
-  onSave: (property: any) => void
+  onSave: (property: PropertyFormData & { id?: string }) => void
   onCancel: () => void
 }
 
@@ -235,7 +235,10 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     type="number"
                     min="0"
                     value={formData.bedrooms}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, bedrooms: Number.parseInt(e.target.value) }))}
+                    onChange={(e) => {
+                      const value = Number.parseInt(e.target.value, 10)
+                      setFormData((prev) => ({ ...prev, bedrooms: isNaN(value) ? 0 : value }))
+                    }}
                   />
                 </div>
 
@@ -246,7 +249,10 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     type="number"
                     min="0"
                     value={formData.bathrooms}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, bathrooms: Number.parseInt(e.target.value) }))}
+                    onChange={(e) => {
+                      const value = Number.parseInt(e.target.value, 10)
+                      setFormData((prev) => ({ ...prev, bathrooms: isNaN(value) ? 0 : value }))
+                    }}
                   />
                 </div>
 
@@ -257,7 +263,10 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     type="number"
                     min="0"
                     value={formData.square_feet}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, square_feet: Number.parseInt(e.target.value) }))}
+                    onChange={(e) => {
+                      const value = Number.parseInt(e.target.value, 10)
+                      setFormData((prev) => ({ ...prev, square_feet: isNaN(value) ? 0 : value }))
+                    }}
                   />
                 </div>
 
@@ -269,9 +278,10 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     min="0"
                     step="0.01"
                     value={formData.booking_price_per_night}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, booking_price_per_night: Number.parseFloat(e.target.value) }))
-                    }
+                    onChange={(e) => {
+                      const value = Number.parseFloat(e.target.value)
+                      setFormData((prev) => ({ ...prev, booking_price_per_night: isNaN(value) ? 0 : value }))
+                    }}
                     required
                   />
                 </div>
@@ -306,7 +316,8 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                         setFormData((prev) => ({
                           ...prev,
                           location_details: { ...prev.location_details, city: e.target.value },
-                        }))}
+                        }))
+                      }
                       placeholder="New York"
                     />
                   </div>
@@ -319,7 +330,8 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                         setFormData((prev) => ({
                           ...prev,
                           location_details: { ...prev.location_details, country: e.target.value },
-                        }))}
+                        }))
+                      }
                       placeholder="USA"
                     />
                   </div>
@@ -361,7 +373,10 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     min="1800"
                     max={new Date().getFullYear() + 5}
                     value={formData.year_built}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, year_built: Number.parseInt(e.target.value) }))}
+                    onChange={(e) => {
+                      const value = Number.parseInt(e.target.value, 10)
+                      setFormData((prev) => ({ ...prev, year_built: isNaN(value) ? new Date().getFullYear() : value }))
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -371,9 +386,10 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     type="number"
                     min="1"
                     value={formData.minimum_stay_nights}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, minimum_stay_nights: Number.parseInt(e.target.value) }))
-                    }
+                    onChange={(e) => {
+                      const value = Number.parseInt(e.target.value, 10)
+                      setFormData((prev) => ({ ...prev, minimum_stay_nights: isNaN(value) ? 1 : value }))
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
@@ -514,10 +530,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                   {formData.tags.map((tag) => (
                     <Badge key={tag} variant="outline" className="flex items-center gap-1">
                       {tag}
-                      <X
-                        className="h-3 w-3 cursor-pointer hover:text-destructive"
-                        onClick={() => removeTag(tag)}
-                      />
+                      <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={() => removeTag(tag)} />
                     </Badge>
                   ))}
                 </div>

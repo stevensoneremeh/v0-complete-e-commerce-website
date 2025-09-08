@@ -2,7 +2,46 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest) {
+interface OrderItem {
+  product_id: string
+  name: string
+  sku: string
+  quantity: number
+  price: number
+}
+
+interface ShippingInfo {
+  shipping_address: string
+  shipping_city: string
+  shipping_state: string
+  shipping_zip: string
+  shipping_country: string
+}
+
+interface BillingInfo {
+  billing_address: string
+  billing_city: string
+  billing_state: string
+  billing_zip: string
+  billing_country: string
+}
+
+interface CreateOrderRequest {
+  user_id?: string
+  guest_id?: string
+  session_id?: string
+  items: OrderItem[]
+  shipping_info: ShippingInfo
+  billing_info: BillingInfo
+  payment_method: string
+  subtotal: number
+  tax_amount: number
+  shipping_amount: number
+  total_amount: number
+  currency?: string
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const cookieStore = await cookies()
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
@@ -62,7 +101,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const cookieStore = await cookies()
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
@@ -80,7 +119,7 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const body = await request.json()
+    const body: CreateOrderRequest = await request.json()
     const {
       user_id,
       guest_id,
@@ -126,8 +165,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create order" }, { status: 500 })
     }
 
-    // Create order items
-    const orderItems = items.map((item: any) => ({
+    const orderItems = items.map((item: OrderItem) => ({
       order_id: order.id,
       product_id: item.product_id,
       product_name: item.name,

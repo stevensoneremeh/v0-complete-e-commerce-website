@@ -23,15 +23,23 @@ export function AdminHeader() {
 
   useEffect(() => {
     const updateNotificationCount = () => {
-      const notifications = getNotifications()
-      setUnreadNotificationsCount(notifications.filter((n) => !n.isRead).length)
+      try {
+        if (typeof window !== "undefined") {
+          const notifications = getNotifications()
+          setUnreadNotificationsCount(notifications.filter((n) => !n.isRead).length)
+        }
+      } catch (error) {
+        console.warn("Failed to load notifications:", error)
+        setUnreadNotificationsCount(0)
+      }
     }
 
     updateNotificationCount() // Initial load
 
-    // Listen for storage changes to update count in real-time
-    window.addEventListener("storage", updateNotificationCount)
-    return () => window.removeEventListener("storage", updateNotificationCount)
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", updateNotificationCount)
+      return () => window.removeEventListener("storage", updateNotificationCount)
+    }
   }, [])
 
   const getPageTitle = () => {

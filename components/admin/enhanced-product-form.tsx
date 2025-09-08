@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import React, { ChangeEvent, FormEvent, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useState } from "react"
 
 // Types ---------------------------------------------------------------------
 export type Feature = {
@@ -30,19 +30,19 @@ export type EnhancedProductFormProps = {
 export default function EnhancedProductForm({
   initialData,
   onSubmit,
-  submitLabel = 'Save product',
+  submitLabel = "Save product",
   disabled = false,
 }: EnhancedProductFormProps) {
   const [formData, setFormData] = useState<ProductFormData>(() => ({
-    title: initialData?.title ?? '',
-    description: initialData?.description ?? '',
+    title: initialData?.title ?? "",
+    description: initialData?.description ?? "",
     price: initialData?.price ?? 0,
-    sku: initialData?.sku ?? '',
+    sku: initialData?.sku ?? "",
     inventory: initialData?.inventory ?? 0,
     features:
       initialData?.features && initialData.features.length > 0
         ? (initialData.features as Feature[])
-        : [{ id: String(Date.now()), name: '', value: '' }],
+        : [{ id: String(Date.now()), name: "", value: "" }],
     images: initialData?.images ?? [],
   }))
 
@@ -53,10 +53,7 @@ export default function EnhancedProductForm({
   const addFeature = (): void => {
     setFormData((prev) => ({
       ...prev,
-      features: [
-        ...prev.features,
-        { id: `${Date.now()}-${Math.random()}`, name: '', value: '' },
-      ],
+      features: [...prev.features, { id: `${Date.now()}-${Math.random()}`, name: "", value: "" }],
     }))
   }
 
@@ -68,11 +65,7 @@ export default function EnhancedProductForm({
     }))
   }
 
-  const updateFeature = (
-    index: number,
-    field: keyof Feature,
-    value: string
-  ): void => {
+  const updateFeature = (index: number, field: keyof Feature, value: string): void => {
     setFormData((prev) => ({
       ...prev,
       features: prev.features.map((f, i) => (i === index ? { ...f, [field]: value } : f)),
@@ -82,14 +75,19 @@ export default function EnhancedProductForm({
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value } = e.target
 
-    if (name === 'price') {
+    if (name === "price") {
       // keep price as number in state
-      const parsed = value === '' ? 0 : Number(value)
+      const parsed = value === "" ? 0 : Number(value)
       setFormData((prev) => ({ ...prev, price: Number.isNaN(parsed) ? 0 : parsed }))
       return
     }
 
-    setFormData((prev) => ({ ...prev, [name]: value } as unknown as ProductFormData))
+    if (name === "sku" || name === "title" || name === "description") {
+      setFormData((prev) => ({ ...prev, [name]: value }))
+    } else if (name === "inventory") {
+      const parsed = value === "" ? 0 : Number(value)
+      setFormData((prev) => ({ ...prev, inventory: Number.isNaN(parsed) ? 0 : parsed }))
+    }
   }
 
   const handleImagesChange = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -110,12 +108,12 @@ export default function EnhancedProductForm({
 
     // Basic validation
     if (!formData.title || formData.title.trim().length === 0) {
-      setError('Product title is required')
+      setError("Product title is required")
       return
     }
 
-    if (typeof formData.price !== 'number' || Number.isNaN(formData.price)) {
-      setError('Valid product price is required')
+    if (typeof formData.price !== "number" || Number.isNaN(formData.price)) {
+      setError("Valid product price is required")
       return
     }
 
@@ -134,7 +132,7 @@ export default function EnhancedProductForm({
   return (
     <form onSubmit={handleSubmit} aria-disabled={disabled || submitting}>
       {error && (
-        <div role="alert" style={{ color: 'var(--danger, #c00)', marginBottom: 12 }}>
+        <div role="alert" style={{ color: "var(--danger, #c00)", marginBottom: 12 }}>
           {error}
         </div>
       )}
@@ -177,26 +175,32 @@ export default function EnhancedProductForm({
 
       <div style={{ marginBottom: 12 }}>
         <label htmlFor="sku">SKU</label>
-        <input id="sku" name="sku" value={formData.sku ?? ''} onChange={handleChange} disabled={disabled || submitting} />
+        <input
+          id="sku"
+          name="sku"
+          value={formData.sku ?? ""}
+          onChange={handleChange}
+          disabled={disabled || submitting}
+        />
       </div>
 
       <div style={{ marginBottom: 12 }}>
         <fieldset>
           <legend>Features</legend>
           {formData.features.map((f: Feature, i: number) => (
-            <div key={f.id} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <div key={f.id} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
               <input
                 aria-label={`feature-name-${i}`}
                 placeholder="Name"
                 value={f.name}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => updateFeature(i, 'name', e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updateFeature(i, "name", e.target.value)}
                 disabled={disabled || submitting}
               />
               <input
                 aria-label={`feature-value-${i}`}
                 placeholder="Value"
                 value={f.value}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => updateFeature(i, 'value', e.target.value)}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => updateFeature(i, "value", e.target.value)}
                 disabled={disabled || submitting}
               />
               <button type="button" onClick={() => removeFeature(i)} disabled={disabled || submitting}>
@@ -213,11 +217,18 @@ export default function EnhancedProductForm({
 
       <div style={{ marginBottom: 12 }}>
         <label htmlFor="images">Images</label>
-        <input id="images" type="file" accept="image/*" multiple onChange={handleImagesChange} disabled={disabled || submitting} />
+        <input
+          id="images"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleImagesChange}
+          disabled={disabled || submitting}
+        />
         <div style={{ marginTop: 8 }}>
           {formData.images.map((img: File, i: number) => (
-            <div key={`${img.name}-${i}`} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}>{img.name}</span>
+            <div key={`${img.name}-${i}`} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
+              <span style={{ maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis" }}>{img.name}</span>
               <button type="button" onClick={() => removeImage(i)} disabled={disabled || submitting}>
                 Remove
               </button>
@@ -228,7 +239,7 @@ export default function EnhancedProductForm({
 
       <div>
         <button type="submit" disabled={disabled || submitting}>
-          {submitting ? 'Saving...' : submitLabel}
+          {submitting ? "Saving..." : submitLabel}
         </button>
       </div>
     </form>
