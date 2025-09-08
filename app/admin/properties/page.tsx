@@ -160,6 +160,7 @@ export default function AdminPropertiesPage() {
         id: savedProperty.id || globalThis.crypto.randomUUID(),
         created_at: now,
         last_updated: now,
+        status: "available", // Default status for new properties
       }
       setProperties((prev) => [newProperty, ...prev])
     }
