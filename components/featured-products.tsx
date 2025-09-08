@@ -70,17 +70,24 @@ const featuredProducts = [
 
 export function FeaturedProducts() {
   const { addItem } = useCart()
-  const {
-    addItem: addToWishlist,
-    removeItem: removeFromWishlist,
-    isInWishlist: _isInWishlist,
-  } = useWishlist()
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist: _isInWishlist } = useWishlist()
   const { getProductRating } = useReviews()
   const { toast } = useToast()
   const [products, setProducts] = useState(featuredProducts)
 
-  // ✅ Ensure isInWishlist works with string IDs
-  const isInWishlist = (id: string) => _isInWishlist(id)
+  const isInWishlist = (id: string) => {
+    // Try to convert string ID to number for wishlist compatibility
+    const numericId = Number.parseInt(id, 10)
+    if (!isNaN(numericId)) {
+      return _isInWishlist(numericId)
+    }
+    // For non-numeric string IDs, use a hash or fallback approach
+    const hashId = id.split("").reduce((a, b) => {
+      a = (a << 5) - a + b.charCodeAt(0)
+      return a & a
+    }, 0)
+    return _isInWishlist(Math.abs(hashId))
+  }
 
   useEffect(() => {
     const fetchProducts = async () => {
