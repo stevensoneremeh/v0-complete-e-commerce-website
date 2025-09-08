@@ -21,9 +21,9 @@ export function PerformanceMonitor() {
     }
 
     // Core Web Vitals
-    import("web-vitals").then(({ onCLS, onFID, onFCP, onLCP, onTTFB }) => {
+    import("web-vitals").then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
       onCLS(reportWebVitals)
-      onFID(reportWebVitals)
+      onINP(reportWebVitals) // INP replaces FID in web-vitals 5.x
       onFCP(reportWebVitals)
       onLCP(reportWebVitals)
       onTTFB(reportWebVitals)
