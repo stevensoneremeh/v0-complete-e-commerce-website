@@ -10,6 +10,7 @@ import { PropertyForm } from "@/components/admin/property-form"
 import { Plus, Search, Edit, Trash2, Eye, Building2, MapPin, DollarSign, Filter } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
+import { crypto } from "crypto"
 
 interface Property {
   id: string
@@ -38,6 +39,23 @@ interface Property {
     price: number
     status: string
   }
+}
+
+interface PropertyFormData {
+  title: string
+  description: string
+  property_type: string
+  bedrooms: number
+  bathrooms: number
+  square_feet: number
+  booking_price_per_night: number
+  location_details: any
+  amenities: string[]
+  images: string[]
+  is_available_for_booking: boolean
+  minimum_stay_nights: number
+  year_built: number
+  tags: string[]
 }
 
 export default function AdminPropertiesPage() {
@@ -119,11 +137,32 @@ export default function AdminPropertiesPage() {
     }
   }
 
-  const handleSaveProperty = (savedProperty: Property) => {
+  const handleSaveProperty = (savedProperty: PropertyFormData & { id?: string }) => {
+    const now = new Date().toISOString()
+
     if (editingProperty) {
-      setProperties((prev) => prev.map((p) => (p.id === savedProperty.id ? savedProperty : p)))
+      // Update existing property
+      setProperties((prev) =>
+        prev.map((p) =>
+          p.id === savedProperty.id
+            ? ({
+                ...savedProperty,
+                id: savedProperty.id!,
+                created_at: p.created_at,
+                last_updated: now,
+              } as Property)
+            : p,
+        ),
+      )
     } else {
-      setProperties((prev) => [savedProperty, ...prev])
+      // Add new property
+      const newProperty: Property = {
+        ...savedProperty,
+        id: savedProperty.id || crypto.randomUUID(),
+        created_at: now,
+        last_updated: now,
+      }
+      setProperties((prev) => [newProperty, ...prev])
     }
     setShowForm(false)
     setEditingProperty(null)
