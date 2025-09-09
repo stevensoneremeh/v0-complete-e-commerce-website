@@ -12,9 +12,11 @@ interface ReviewsListProps {
   productId: number
 }
 
+type SortOption = "newest" | "oldest" | "highest" | "lowest"
+
 export function ReviewsList({ productId }: ReviewsListProps) {
   const { getProductReviews, getProductRating, markHelpful } = useReviews()
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "highest" | "lowest">("newest")
+  const [sortBy, setSortBy] = useState<SortOption>("newest")
 
   const reviews = getProductReviews(productId)
   const { average, count } = getProductRating(productId)
@@ -65,7 +67,7 @@ export function ReviewsList({ productId }: ReviewsListProps) {
           <span className="text-sm text-muted-foreground">Sort by:</span>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="text-sm border rounded px-2 py-1"
           >
             <option value="newest">Newest</option>

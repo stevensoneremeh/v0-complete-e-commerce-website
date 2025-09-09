@@ -11,6 +11,18 @@ import { Plus, Search, Edit, Trash2, Eye, Building2, MapPin, DollarSign, Filter 
 import { toast } from "sonner"
 import Image from "next/image"
 
+interface LocationDetails {
+  street?: string
+  city?: string
+  state?: string
+  country?: string
+  zipCode?: string
+  coordinates?: {
+    lat: number
+    lng: number
+  }
+}
+
 interface Property {
   id: string
   title: string
@@ -20,7 +32,7 @@ interface Property {
   bathrooms: number
   square_feet: number
   booking_price_per_night: number
-  location_details: any
+  location_details: LocationDetails
   amenities: string[]
   images: string[]
   is_available_for_booking: boolean
@@ -48,7 +60,7 @@ interface PropertyFormData {
   bathrooms: number
   square_feet: number
   booking_price_per_night: number
-  location_details: any
+  location_details: LocationDetails
   amenities: string[]
   images: string[]
   is_available_for_booking: boolean
@@ -96,7 +108,7 @@ export default function AdminPropertiesPage() {
       const response = await fetch("/api/admin/properties")
       if (response.ok) {
         const data = await response.json()
-        const propertiesWithDefaults = data.map((property: any) => ({
+        const propertiesWithDefaults = data.map((property: Property) => ({
           ...property,
           status: property.status || "available",
           tags: property.tags || [],

@@ -53,8 +53,9 @@ export default function AuthPage() {
     try {
       await login(loginEmail, loginPassword)
       router.push("/")
-    } catch (err: any) {
-      setLoginError(err.message || "Invalid email or password")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Invalid email or password"
+      setLoginError(errorMessage)
     }
   }
 
@@ -81,8 +82,9 @@ export default function AuthPage() {
       setSignupEmail("")
       setSignupPassword("")
       setConfirmPassword("")
-    } catch (err: any) {
-      setSignupError(err.message || "Failed to create account")
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to create account"
+      setSignupError(errorMessage)
     }
   }
 
