@@ -15,67 +15,63 @@ import { useToast } from "@/hooks/use-toast"
 import { WhatsAppButton } from "@/components/whatsapp-button"
 import { DualCurrencyDisplay } from "@/components/dual-currency-display"
 import { createBrowserClient } from "@supabase/ssr"
+import type { Product } from "@/lib/local-storage"
 
 const fallbackProducts = [
   {
     id: "perfume-sample-1",
     name: "Luxury French Perfume Collection",
     price: 89.99,
-    originalPrice: 119.99 as number | null,
+    originalPrice: 119.99,
     image: "/placeholder.svg?height=300&width=300&text=Luxury+Perfume",
     badge: "Best Seller",
     inStock: true,
     category: "perfumes",
     brand: "chanel",
-    description: "Exquisite collection of luxury French perfumes with long-lasting fragrance and elegant packaging.",
   },
   {
     id: "wig-sample-1",
     name: "Premium Human Hair Wig",
     price: 299.99,
-    originalPrice: 399.99 as number | null,
+    originalPrice: 399.99,
     image: "/placeholder.svg?height=300&width=300&text=Premium+Wig",
     badge: "New",
     inStock: true,
     category: "wigs",
     brand: "premium",
-    description: "High-quality human hair wig with natural look and comfortable fit for everyday wear.",
   },
   {
     id: "car-sample-1",
     name: "2023 Toyota Camry - Sale",
     price: 28999.99,
-    originalPrice: 32999.99 as number | null,
+    originalPrice: 32999.99,
     image: "/placeholder.svg?height=300&width=300&text=Toyota+Camry",
     badge: "Sale",
     inStock: true,
     category: "cars",
     brand: "toyota",
-    description: "Reliable and fuel-efficient 2023 Toyota Camry with advanced safety features and modern technology.",
   },
   {
     id: "wine-sample-1",
     name: "Premium Red Wine Collection",
     price: 149.99,
-    originalPrice: 199.99 as number | null,
+    originalPrice: 199.99,
     image: "/placeholder.svg?height=300&width=300&text=Premium+Wine",
     badge: "Popular",
     inStock: true,
     category: "wines",
     brand: "bordeaux",
-    description: "Carefully selected premium red wines from renowned vineyards with rich flavor profiles.",
   },
   {
     id: "cream-sample-1",
     name: "Luxury Body Cream Set",
     price: 59.99,
-    originalPrice: 79.99 as number | null,
+    originalPrice: 79.99,
     image: "/placeholder.svg?height=300&width=300&text=Body+Cream",
     badge: "Featured",
     inStock: true,
     category: "body-creams",
     brand: "luxury",
-    description: "Nourishing luxury body cream set with natural ingredients for smooth and hydrated skin.",
   },
 ]
 
@@ -92,8 +88,8 @@ interface ProductGridProps {
 export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [sortBy, setSortBy] = useState("featured")
-  const [allProducts, setAllProducts] = useState(fallbackProducts)
-  const [filteredProducts, setFilteredProducts] = useState(fallbackProducts)
+  const [allProducts, setAllProducts] = useState<Product[]>(fallbackProducts)
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(fallbackProducts)
   const [loading, setLoading] = useState(true)
 
   const { addItem } = useCart()
@@ -223,7 +219,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
     setFilteredProducts(filtered)
   }, [filters, sortBy, searchQuery, getProductRating, allProducts])
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: Product) => {
     addItem({
       id: product.id,
       name: product.name,
@@ -236,7 +232,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
     })
   }
 
-  const handleWishlistToggle = (product: any) => {
+  const handleWishlistToggle = (product: Product) => {
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id)
       toast({
@@ -488,7 +484,6 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                           )}
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
                     </div>
                     <CardFooter className="p-4 pt-0 space-y-2">
                       <Button className="w-full" disabled={!product.inStock} onClick={() => handleAddToCart(product)}>

@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
 import { CreditCard, Lock, Shield, CheckCircle, AlertCircle } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast" // Import useToast
 
 interface PaystackPaymentProps {
   amount: number
@@ -17,6 +17,38 @@ interface PaystackPaymentProps {
   disabled?: boolean
   currency?: "NGN" | "USD"
   customerName?: string
+}
+
+interface PaystackResponse {
+  reference: string
+  status: string
+  trans: string
+  transaction: string
+  trxref: string
+  message: string
+}
+
+interface PaystackConfig {
+  key: string
+  email: string
+  amount: number
+  currency: string
+  ref: string
+  metadata: {
+    custom_fields: Array<{
+      display_name: string
+      variable_name: string
+      value: string
+    }>
+  }
+  callback: (response: PaystackResponse) => void
+  onClose: () => void
+}
+
+interface PaystackPop {
+  setup: (config: PaystackConfig) => {
+    openIframe: () => void
+  }
 }
 
 export function PaystackPayment({
@@ -30,7 +62,7 @@ export function PaystackPayment({
 }: PaystackPaymentProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState<"idle" | "processing" | "success" | "error">("idle")
-  const { toast } = useToast()
+  const { toast } = useToast() // Declare useToast
 
   const initializePaystack = async () => {
     if (!email) {
@@ -70,7 +102,7 @@ export function PaystackPayment({
         })
       }
 
-      const paymentConfig = {
+      const paymentConfig: PaystackConfig = {
         key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
         email: email,
         amount: Math.round(amount * 100), // Convert to smallest currency unit
@@ -95,7 +127,7 @@ export function PaystackPayment({
             },
           ],
         },
-        callback: (response: any) => {
+        callback: (response: PaystackResponse) => {
           console.log("[v0] Paystack payment successful:", response)
           setPaymentStatus("success")
           toast({
@@ -288,7 +320,7 @@ export function PaystackPayment({
 // Extend Window interface for TypeScript
 declare global {
   interface Window {
-    PaystackPop: any
-    gtag: any
+    PaystackPop: PaystackPop
+    gtag: (command: string, action: string, parameters: Record<string, unknown>) => void
   }
 }

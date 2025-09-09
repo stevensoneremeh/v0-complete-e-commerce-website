@@ -15,7 +15,32 @@ import { DualCurrencyDisplay } from "@/components/dual-currency-display"
 import { useState, useEffect } from "react"
 import { createBrowserClient } from "@supabase/ssr"
 
-const featuredProducts = [
+interface DatabaseProduct {
+  id: number | string
+  name: string
+  price: string | number
+  compare_at_price?: string | number
+  images?: string[]
+  is_featured?: boolean
+  stock_quantity: number
+  categories?: {
+    name: string
+    slug: string
+  }
+}
+
+interface FeaturedProduct {
+  id: string
+  name: string
+  price: number
+  originalPrice: number
+  image: string
+  badge: string
+  inStock: boolean
+  category: string
+}
+
+const featuredProducts: FeaturedProduct[] = [
   {
     id: "perfume-1",
     name: "Luxury French Perfume",
@@ -111,7 +136,7 @@ export function FeaturedProducts() {
           .limit(5)
 
         if (data && !error) {
-          const formattedProducts = data.map((product: any) => ({
+          const formattedProducts = data.map((product: DatabaseProduct) => ({
             id: String(product.id),
             name: String(product.name),
             price: Number(product.price) || 0,
@@ -134,7 +159,7 @@ export function FeaturedProducts() {
     fetchProducts()
   }, [])
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: FeaturedProduct) => {
     addItem({
       id: product.id,
       name: product.name,
@@ -147,7 +172,7 @@ export function FeaturedProducts() {
     })
   }
 
-  const handleWishlistToggle = (product: any) => {
+  const handleWishlistToggle = (product: FeaturedProduct) => {
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id)
       toast({
