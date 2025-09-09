@@ -112,7 +112,7 @@ export default function AdminPropertiesPage() {
           ...property,
           status: property.status || "available",
           tags: property.tags || [],
-          last_updated: property.updated_at || property.created_at,
+          last_updated: property.last_updated || property.created_at,
         }))
         setProperties(propertiesWithDefaults)
       } else {
