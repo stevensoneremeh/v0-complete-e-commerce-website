@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast"
 import { Heart, ShoppingCart, Trash2, Star } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import type { Product } from "@/lib/local-storage"
 
 // Mock wishlist data with additional product info
 // const mockWishlistProducts = [
@@ -62,7 +61,7 @@ export default function WishlistPage() {
     badge: "Wishlist",
   }))
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: any) => {
     addItem({
       id: product.id,
       name: product.name,

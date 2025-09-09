@@ -15,6 +15,16 @@ import { Switch } from "@/components/ui/switch"
 import { X, Plus, Upload, Save, Eye, Tag, MapPin, Home } from "lucide-react"
 import { toast } from "sonner"
 
+interface LocationDetails {
+  address: string
+  city: string
+  country: string
+  state?: string
+  zip_code?: string
+  latitude?: number
+  longitude?: number
+}
+
 interface PropertyFormData {
   title: string
   description: string
@@ -23,7 +33,7 @@ interface PropertyFormData {
   bathrooms: number
   square_feet: number
   booking_price_per_night: number
-  location_details: { address: string; city: string; country: string }
+  location_details: LocationDetails // Changed from any to LocationDetails
   amenities: string[]
   images: string[]
   is_available_for_booking: boolean
@@ -333,6 +343,66 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                         }))
                       }
                       placeholder="USA"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    <Input
+                      id="state"
+                      value={formData.location_details.state || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          location_details: { ...prev.location_details, state: e.target.value },
+                        }))
+                      }
+                      placeholder="New York State"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="zip_code">Zip Code</Label>
+                    <Input
+                      id="zip_code"
+                      value={formData.location_details.zip_code || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          location_details: { ...prev.location_details, zip_code: e.target.value },
+                        }))
+                      }
+                      placeholder="10001"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="latitude">Latitude</Label>
+                    <Input
+                      id="latitude"
+                      type="number"
+                      value={formData.location_details.latitude || 0}
+                      onChange={(e) => {
+                        const value = Number.parseFloat(e.target.value)
+                        setFormData((prev) => ({
+                          ...prev,
+                          location_details: { ...prev.location_details, latitude: isNaN(value) ? 0 : value },
+                        }))
+                      }}
+                      placeholder="40.7128"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="longitude">Longitude</Label>
+                    <Input
+                      id="longitude"
+                      type="number"
+                      value={formData.location_details.longitude || 0}
+                      onChange={(e) => {
+                        const value = Number.parseFloat(e.target.value)
+                        setFormData((prev) => ({
+                          ...prev,
+                          location_details: { ...prev.location_details, longitude: isNaN(value) ? 0 : value },
+                        }))
+                      }}
+                      placeholder="-74.0060"
                     />
                   </div>
                 </div>

@@ -12,15 +12,13 @@ import { toast } from "sonner"
 import Image from "next/image"
 
 interface LocationDetails {
-  street?: string
+  address?: string
   city?: string
-  state?: string
   country?: string
-  zipCode?: string
-  coordinates?: {
-    lat: number
-    lng: number
-  }
+  state?: string
+  zip_code?: string
+  latitude?: number
+  longitude?: number
 }
 
 interface Property {
@@ -32,7 +30,7 @@ interface Property {
   bathrooms: number
   square_feet: number
   booking_price_per_night: number
-  location_details: LocationDetails
+  location_details: LocationDetails // Changed from any to LocationDetails
   amenities: string[]
   images: string[]
   is_available_for_booking: boolean
@@ -60,13 +58,34 @@ interface PropertyFormData {
   bathrooms: number
   square_feet: number
   booking_price_per_night: number
-  location_details: LocationDetails
+  location_details: LocationDetails // Changed from any to LocationDetails
   amenities: string[]
   images: string[]
   is_available_for_booking: boolean
   minimum_stay_nights: number
   year_built: number
   tags: string[]
+}
+
+interface PropertyApiResponse {
+  id: string
+  title: string
+  description: string
+  property_type: string
+  bedrooms: number
+  bathrooms: number
+  square_feet: number
+  booking_price_per_night: number
+  location_details: LocationDetails | null
+  amenities: string[] | null
+  images: string[] | null
+  is_available_for_booking: boolean
+  minimum_stay_nights: number
+  year_built: number
+  created_at: string
+  updated_at?: string
+  status?: string
+  tags?: string[] | null
 }
 
 export default function AdminPropertiesPage() {
@@ -107,12 +126,15 @@ export default function AdminPropertiesPage() {
     try {
       const response = await fetch("/api/admin/properties")
       if (response.ok) {
-        const data = await response.json()
-        const propertiesWithDefaults = data.map((property: Property) => ({
+        const data: PropertyApiResponse[] = await response.json()
+        const propertiesWithDefaults: Property[] = data.map((property: PropertyApiResponse) => ({
           ...property,
-          status: property.status || "available",
+          status: (property.status as Property["status"]) || "available",
           tags: property.tags || [],
-          last_updated: property.last_updated || property.created_at,
+          last_updated: property.updated_at || property.created_at,
+          location_details: property.location_details || {},
+          amenities: property.amenities || [],
+          images: property.images || [],
         }))
         setProperties(propertiesWithDefaults)
       } else {
@@ -161,6 +183,7 @@ export default function AdminPropertiesPage() {
                 id: savedProperty.id!,
                 created_at: p.created_at,
                 last_updated: now,
+                status: p.status, // Preserve existing status when updating
               } as Property)
             : p,
         ),
@@ -168,10 +191,24 @@ export default function AdminPropertiesPage() {
     } else {
       // Add new property
       const newProperty: Property = {
-        ...savedProperty,
         id: savedProperty.id || globalThis.crypto.randomUUID(),
         created_at: now,
         last_updated: now,
+        status: "available", // Default status for new properties
+        title: savedProperty.title,
+        description: savedProperty.description,
+        property_type: savedProperty.property_type,
+        bedrooms: savedProperty.bedrooms,
+        bathrooms: savedProperty.bathrooms,
+        square_feet: savedProperty.square_feet,
+        booking_price_per_night: savedProperty.booking_price_per_night,
+        location_details: savedProperty.location_details,
+        amenities: savedProperty.amenities,
+        images: savedProperty.images,
+        is_available_for_booking: savedProperty.is_available_for_booking,
+        minimum_stay_nights: savedProperty.minimum_stay_nights,
+        year_built: savedProperty.year_built,
+        tags: savedProperty.tags,
       }
       setProperties((prev) => [newProperty, ...prev])
     }
