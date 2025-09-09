@@ -7,27 +7,9 @@ import { cookies } from "next/headers"
  * it.
  */
 export async function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn("Supabase environment variables are missing. Using fallback values.")
-    // Return a mock client that won't crash the app
-    return createServerClient("https://placeholder.supabase.co", "placeholder-anon-key", {
-      cookies: {
-        getAll() {
-          return []
-        },
-        setAll() {
-          // No-op for fallback
-        },
-      },
-    })
-  }
-
   const cookieStore = await cookies()
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
       getAll() {
         return cookieStore.getAll()

@@ -21,12 +21,12 @@ export function PerformanceMonitor() {
     }
 
     // Core Web Vitals
-    import("web-vitals").then(({ onCLS, onINP, onFCP, onLCP, onTTFB }) => {
-      onCLS(reportWebVitals)
-      onINP(reportWebVitals) // INP replaces FID in web-vitals 5.x
-      onFCP(reportWebVitals)
-      onLCP(reportWebVitals)
-      onTTFB(reportWebVitals)
+    import("web-vitals").then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+      getCLS(reportWebVitals)
+      getFID(reportWebVitals)
+      getFCP(reportWebVitals)
+      getLCP(reportWebVitals)
+      getTTFB(reportWebVitals)
     })
 
     // Performance observer for navigation timing

@@ -21,61 +21,56 @@ const fallbackProducts = [
     id: "perfume-sample-1",
     name: "Luxury French Perfume Collection",
     price: 89.99,
-    originalPrice: 119.99 as number | null,
+    originalPrice: 119.99,
     image: "/placeholder.svg?height=300&width=300&text=Luxury+Perfume",
     badge: "Best Seller",
     inStock: true,
     category: "perfumes",
     brand: "chanel",
-    description: "Exquisite collection of luxury French perfumes with long-lasting fragrance and elegant packaging.",
   },
   {
     id: "wig-sample-1",
     name: "Premium Human Hair Wig",
     price: 299.99,
-    originalPrice: 399.99 as number | null,
+    originalPrice: 399.99,
     image: "/placeholder.svg?height=300&width=300&text=Premium+Wig",
     badge: "New",
     inStock: true,
     category: "wigs",
     brand: "premium",
-    description: "High-quality human hair wig with natural look and comfortable fit for everyday wear.",
   },
   {
     id: "car-sample-1",
     name: "2023 Toyota Camry - Sale",
     price: 28999.99,
-    originalPrice: 32999.99 as number | null,
+    originalPrice: 32999.99,
     image: "/placeholder.svg?height=300&width=300&text=Toyota+Camry",
     badge: "Sale",
     inStock: true,
     category: "cars",
     brand: "toyota",
-    description: "Reliable and fuel-efficient 2023 Toyota Camry with advanced safety features and modern technology.",
   },
   {
     id: "wine-sample-1",
     name: "Premium Red Wine Collection",
     price: 149.99,
-    originalPrice: 199.99 as number | null,
+    originalPrice: 199.99,
     image: "/placeholder.svg?height=300&width=300&text=Premium+Wine",
     badge: "Popular",
     inStock: true,
     category: "wines",
     brand: "bordeaux",
-    description: "Carefully selected premium red wines from renowned vineyards with rich flavor profiles.",
   },
   {
     id: "cream-sample-1",
     name: "Luxury Body Cream Set",
     price: 59.99,
-    originalPrice: 79.99 as number | null,
+    originalPrice: 79.99,
     image: "/placeholder.svg?height=300&width=300&text=Body+Cream",
     badge: "Featured",
     inStock: true,
     category: "body-creams",
     brand: "luxury",
-    description: "Nourishing luxury body cream set with natural ingredients for smooth and hydrated skin.",
   },
 ]
 
@@ -191,12 +186,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
       // Filter by rating
       if (filters.rating.length > 0 && filters.rating[0] > 0) {
         filtered = filtered.filter((product) => {
-          const numericId = Number(product.id)
-          if (isNaN(numericId)) {
-            // If ID is not numeric (like "perfume-sample-1"), skip rating filter for this product
-            return true
-          }
-          const { average } = getProductRating(numericId)
+          const { average } = getProductRating(product.id)
           return average >= filters.rating[0]
         })
       }
@@ -212,10 +202,8 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
         break
       case "rating":
         filtered.sort((a, b) => {
-          const numericIdA = Number(a.id)
-          const numericIdB = Number(b.id)
-          const ratingA = isNaN(numericIdA) ? 0 : getProductRating(numericIdA).average
-          const ratingB = isNaN(numericIdB) ? 0 : getProductRating(numericIdB).average
+          const ratingA = getProductRating(a.id).average
+          const ratingB = getProductRating(b.id).average
           return ratingB - ratingA
         })
         break
@@ -330,10 +318,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
           }
         >
           {filteredProducts.map((product) => {
-            const numericId = Number(product.id)
-            const { average: rating, count: reviewCount } = isNaN(numericId)
-              ? { average: 0, count: 0 }
-              : getProductRating(numericId)
+            const { average: rating, count: reviewCount } = getProductRating(product.id)
 
             return (
               <Card
@@ -498,7 +483,6 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                           )}
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
                     </div>
                     <CardFooter className="p-4 pt-0 space-y-2">
                       <Button className="w-full" disabled={!product.inStock} onClick={() => handleAddToCart(product)}>

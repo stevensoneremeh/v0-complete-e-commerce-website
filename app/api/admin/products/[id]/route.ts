@@ -2,38 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  category_id: string
-  images: string[]
-  sku: string
-  inventory: number
-  created_at: string
-  updated_at: string
-  categories?: {
-    name: string
-    slug: string
-  }
-}
-
-interface ProductUpdateRequest {
-  name?: string
-  description?: string
-  price?: number
-  category_id?: string
-  images?: string[]
-  sku?: string
-  inventory?: number
-  status?: string
-}
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<NextResponse> {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const cookieStore = await cookies()
@@ -76,10 +45,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<NextResponse> {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const cookieStore = await cookies()
@@ -98,7 +64,7 @@ export async function PATCH(
       },
     })
 
-    const updates: ProductUpdateRequest = await request.json()
+    const updates = await request.json()
 
     const { data: product, error } = await supabase
       .from("products")
@@ -128,10 +94,7 @@ export async function PATCH(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<NextResponse> {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const cookieStore = await cookies()
@@ -150,7 +113,7 @@ export async function PUT(
       },
     })
 
-    const updates: ProductUpdateRequest = await request.json()
+    const updates = await request.json()
 
     const { data: product, error } = await supabase.from("products").update(updates).eq("id", id).select().single()
 
@@ -166,10 +129,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<NextResponse> {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const cookieStore = await cookies()

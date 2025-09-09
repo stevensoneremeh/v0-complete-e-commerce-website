@@ -15,48 +15,14 @@ import { Switch } from "@/components/ui/switch"
 import { X, Plus, Upload, Save, Eye, Tag, MapPin, Home } from "lucide-react"
 import { toast } from "sonner"
 
-interface LocationDetails {
-  address: string
-  city: string
-  country: string
-  state?: string
-  zip_code?: string
-  latitude?: number
-  longitude?: number
-}
-
-interface PropertyFormData {
-  title: string
-  description: string
-  property_type: string
-  bedrooms: number
-  bathrooms: number
-  square_feet: number
-  booking_price_per_night: number
-  location_details: LocationDetails // Changed from any to LocationDetails
-  amenities: string[]
-  images: string[]
-  is_available_for_booking: boolean
-  minimum_stay_nights: number
-  year_built: number
-  lot_size: number
-  virtual_tour_url: string
-  floor_plans: string[]
-  status: string
-  tags: string[]
-  meta_title: string
-  meta_description: string
-  featured: boolean
-}
-
 interface PropertyFormProps {
-  property?: (Partial<PropertyFormData> & { id?: string }) | null
-  onSave: (property: PropertyFormData & { id?: string }) => void
+  property?: any
+  onSave: (property: any) => void
   onCancel: () => void
 }
 
 export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) {
-  const [formData, setFormData] = useState<PropertyFormData>({
+  const [formData, setFormData] = useState({
     title: property?.title || "",
     description: property?.description || "",
     property_type: property?.property_type || "apartment",
@@ -123,7 +89,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
   const removeAmenity = (amenity: string) => {
     setFormData((prev) => ({
       ...prev,
-      amenities: prev.amenities.filter((a: string) => a !== amenity),
+      amenities: prev.amenities.filter((a) => a !== amenity),
     }))
   }
 
@@ -140,7 +106,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
   const removeTag = (tag: string) => {
     setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter((t: string) => t !== tag),
+      tags: prev.tags.filter((t) => t !== tag),
     }))
   }
 
@@ -157,7 +123,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
   const removeImage = (image: string) => {
     setFormData((prev) => ({
       ...prev,
-      images: prev.images.filter((img: string) => img !== image),
+      images: prev.images.filter((img) => img !== image),
     }))
   }
 
@@ -191,7 +157,6 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
           </TabsList>
 
           <form onSubmit={handleSubmit} className="mt-6">
-            {/* BASIC TAB */}
             <TabsContent value="basic" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -245,10 +210,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     type="number"
                     min="0"
                     value={formData.bedrooms}
-                    onChange={(e) => {
-                      const value = Number.parseInt(e.target.value, 10)
-                      setFormData((prev) => ({ ...prev, bedrooms: isNaN(value) ? 0 : value }))
-                    }}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, bedrooms: Number.parseInt(e.target.value) }))}
                   />
                 </div>
 
@@ -259,10 +221,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     type="number"
                     min="0"
                     value={formData.bathrooms}
-                    onChange={(e) => {
-                      const value = Number.parseInt(e.target.value, 10)
-                      setFormData((prev) => ({ ...prev, bathrooms: isNaN(value) ? 0 : value }))
-                    }}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, bathrooms: Number.parseInt(e.target.value) }))}
                   />
                 </div>
 
@@ -273,10 +232,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     type="number"
                     min="0"
                     value={formData.square_feet}
-                    onChange={(e) => {
-                      const value = Number.parseInt(e.target.value, 10)
-                      setFormData((prev) => ({ ...prev, square_feet: isNaN(value) ? 0 : value }))
-                    }}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, square_feet: Number.parseInt(e.target.value) }))}
                   />
                 </div>
 
@@ -288,17 +244,15 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     min="0"
                     step="0.01"
                     value={formData.booking_price_per_night}
-                    onChange={(e) => {
-                      const value = Number.parseFloat(e.target.value)
-                      setFormData((prev) => ({ ...prev, booking_price_per_night: isNaN(value) ? 0 : value }))
-                    }}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, booking_price_per_night: Number.parseFloat(e.target.value) }))
+                    }
                     required
                   />
                 </div>
               </div>
             </TabsContent>
 
-            {/* DETAILS TAB */}
             <TabsContent value="details" className="space-y-6">
               <div className="space-y-4">
                 <Label>Location Details</Label>
@@ -345,66 +299,6 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                       placeholder="USA"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      value={formData.location_details.state || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          location_details: { ...prev.location_details, state: e.target.value },
-                        }))
-                      }
-                      placeholder="New York State"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="zip_code">Zip Code</Label>
-                    <Input
-                      id="zip_code"
-                      value={formData.location_details.zip_code || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          location_details: { ...prev.location_details, zip_code: e.target.value },
-                        }))
-                      }
-                      placeholder="10001"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="latitude">Latitude</Label>
-                    <Input
-                      id="latitude"
-                      type="number"
-                      value={formData.location_details.latitude || 0}
-                      onChange={(e) => {
-                        const value = Number.parseFloat(e.target.value)
-                        setFormData((prev) => ({
-                          ...prev,
-                          location_details: { ...prev.location_details, latitude: isNaN(value) ? 0 : value },
-                        }))
-                      }}
-                      placeholder="40.7128"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="longitude">Longitude</Label>
-                    <Input
-                      id="longitude"
-                      type="number"
-                      value={formData.location_details.longitude || 0}
-                      onChange={(e) => {
-                        const value = Number.parseFloat(e.target.value)
-                        setFormData((prev) => ({
-                          ...prev,
-                          location_details: { ...prev.location_details, longitude: isNaN(value) ? 0 : value },
-                        }))
-                      }}
-                      placeholder="-74.0060"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -443,10 +337,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     min="1800"
                     max={new Date().getFullYear() + 5}
                     value={formData.year_built}
-                    onChange={(e) => {
-                      const value = Number.parseInt(e.target.value, 10)
-                      setFormData((prev) => ({ ...prev, year_built: isNaN(value) ? new Date().getFullYear() : value }))
-                    }}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, year_built: Number.parseInt(e.target.value) }))}
                   />
                 </div>
                 <div className="space-y-2">
@@ -456,10 +347,9 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     type="number"
                     min="1"
                     value={formData.minimum_stay_nights}
-                    onChange={(e) => {
-                      const value = Number.parseInt(e.target.value, 10)
-                      setFormData((prev) => ({ ...prev, minimum_stay_nights: isNaN(value) ? 1 : value }))
-                    }}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, minimum_stay_nights: Number.parseInt(e.target.value) }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -475,7 +365,6 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
               </div>
             </TabsContent>
 
-            {/* MEDIA TAB */}
             <TabsContent value="media" className="space-y-6">
               <div className="space-y-4">
                 <Label>Property Images</Label>
@@ -538,7 +427,6 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
               </div>
             </TabsContent>
 
-            {/* MANAGEMENT TAB */}
             <TabsContent value="management" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
@@ -569,11 +457,10 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                       onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, featured: checked }))}
                     />
                   </div>
-
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="is_available">Available for Booking</Label>
+                    <Label htmlFor="booking_available">Available for Booking</Label>
                     <Switch
-                      id="is_available"
+                      id="booking_available"
                       checked={formData.is_available_for_booking}
                       onCheckedChange={(checked) =>
                         setFormData((prev) => ({ ...prev, is_available_for_booking: checked }))
@@ -584,12 +471,12 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
               </div>
 
               <div className="space-y-4">
-                <Label>Tags</Label>
+                <Label>Property Tags</Label>
                 <div className="flex gap-2">
                   <Input
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="Add tag"
+                    placeholder="Add tag (e.g., luxury, waterfront, pet-friendly)"
                     onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                   />
                   <Button type="button" onClick={addTag} size="sm">
@@ -604,16 +491,20 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     </Badge>
                   ))}
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  Tags help categorize and filter properties. Use descriptive keywords like "luxury", "waterfront",
+                  "pet-friendly", etc.
+                </p>
               </div>
             </TabsContent>
 
-            <div className="flex justify-end gap-2 mt-6">
+            <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
                 <Save className="h-4 w-4 mr-2" />
-                {isLoading ? "Saving..." : property ? "Update Property" : "Create Property"}
+                {isLoading ? "Saving..." : "Save Property"}
               </Button>
             </div>
           </form>

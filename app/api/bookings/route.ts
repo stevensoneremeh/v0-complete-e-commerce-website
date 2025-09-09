@@ -2,42 +2,7 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
 
-interface CreateBookingRequest {
-  property_id: string
-  user_id?: string
-  guest_name: string
-  guest_email: string
-  guest_phone: string
-  check_in_date: string
-  check_out_date: string
-  guests: number
-  nights: number
-  price_per_night: number
-  total_amount: number
-  special_requests?: string
-}
-
-interface Booking {
-  id: string
-  property_id: string
-  user_id?: string
-  guest_name: string
-  guest_email: string
-  guest_phone: string
-  check_in_date: string
-  check_out_date: string
-  guests: number
-  nights: number
-  price_per_night: number
-  total_amount: number
-  special_requests?: string
-  booking_reference: string
-  status: string
-  payment_status: string
-  created_at: string
-}
-
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies()
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
@@ -95,7 +60,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies()
     const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
@@ -113,7 +78,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     })
 
-    const body: CreateBookingRequest = await request.json()
+    const body = await request.json()
     const {
       property_id,
       user_id,

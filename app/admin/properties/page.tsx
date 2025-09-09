@@ -11,16 +11,6 @@ import { Plus, Search, Edit, Trash2, Eye, Building2, MapPin, DollarSign, Filter 
 import { toast } from "sonner"
 import Image from "next/image"
 
-interface LocationDetails {
-  address?: string
-  city?: string
-  country?: string
-  state?: string
-  zip_code?: string
-  latitude?: number
-  longitude?: number
-}
-
 interface Property {
   id: string
   title: string
@@ -30,7 +20,7 @@ interface Property {
   bathrooms: number
   square_feet: number
   booking_price_per_night: number
-  location_details: LocationDetails // Changed from any to LocationDetails
+  location_details: any
   amenities: string[]
   images: string[]
   is_available_for_booking: boolean
@@ -48,44 +38,6 @@ interface Property {
     price: number
     status: string
   }
-}
-
-interface PropertyFormData {
-  title: string
-  description: string
-  property_type: string
-  bedrooms: number
-  bathrooms: number
-  square_feet: number
-  booking_price_per_night: number
-  location_details: LocationDetails // Changed from any to LocationDetails
-  amenities: string[]
-  images: string[]
-  is_available_for_booking: boolean
-  minimum_stay_nights: number
-  year_built: number
-  tags: string[]
-}
-
-interface PropertyApiResponse {
-  id: string
-  title: string
-  description: string
-  property_type: string
-  bedrooms: number
-  bathrooms: number
-  square_feet: number
-  booking_price_per_night: number
-  location_details: LocationDetails | null
-  amenities: string[] | null
-  images: string[] | null
-  is_available_for_booking: boolean
-  minimum_stay_nights: number
-  year_built: number
-  created_at: string
-  updated_at?: string
-  status?: string
-  tags?: string[] | null
 }
 
 export default function AdminPropertiesPage() {
@@ -126,15 +78,12 @@ export default function AdminPropertiesPage() {
     try {
       const response = await fetch("/api/admin/properties")
       if (response.ok) {
-        const data: PropertyApiResponse[] = await response.json()
-        const propertiesWithDefaults: Property[] = data.map((property: PropertyApiResponse) => ({
+        const data = await response.json()
+        const propertiesWithDefaults = data.map((property: any) => ({
           ...property,
-          status: (property.status as Property["status"]) || "available",
+          status: property.status || "available",
           tags: property.tags || [],
           last_updated: property.updated_at || property.created_at,
-          location_details: property.location_details || {},
-          amenities: property.amenities || [],
-          images: property.images || [],
         }))
         setProperties(propertiesWithDefaults)
       } else {
@@ -170,47 +119,11 @@ export default function AdminPropertiesPage() {
     }
   }
 
-  const handleSaveProperty = (savedProperty: PropertyFormData & { id?: string }) => {
-    const now = new Date().toISOString()
-
+  const handleSaveProperty = (savedProperty: Property) => {
     if (editingProperty) {
-      // Update existing property
-      setProperties((prev) =>
-        prev.map((p) =>
-          p.id === savedProperty.id
-            ? ({
-                ...savedProperty,
-                id: savedProperty.id!,
-                created_at: p.created_at,
-                last_updated: now,
-                status: p.status, // Preserve existing status when updating
-              } as Property)
-            : p,
-        ),
-      )
+      setProperties((prev) => prev.map((p) => (p.id === savedProperty.id ? savedProperty : p)))
     } else {
-      // Add new property
-      const newProperty: Property = {
-        id: savedProperty.id || globalThis.crypto.randomUUID(),
-        created_at: now,
-        last_updated: now,
-        status: "available", // Default status for new properties
-        title: savedProperty.title,
-        description: savedProperty.description,
-        property_type: savedProperty.property_type,
-        bedrooms: savedProperty.bedrooms,
-        bathrooms: savedProperty.bathrooms,
-        square_feet: savedProperty.square_feet,
-        booking_price_per_night: savedProperty.booking_price_per_night,
-        location_details: savedProperty.location_details,
-        amenities: savedProperty.amenities,
-        images: savedProperty.images,
-        is_available_for_booking: savedProperty.is_available_for_booking,
-        minimum_stay_nights: savedProperty.minimum_stay_nights,
-        year_built: savedProperty.year_built,
-        tags: savedProperty.tags,
-      }
-      setProperties((prev) => [newProperty, ...prev])
+      setProperties((prev) => [savedProperty, ...prev])
     }
     setShowForm(false)
     setEditingProperty(null)

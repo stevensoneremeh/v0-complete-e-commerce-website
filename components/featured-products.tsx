@@ -70,24 +70,10 @@ const featuredProducts = [
 
 export function FeaturedProducts() {
   const { addItem } = useCart()
-  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist: _isInWishlist } = useWishlist()
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
   const { getProductRating } = useReviews()
   const { toast } = useToast()
   const [products, setProducts] = useState(featuredProducts)
-
-  const isInWishlist = (id: string) => {
-    // Try to convert string ID to number for wishlist compatibility
-    const numericId = Number.parseInt(id, 10)
-    if (!isNaN(numericId)) {
-      return _isInWishlist(numericId)
-    }
-    // For non-numeric string IDs, use a hash or fallback approach
-    const hashId = id.split("").reduce((a, b) => {
-      a = (a << 5) - a + b.charCodeAt(0)
-      return a & a
-    }, 0)
-    return _isInWishlist(Math.abs(hashId))
-  }
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -111,17 +97,16 @@ export function FeaturedProducts() {
           .limit(5)
 
         if (data && !error) {
-          const formattedProducts = data.map((product: any) => ({
-            id: String(product.id),
-            name: String(product.name),
-            price: Number(product.price) || 0,
-            originalPrice: product.compare_at_price ? Number(product.compare_at_price) : 0,
+          const formattedProducts = data.map((product) => ({
+            id: product.id,
+            name: product.name,
+            price: Number.parseFloat(product.price),
+            originalPrice: product.compare_at_price ? Number.parseFloat(product.compare_at_price) : null,
             image:
-              product.images?.[0] ||
-              "/placeholder.svg?height=300&width=300&text=" + encodeURIComponent(product.name || "Product"),
+              product.images?.[0] || "/placeholder.svg?height=300&width=300&text=" + encodeURIComponent(product.name),
             badge: product.compare_at_price ? "Sale" : "Featured",
             inStock: product.stock_quantity > 0,
-            category: product.categories?.name ? String(product.categories.name) : "General",
+            category: product.categories?.name || "General",
           }))
           setProducts(formattedProducts)
         }
@@ -181,7 +166,7 @@ export function FeaturedProducts() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {products.map((product) => {
-            const { average: rating, count: reviewCount } = getProductRating(Number(product.id))
+            const { average: rating, count: reviewCount } = getProductRating(product.id)
 
             return (
               <Card key={product.id} className="group hover:shadow-lg transition-all duration-300">
@@ -244,7 +229,7 @@ export function FeaturedProducts() {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-2">
                         <DualCurrencyDisplay usdAmount={product.price} size="md" variant="primary" compact={true} />
-                        {product.originalPrice > product.price && (
+                        {product.originalPrice && product.originalPrice > product.price && (
                           <DualCurrencyDisplay
                             usdAmount={product.originalPrice}
                             size="sm"
