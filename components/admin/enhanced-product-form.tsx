@@ -87,7 +87,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
   const removeFeature = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      features: prev.features.filter((_, i) => i !== index),
+      features: prev.features.filter((_: string, i) => i !== index),
     }))
   }
 
@@ -126,7 +126,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
   const removeImage = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index),
+      images: prev.images.filter((_: string, i) => i !== index),
     }))
   }
 
