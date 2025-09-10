@@ -194,7 +194,7 @@ export default function AdminAnalyticsPage() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={(props) => {
+                        label={(props: any) => {
                           const name = props.name || "Unknown"
                           const percent = props.percent || 0
                           return `${name} ${(percent * 100).toFixed(0)}%`
