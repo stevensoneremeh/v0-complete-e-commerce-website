@@ -6,7 +6,7 @@ import { createContext, useContext, useReducer, type ReactNode } from "react"
 
 interface Review {
   id: string
-  productId: number
+  productId: string
   userId: string
   userName: string
   userAvatar?: string
@@ -30,8 +30,8 @@ const ReviewsContext = createContext<{
   state: ReviewsState
   dispatch: React.Dispatch<ReviewsAction>
   addReview: (review: Omit<Review, "id" | "date" | "helpful">) => void
-  getProductReviews: (productId: number) => Review[]
-  getProductRating: (productId: number) => { average: number; count: number }
+  getProductReviews: (productId: string) => Review[]
+  getProductRating: (productId: string) => { average: number; count: number }
   markHelpful: (reviewId: string) => void
 } | null>(null)
 
@@ -39,7 +39,7 @@ const ReviewsContext = createContext<{
 const initialReviews: Review[] = [
   {
     id: "1",
-    productId: 1,
+    productId: "1",
     userId: "user1",
     userName: "Sarah Johnson",
     userAvatar: "/placeholder.svg?height=40&width=40",
@@ -53,7 +53,7 @@ const initialReviews: Review[] = [
   },
   {
     id: "2",
-    productId: 1,
+    productId: "1",
     userId: "user2",
     userName: "Mike Chen",
     userAvatar: "/placeholder.svg?height=40&width=40",
@@ -67,7 +67,7 @@ const initialReviews: Review[] = [
   },
   {
     id: "3",
-    productId: 1,
+    productId: "1",
     userId: "user3",
     userName: "Emily Rodriguez",
     userAvatar: "/placeholder.svg?height=40&width=40",
@@ -81,7 +81,7 @@ const initialReviews: Review[] = [
   },
   {
     id: "4",
-    productId: 2,
+    productId: "2",
     userId: "user4",
     userName: "David Wilson",
     userAvatar: "/placeholder.svg?height=40&width=40",
@@ -95,7 +95,7 @@ const initialReviews: Review[] = [
   },
   {
     id: "5",
-    productId: 2,
+    productId: "2",
     userId: "user5",
     userName: "Lisa Thompson",
     userAvatar: "/placeholder.svg?height=40&width=40",
@@ -109,7 +109,7 @@ const initialReviews: Review[] = [
   },
   {
     id: "6",
-    productId: 3,
+    productId: "3",
     userId: "user6",
     userName: "Alex Brown",
     userAvatar: "/placeholder.svg?height=40&width=40",
@@ -123,7 +123,7 @@ const initialReviews: Review[] = [
   },
   {
     id: "7",
-    productId: 4,
+    productId: "4",
     userId: "user7",
     userName: "Jessica Davis",
     userAvatar: "/placeholder.svg?height=40&width=40",
@@ -137,7 +137,7 @@ const initialReviews: Review[] = [
   },
   {
     id: "8",
-    productId: 5,
+    productId: "5",
     userId: "user8",
     userName: "Tom Anderson",
     userAvatar: "/placeholder.svg?height=40&width=40",
@@ -151,7 +151,7 @@ const initialReviews: Review[] = [
   },
   {
     id: "9",
-    productId: 6,
+    productId: "6",
     userId: "user9",
     userName: "Rachel Green",
     userAvatar: "/placeholder.svg?height=40&width=40",
@@ -197,11 +197,11 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "ADD_REVIEW", payload: review })
   }
 
-  const getProductReviews = (productId: number) => {
+  const getProductReviews = (productId: string) => {
     return state.reviews.filter((review) => review.productId === productId)
   }
 
-  const getProductRating = (productId: number) => {
+  const getProductRating = (productId: string) => {
     const productReviews = getProductReviews(productId)
     if (productReviews.length === 0) {
       return { average: 0, count: 0 }

@@ -174,7 +174,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             </div>
 
             <div className="mb-6">
-              <DualCurrencyDisplay usdAmount={product.price} size="xl" variant="primary" />
+              <DualCurrencyDisplay usdAmount={product.price} size="lg" variant="primary" />
               {product.originalPrice && product.originalPrice > product.price && (
                 <div className="mt-2 flex items-center space-x-2">
                   <DualCurrencyDisplay

@@ -9,7 +9,7 @@ import { Star, ThumbsUp, Shield } from "lucide-react"
 import { useReviews } from "@/components/reviews-provider"
 
 interface ReviewsListProps {
-  productId: number
+  productId: string
 }
 
 export function ReviewsList({ productId }: ReviewsListProps) {

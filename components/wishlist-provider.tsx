@@ -5,7 +5,7 @@ import type React from "react"
 import { createContext, useContext, useReducer, type ReactNode } from "react"
 
 interface WishlistItem {
-  id: number
+  id: string
   name: string
   price: number
   image: string
@@ -18,18 +18,18 @@ interface WishlistState {
 
 type WishlistAction =
   | { type: "ADD_ITEM"; payload: WishlistItem }
-  | { type: "REMOVE_ITEM"; payload: number }
+  | { type: "REMOVE_ITEM"; payload: string }
   | { type: "CLEAR_WISHLIST" }
 
 const WishlistContext = createContext<{
   state: WishlistState
   dispatch: React.Dispatch<WishlistAction>
   addItem: (item: WishlistItem) => void
-  removeItem: (id: number) => void
+  removeItem: (id: string) => void
   clearWishlist: () => void
   items: WishlistItem[]
   count: number
-  isInWishlist: (id: number) => boolean
+  isInWishlist: (id: string) => boolean
 } | null>(null)
 
 function wishlistReducer(state: WishlistState, action: WishlistAction): WishlistState {
@@ -66,7 +66,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "ADD_ITEM", payload: item })
   }
 
-  const removeItem = (id: number) => {
+  const removeItem = (id: string) => {
     dispatch({ type: "REMOVE_ITEM", payload: id })
   }
 
@@ -74,7 +74,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "CLEAR_WISHLIST" })
   }
 
-  const isInWishlist = (id: number) => {
+  const isInWishlist = (id: string) => {
     return state.items.some((item) => item.id === id)
   }
 

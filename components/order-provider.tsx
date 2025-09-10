@@ -5,7 +5,7 @@ import type React from "react"
 import { createContext, useContext, useReducer, type ReactNode } from "react"
 
 interface OrderItem {
-  id: number
+  id: string
   name: string
   price: number
   quantity: number
@@ -69,14 +69,14 @@ const initialOrders: Order[] = [
     total: 129.99,
     items: [
       {
-        id: 1,
+        id: "1",
         name: "Wireless Headphones Pro",
         price: 99.99,
         quantity: 1,
         image: "/placeholder.svg?height=100&width=100",
       },
       {
-        id: 2,
+        id: "2",
         name: "Phone Case",
         price: 29.99,
         quantity: 1,
@@ -104,7 +104,7 @@ const initialOrders: Order[] = [
     total: 89.99,
     items: [
       {
-        id: 3,
+        id: "3",
         name: "Smart Fitness Watch",
         price: 89.99,
         quantity: 1,
@@ -132,21 +132,21 @@ const initialOrders: Order[] = [
     total: 199.99,
     items: [
       {
-        id: 4,
+        id: "4",
         name: "Premium Laptop Backpack",
         price: 49.99,
         quantity: 1,
         image: "/placeholder.svg?height=100&width=100",
       },
       {
-        id: 5,
+        id: "5",
         name: "Bluetooth Speaker",
         price: 79.99,
         quantity: 1,
         image: "/placeholder.svg?height=100&width=100",
       },
       {
-        id: 6,
+        id: "6",
         name: "USB Cable",
         price: 19.99,
         quantity: 1,
@@ -174,7 +174,7 @@ const initialOrders: Order[] = [
     total: 59.99,
     items: [
       {
-        id: 7,
+        id: "7",
         name: "Wireless Mouse",
         price: 59.99,
         quantity: 1,

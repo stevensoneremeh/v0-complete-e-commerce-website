@@ -74,7 +74,7 @@ export default function WishlistPage() {
     })
   }
 
-  const handleRemoveFromWishlist = (productId: number, productName: string) => {
+  const handleRemoveFromWishlist = (productId: string, productName: string) => {
     removeItem(productId)
     toast({
       title: "Removed from wishlist",

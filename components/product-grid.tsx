@@ -27,6 +27,7 @@ const fallbackProducts = [
     inStock: true,
     category: "perfumes",
     brand: "chanel",
+    description: "Premium luxury perfume with exquisite fragrance blend.",
   },
   {
     id: "wig-sample-1",
@@ -38,6 +39,7 @@ const fallbackProducts = [
     inStock: true,
     category: "wigs",
     brand: "premium",
+    description: "High-quality human hair wig with natural look and feel.",
   },
   {
     id: "car-sample-1",
@@ -49,6 +51,7 @@ const fallbackProducts = [
     inStock: true,
     category: "cars",
     brand: "toyota",
+    description: "Reliable and fuel-efficient sedan with advanced safety features.",
   },
   {
     id: "wine-sample-1",
@@ -60,6 +63,7 @@ const fallbackProducts = [
     inStock: true,
     category: "wines",
     brand: "bordeaux",
+    description: "Exceptional wine collection from premium vineyards.",
   },
   {
     id: "cream-sample-1",
@@ -71,7 +75,8 @@ const fallbackProducts = [
     inStock: true,
     category: "body-creams",
     brand: "luxury",
-  },
+    description: "Nourishing body cream set for smooth and healthy skin.",
+  }
 ]
 
 interface ProductGridProps {
@@ -122,7 +127,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
             id: product.id,
             name: product.name,
             price: Number.parseFloat(product.price),
-            originalPrice: product.compare_at_price ? Number.parseFloat(product.compare_at_price) : null,
+            originalPrice: product.compare_at_price ? Number.parseFloat(product.compare_at_price) : 0,
             image:
               product.images?.[0] || "/placeholder.svg?height=300&width=300&text=" + encodeURIComponent(product.name),
             badge: product.compare_at_price ? "Sale" : product.is_featured ? "Featured" : "New",

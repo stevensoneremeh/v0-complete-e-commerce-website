@@ -98,7 +98,7 @@ export function FeaturedProducts() {
 
         if (data && !error) {
           const formattedProducts = data.map((product) => ({
-            id: product.id,
+            id: String(product.id),
             name: product.name,
             price: Number.parseFloat(product.price),
             originalPrice: product.compare_at_price ? Number.parseFloat(product.compare_at_price) : 0,
@@ -166,7 +166,7 @@ export function FeaturedProducts() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {products.map((product) => {
-            const { average: rating, count: reviewCount } = getProductRating(Number(product.id))
+            const { average: rating, count: reviewCount } = getProductRating(product.id)
 
             return (
               <Card key={product.id} className="group hover:shadow-lg transition-all duration-300">

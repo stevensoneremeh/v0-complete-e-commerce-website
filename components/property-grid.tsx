@@ -39,7 +39,7 @@ interface PropertyGridProps {
 export function PropertyGrid({ searchQuery, filters }: PropertyGridProps) {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
 
   useEffect(() => {
     // Mock data for properties
@@ -184,7 +184,6 @@ export function PropertyGrid({ searchQuery, filters }: PropertyGridProps) {
         name: property.title,
         price: property.price_per_night,
         image: property.images[0],
-        category: property.property_type,
       })
     }
   }

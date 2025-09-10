@@ -14,7 +14,7 @@ import { useReviews } from "@/components/reviews-provider"
 import { useToast } from "@/hooks/use-toast"
 
 interface ReviewFormProps {
-  productId: number
+  productId: string
   productName: string
   onReviewSubmitted?: () => void
 }
@@ -57,7 +57,7 @@ export function ReviewForm({ productId, productName, onReviewSubmitted }: Review
     await new Promise((resolve) => setTimeout(resolve, 1000))
 
     addReview({
-      productId,
+      productId: String(productId),
       userId: user.id,
       userName: user.name,
       userAvatar: user.avatar,
