@@ -89,7 +89,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
   const removeAmenity = (amenity: string) => {
     setFormData((prev) => ({
       ...prev,
-      amenities: prev.amenities.filter((a) => a !== amenity),
+      amenities: prev.amenities.filter((a: string) => a !== amenity),
     }))
   }
 
@@ -106,7 +106,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
   const removeTag = (tag: string) => {
     setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter((t) => t !== tag),
+      tags: prev.tags.filter((t: string) => t !== tag),
     }))
   }
 
@@ -123,7 +123,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
   const removeImage = (image: string) => {
     setFormData((prev) => ({
       ...prev,
-      images: prev.images.filter((img) => img !== image),
+      images: prev.images.filter((img: string) => img !== image),
     }))
   }
 
@@ -316,7 +316,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {formData.amenities.map((amenity) => (
+                  {formData.amenities.map((amenity: string) => (
                     <Badge key={amenity} variant="secondary" className="flex items-center gap-1">
                       {amenity}
                       <X
@@ -380,7 +380,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                   </Button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {formData.images.map((image, index) => (
+                  {formData.images.map((image: string, index: number) => (
                     <div key={index} className="relative group">
                       <img
                         src={image || "/placeholder.svg"}
@@ -484,7 +484,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag) => (
+                  {formData.tags.map((tag: string) => (
                     <Badge key={tag} variant="outline" className="flex items-center gap-1">
                       {tag}
                       <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={() => removeTag(tag)} />

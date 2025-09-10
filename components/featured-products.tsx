@@ -101,7 +101,7 @@ export function FeaturedProducts() {
             id: product.id,
             name: product.name,
             price: Number.parseFloat(product.price),
-            originalPrice: product.compare_at_price ? Number.parseFloat(product.compare_at_price) : null,
+            originalPrice: product.compare_at_price ? Number.parseFloat(product.compare_at_price) : 0,
             image:
               product.images?.[0] || "/placeholder.svg?height=300&width=300&text=" + encodeURIComponent(product.name),
             badge: product.compare_at_price ? "Sale" : "Featured",

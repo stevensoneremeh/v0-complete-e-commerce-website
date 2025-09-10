@@ -10,7 +10,12 @@ export function HeroSection() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isVideoLoaded, setIsVideoLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     const video = videoRef.current

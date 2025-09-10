@@ -87,7 +87,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
   const removeFeature = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      features: prev.features.filter((_: string, i) => i !== index),
+      features: prev.features.filter((_: string, i: number) => i !== index),
     }))
   }
 
@@ -126,7 +126,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
   const removeImage = (index: number) => {
     setFormData((prev) => ({
       ...prev,
-      images: prev.images.filter((_: string, i) => i !== index),
+      images: prev.images.filter((_: string, i: number) => i !== index),
     }))
   }
 
@@ -336,7 +336,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                 </Button>
               </div>
               <div className="grid grid-cols-3 gap-4">
-                {formData.images.map((image, index) => (
+                {formData.images.map((image: string, index: number) => (
                   <div key={index} className="relative group">
                     <img
                       src={image || "/placeholder.svg"}
@@ -370,7 +370,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2">
-                {formData.features.map((feature, index) => (
+                {formData.features.map((feature: string, index: number) => (
                   <Badge key={index} variant="secondary" className="flex items-center gap-1">
                     {feature}
                     <X className="h-3 w-3 cursor-pointer" onClick={() => removeFeature(index)} />
@@ -397,10 +397,10 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                 </Button>
               </div>
               <div className="space-y-2">
-                {Object.entries(formData.specifications).map(([key, value]) => (
+                {Object.entries(formData.specifications).map(([key, value]: [string, unknown]) => (
                   <div key={key} className="flex items-center justify-between p-2 border rounded">
                     <span>
-                      <strong>{key}:</strong> {value}
+                      <strong>{key}:</strong> {String(value)}
                     </span>
                     <Button type="button" variant="ghost" size="sm" onClick={() => removeSpecification(key)}>
                       <X className="h-4 w-4" />
