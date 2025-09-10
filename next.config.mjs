@@ -12,7 +12,7 @@ const nextConfig = {
     process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
   ].filter(Boolean),
   experimental: {
-    optimizeCss: true,
+    // optimizeCss: true, // Disabled to fix build errors with missing 'critters' dependency
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   images: {

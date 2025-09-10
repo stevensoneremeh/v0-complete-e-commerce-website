@@ -33,10 +33,6 @@ outputType = "webview"
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 42099
-externalPort = 3000
-
 [deployment]
 deploymentTarget = "autoscale"
 run = ["pnpm", "start", "--", "-p", "5000", "-H", "0.0.0.0"]
