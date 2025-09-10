@@ -9,10 +9,17 @@ import { ProductFilters } from "@/components/product-filters"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+interface FilterState {
+  categories: string[]
+  brands: string[]
+  priceRange: number[]
+  rating: number[]
+}
+
 export default function ProductsPage() {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState("")
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FilterState>({
     categories: [],
     brands: [],
     priceRange: [0, 1000],
@@ -27,7 +34,7 @@ export default function ProductsPage() {
     }
   }, [searchParams])
 
-  const handleFiltersChange = useCallback((newFilters: typeof filters) => {
+  const handleFiltersChange = useCallback((newFilters: FilterState) => {
     setFilters(newFilters)
   }, [])
 
