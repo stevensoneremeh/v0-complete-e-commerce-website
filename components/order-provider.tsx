@@ -30,6 +30,7 @@ interface Order {
     country: string
   }
   paymentMethod: string
+  paymentReference?: string
   couponCode?: string
   discount?: number
   cancelReason?: string
@@ -94,6 +95,7 @@ const initialOrders: Order[] = [
       country: "USA",
     },
     paymentMethod: "Credit Card",
+    paymentReference: "PAY123456",
   },
   {
     id: "#3209",
@@ -121,6 +123,7 @@ const initialOrders: Order[] = [
       country: "USA",
     },
     paymentMethod: "Credit Card",
+    paymentReference: "PAY123457",
   },
   {
     id: "#3208",
@@ -162,6 +165,7 @@ const initialOrders: Order[] = [
       country: "USA",
     },
     paymentMethod: "Credit Card",
+    paymentReference: "PAY123458",
   },
   {
     id: "#3207",
@@ -189,6 +193,7 @@ const initialOrders: Order[] = [
       country: "USA",
     },
     paymentMethod: "Credit Card",
+    paymentReference: "PAY123459",
     cancelReason: "Changed my mind",
     cancelDate: "2024-01-02",
   },
