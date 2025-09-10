@@ -94,8 +94,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "ABL Natasha Enterprises",
-              url: process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app",
-              logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app"}/abl-natasha-logo.png`,
+              url: "https://ablnatasha.vercel.app",
+              logo: "https://ablnatasha.vercel.app/abl-natasha-logo.png",
               description: "Premium e-commerce platform and luxury apartment rentals",
               contactPoint: {
                 "@type": "ContactPoint",
