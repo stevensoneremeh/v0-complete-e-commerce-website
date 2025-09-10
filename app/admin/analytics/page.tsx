@@ -141,17 +141,17 @@ export default function AdminAnalyticsPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Packages</p>
-                      <p className="text-2xl font-bold">{analytics.totalPackages}</p>
+                      <p className="text-sm font-medium text-muted-foreground">Total Products</p>
+                      <p className="text-2xl font-bold">{analytics.totalProducts}</p>
                       <div className="flex items-center mt-1">
-                        {analytics.packageGrowth >= 0 ? (
+                        {analytics.productGrowth >= 0 ? (
                           <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
                         ) : (
                           <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
                         )}
-                        <span className={`text-sm ${analytics.packageGrowth >= 0 ? "text-green-600" : "text-red-600"}`}>
-                          {analytics.packageGrowth >= 0 ? "+" : ""}
-                          {analytics.packageGrowth.toFixed(1)}%
+                        <span className={`text-sm ${analytics.productGrowth >= 0 ? "text-green-600" : "text-red-600"}`}>
+                          {analytics.productGrowth >= 0 ? "+" : ""}
+                          {analytics.productGrowth.toFixed(1)}%
                         </span>
                       </div>
                     </div>
