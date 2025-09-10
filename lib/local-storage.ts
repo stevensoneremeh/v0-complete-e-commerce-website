@@ -70,6 +70,7 @@ export interface AdminOrder {
   }
   paymentMethod: string
   paymentStatus: "pending" | "paid" | "failed" | "refunded"
+  paymentReference?: string // Added payment transaction references
   tracking?: string
   notes?: string
   createdAt: string
@@ -574,7 +575,12 @@ export const saveAdminOrders = (orders: AdminOrder[]) => {
   localStorage.setItem("admin_orders", JSON.stringify(orders))
 }
 
-export const updateOrderStatus = (id: string, status: AdminOrder["status"], tracking?: string) => {
+export const updateOrderStatus = (
+  id: string,
+  status: AdminOrder["status"],
+  tracking?: string,
+  paymentReference?: string,
+) => {
   const orders = getAdminOrders()
   const index = orders.findIndex((o) => o.id === id)
   if (index !== -1) {
@@ -582,6 +588,7 @@ export const updateOrderStatus = (id: string, status: AdminOrder["status"], trac
       ...orders[index],
       status,
       tracking: tracking || orders[index].tracking,
+      paymentReference: paymentReference || orders[index].paymentReference,
       updatedAt: new Date().toISOString(),
     }
     saveAdminOrders(orders)
