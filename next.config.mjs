@@ -45,7 +45,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/((?!_next/static|_next/image|favicon.ico|.*\\.(:svg|png|jpg|jpeg|gif|webp)$).*)',
+        source: '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
         headers: [
           {
             key: 'X-Content-Type-Options',
@@ -79,7 +79,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/.\\.(:png|jpg|jpeg|gif|webp|svg|ico)$',
+        source: '/.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico)$',
         headers: [
           {
             key: 'Cache-Control',
