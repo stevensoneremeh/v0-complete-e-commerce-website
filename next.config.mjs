@@ -11,9 +11,9 @@ const nextConfig = {
     'http://localhost:5000',
     process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
   ].filter(Boolean),
+  serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', '@supabase/supabase-js'],
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
   images: {
     formats: ['image/webp', 'image/avif'],
@@ -79,7 +79,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/(.*\\.(png|jpg|jpeg|gif|webp|svg|ico)$)',
+        source: '/.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico)$',
         headers: [
           {
             key: 'Cache-Control',
