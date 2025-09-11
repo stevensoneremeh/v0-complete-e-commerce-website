@@ -79,12 +79,13 @@ const nextConfig = {
         ],
       },
       {
-        source: '/.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico)$',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, s-maxage=31536000',
-          },
+  source: '/:path*\\.(png|jpg|jpeg|gif|webp|svg|ico)',
+  headers: [
+    {
+      key: 'Cache-Control',
+      value: 'public, max-age=86400, s-maxage=31536000',
+    },
+  ],
         ],
       },
     ]
