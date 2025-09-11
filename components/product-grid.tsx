@@ -76,7 +76,7 @@ const fallbackProducts = [
     category: "body-creams",
     brand: "luxury",
     description: "Nourishing body cream set for smooth and healthy skin.",
-  }
+  },
 ]
 
 interface ProductGridProps {
@@ -278,17 +278,17 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Toolbar */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
         <div className="flex items-center space-x-4">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-xs sm:text-sm text-muted-foreground">
             Showing {filteredProducts.length} of {allProducts.length} products
           </span>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col xs:flex-row items-stretch xs:items-center space-y-2 xs:space-y-0 xs:space-x-4">
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full xs:w-48 h-9 sm:h-10 text-sm">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -299,12 +299,22 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
               <SelectItem value="newest">Newest</SelectItem>
             </SelectContent>
           </Select>
-          <div className="flex items-center border rounded-md">
-            <Button variant={viewMode === "grid" ? "default" : "ghost"} size="sm" onClick={() => setViewMode("grid")}>
-              <Grid className="h-4 w-4" />
+          <div className="flex items-center border rounded-md w-fit mx-auto xs:mx-0">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="h-8 sm:h-9 px-2 sm:px-3"
+            >
+              <Grid className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
-            <Button variant={viewMode === "list" ? "default" : "ghost"} size="sm" onClick={() => setViewMode("list")}>
-              <List className="h-4 w-4" />
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="h-8 sm:h-9 px-2 sm:px-3"
+            >
+              <List className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>
@@ -312,14 +322,16 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
 
       {/* Products Grid/List */}
       {filteredProducts.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-muted-foreground text-lg mb-4">No products found matching your criteria</p>
-          <p className="text-sm text-muted-foreground">Try adjusting your filters or search terms</p>
+        <div className="text-center py-12 sm:py-16">
+          <p className="text-muted-foreground text-base sm:text-lg mb-4">No products found matching your criteria</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">Try adjusting your filters or search terms</p>
         </div>
       ) : (
         <div
           className={
-            viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "grid grid-cols-1 gap-4"
+            viewMode === "grid"
+              ? "grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6"
+              : "grid grid-cols-1 gap-3 sm:gap-4"
           }
         >
           {filteredProducts.map((product) => {
@@ -329,11 +341,13 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
               <Card
                 key={product.id}
                 className={`group hover:shadow-lg transition-all duration-300 ${
-                  viewMode === "list" ? "flex flex-row" : ""
+                  viewMode === "list" ? "flex flex-col sm:flex-row" : "h-full flex flex-col"
                 }`}
               >
-                <CardContent className={`p-0 ${viewMode === "list" ? "flex-shrink-0" : ""}`}>
-                  <div className={`relative overflow-hidden ${viewMode === "list" ? "w-48 h-48 flex-shrink-0" : ""}`}>
+                <CardContent className={`p-0 ${viewMode === "list" ? "flex-shrink-0" : "flex-1"}`}>
+                  <div
+                    className={`relative overflow-hidden ${viewMode === "list" ? "w-full sm:w-48 h-48 flex-shrink-0" : ""}`}
+                  >
                     <Link href={`/products/${product.id}`}>
                       <Image
                         src={product.image || "/placeholder.svg"}
@@ -341,27 +355,27 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                         width={300}
                         height={300}
                         className={`object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer ${
-                          viewMode === "list" ? "w-48 h-48" : "w-full h-64"
+                          viewMode === "list" ? "w-full sm:w-48 h-48" : "w-full h-40 xs:h-48 sm:h-52 md:h-56 lg:h-64"
                         }`}
                       />
                     </Link>
-                    <Badge className="absolute top-2 left-2" variant="secondary">
+                    <Badge className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 text-xs" variant="secondary">
                       {product.badge}
                     </Badge>
                     <Button
                       size="icon"
                       variant="secondary"
-                      className={`absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity ${
+                      className={`absolute top-1.5 sm:top-2 right-1.5 sm:right-2 h-7 w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 transition-opacity ${
                         isInWishlist(product.id) ? "text-red-500" : ""
                       }`}
                       onClick={() => handleWishlistToggle(product)}
                     >
-                      <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
+                      <Heart className={`h-3 w-3 sm:h-4 sm:w-4 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
                     </Button>
                     {!product.inStock && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <div className="text-center">
-                          <Badge variant="destructive" className="mb-2">
+                        <div className="text-center px-2">
+                          <Badge variant="destructive" className="mb-2 text-xs">
                             Out of Stock
                           </Badge>
                           <p className="text-white text-xs">Add to wishlist</p>
@@ -370,11 +384,11 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                     )}
                   </div>
                   {viewMode === "list" && (
-                    <div className="flex-1 p-6">
-                      <div className="flex items-start justify-between h-full">
-                        <div className="flex-1 min-w-0 pr-6">
+                    <div className="flex-1 p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between h-full space-y-4 sm:space-y-0">
+                        <div className="flex-1 min-w-0 sm:pr-6">
                           <Link href={`/products/${product.id}`}>
-                            <h3 className="font-semibold text-lg mb-2 hover:text-primary transition-colors line-clamp-2 cursor-pointer">
+                            <h3 className="font-semibold text-base sm:text-lg mb-2 hover:text-primary transition-colors line-clamp-2 cursor-pointer">
                               {product.name}
                             </h3>
                           </Link>
@@ -383,35 +397,37 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                               {[...Array(5)].map((_, i) => (
                                 <Star
                                   key={i}
-                                  className={`h-4 w-4 ${
+                                  className={`h-3 w-3 sm:h-4 sm:w-4 ${
                                     i < Math.floor(rating) ? "text-yellow-400 fill-current" : "text-gray-300"
                                   }`}
                                 />
                               ))}
                             </div>
-                            <span className="text-sm text-muted-foreground ml-2">
+                            <span className="text-xs sm:text-sm text-muted-foreground ml-2">
                               {reviewCount > 0 ? `(${reviewCount} reviews)` : "(No reviews)"}
                             </span>
                           </div>
-                          <div className="flex items-center space-x-3 mb-3">
-                            <DualCurrencyDisplay usdAmount={product.price} size="lg" variant="primary" compact={true} />
+                          <div className="flex flex-col xs:flex-row xs:items-center xs:space-x-3 space-y-2 xs:space-y-0 mb-3">
+                            <DualCurrencyDisplay usdAmount={product.price} size="md" variant="primary" compact={true} />
                             {product.originalPrice && product.originalPrice > product.price && (
                               <DualCurrencyDisplay
                                 usdAmount={product.originalPrice}
-                                size="md"
+                                size="sm"
                                 variant="muted"
                                 compact={true}
                                 className="line-through"
                               />
                             )}
                             {product.originalPrice && product.originalPrice > product.price && (
-                              <Badge variant="destructive" className="text-xs">
+                              <Badge variant="destructive" className="text-xs w-fit">
                                 Save ${(product.originalPrice - product.price).toFixed(2)}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{product.description}</p>
-                          <div className="flex items-center space-x-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-2">
+                            {product.description}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="secondary" className="text-xs">
                               {product.badge}
                             </Badge>
@@ -427,15 +443,16 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                             </div>
                           </div>
                         </div>
-                        <div className="flex flex-col space-y-3 flex-shrink-0">
+                        <div className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-3 flex-shrink-0">
                           <Button
                             size="default"
                             disabled={!product.inStock}
                             onClick={() => handleAddToCart(product)}
-                            className="min-w-[140px] h-10"
+                            className="flex-1 sm:min-w-[140px] h-9 sm:h-10 text-xs sm:text-sm"
                           >
-                            <ShoppingCart className="h-4 w-4 mr-2" />
-                            {product.inStock ? "Add to Cart" : "Out of Stock"}
+                            <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            <span className="hidden xs:inline">{product.inStock ? "Add to Cart" : "Out of Stock"}</span>
+                            <span className="xs:hidden">{product.inStock ? "Add" : "Out"}</span>
                           </Button>
                           <WhatsAppButton
                             product={{
@@ -443,7 +460,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                               price: product.price,
                               category: product.category,
                             }}
-                            className="min-w-[140px] h-10"
+                            className="flex-1 sm:min-w-[140px] h-9 sm:h-10 text-xs sm:text-sm"
                             variant="outline"
                           />
                         </div>
@@ -453,34 +470,34 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                 </CardContent>
                 {viewMode === "grid" && (
                   <>
-                    <div className="p-4">
+                    <div className="p-3 sm:p-4 flex-1 flex flex-col">
                       <Link href={`/products/${product.id}`}>
-                        <h3 className="font-semibold mb-2 hover:text-primary transition-colors cursor-pointer">
+                        <h3 className="font-semibold text-sm sm:text-base mb-2 hover:text-primary transition-colors cursor-pointer line-clamp-2 flex-shrink-0">
                           {product.name}
                         </h3>
                       </Link>
-                      <div className="flex items-center mb-2">
+                      <div className="flex items-center mb-2 flex-shrink-0">
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`h-4 w-4 ${
+                              className={`h-3 w-3 sm:h-4 sm:w-4 ${
                                 i < Math.floor(rating) ? "text-yellow-400 fill-current" : "text-gray-300"
                               }`}
                             />
                           ))}
                         </div>
-                        <span className="text-sm text-muted-foreground ml-2">
+                        <span className="text-xs sm:text-sm text-muted-foreground ml-1 sm:ml-2">
                           {reviewCount > 0 ? `(${reviewCount})` : "(0)"}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-2">
-                          <DualCurrencyDisplay usdAmount={product.price} size="md" variant="primary" compact={true} />
+                      <div className="flex items-center justify-between mb-3 sm:mb-4 flex-shrink-0">
+                        <div className="flex flex-col xs:flex-row xs:items-center xs:space-x-2 space-y-1 xs:space-y-0">
+                          <DualCurrencyDisplay usdAmount={product.price} size="sm" variant="primary" compact={true} />
                           {product.originalPrice && product.originalPrice > product.price && (
                             <DualCurrencyDisplay
                               usdAmount={product.originalPrice}
-                              size="sm"
+                              size="xs"
                               variant="muted"
                               compact={true}
                               className="line-through"
@@ -489,10 +506,15 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                         </div>
                       </div>
                     </div>
-                    <CardFooter className="p-4 pt-0 space-y-2">
-                      <Button className="w-full" disabled={!product.inStock} onClick={() => handleAddToCart(product)}>
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        {product.inStock ? "Add to Cart" : "Out of Stock"}
+                    <CardFooter className="p-3 sm:p-4 pt-0 space-y-2 mt-auto">
+                      <Button
+                        className="w-full h-9 sm:h-10 text-xs sm:text-sm"
+                        disabled={!product.inStock}
+                        onClick={() => handleAddToCart(product)}
+                      >
+                        <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        <span className="hidden xs:inline">{product.inStock ? "Add to Cart" : "Out of Stock"}</span>
+                        <span className="xs:hidden">{product.inStock ? "Add" : "Out"}</span>
                       </Button>
                       <WhatsAppButton
                         product={{
@@ -500,7 +522,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                           price: product.price,
                           category: product.category,
                         }}
-                        className="w-full"
+                        className="w-full h-9 sm:h-10 text-xs sm:text-sm"
                         variant="outline"
                       />
                     </CardFooter>

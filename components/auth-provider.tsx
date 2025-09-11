@@ -38,11 +38,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const {
           data: { session },
         } = await supabase.auth.getSession()
-        if (session?.user) {
+
+        if (session?.user && session.expires_at && session.expires_at * 1000 > Date.now()) {
           await fetchUserProfile(session.user)
+        } else if (session?.user) {
+          // Session expired, clear it
+          await supabase.auth.signOut()
         }
       } catch (error) {
         console.error("Error getting session:", error)
+        // Clear any invalid session
+        await supabase.auth.signOut()
       } finally {
         setIsLoading(false)
       }
@@ -53,10 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        await fetchUserProfile(session.user)
-      } else {
+      if (event === "SIGNED_OUT" || !session) {
         setUser(null)
+      } else if (session?.user) {
+        await fetchUserProfile(session.user)
       }
       setIsLoading(false)
     })

@@ -11,6 +11,8 @@ import { ReviewsProvider } from "@/components/reviews-provider"
 import { CouponProvider } from "@/components/coupon-provider"
 import { OrderProvider } from "@/components/order-provider"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { Analytics } from "@vercel/analytics/react"
+import { Suspense } from "react"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -70,6 +72,11 @@ export const metadata: Metadata = {
   },
   category: "E-commerce",
   classification: "Business",
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    yandex: process.env.YANDEX_VERIFICATION,
+    yahoo: process.env.YAHOO_SITE_VERIFICATION,
+  },
 }
 
 export default function RootLayout({
@@ -86,7 +93,12 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="ABL Natasha" />
         <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="apple-touch-icon" href="/abl-natasha-logo.png" />
+        <link rel="manifest" href="/manifest.json" />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -94,8 +106,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "ABL Natasha Enterprises",
-              url: "https://ablnatasha.vercel.app",
-              logo: "https://ablnatasha.vercel.app/abl-natasha-logo.png",
+              url: process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app",
+              logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app"}/abl-natasha-logo.png`,
               description: "Premium e-commerce platform and luxury apartment rentals",
               contactPoint: {
                 "@type": "ContactPoint",
@@ -104,6 +116,33 @@ export default function RootLayout({
                 availableLanguage: "English",
               },
               sameAs: ["https://wa.me/2349030944943"],
+              address: {
+                "@type": "PostalAddress",
+                addressCountry: "NG",
+              },
+              foundingDate: "2024",
+              numberOfEmployees: "10-50",
+              industry: "E-commerce, Real Estate",
+            }),
+          }}
+        />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "ABL Natasha Enterprises",
+              url: process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: `${process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app"}/products?search={search_term_string}`,
+                },
+                "query-input": "required name=search_term_string",
+              },
             }),
           }}
         />
@@ -117,8 +156,9 @@ export default function RootLayout({
                   <CouponProvider>
                     <OrderProvider>
                       <CartProvider>
-                        {children}
+                        <Suspense fallback={null}>{children}</Suspense>
                         <Toaster />
+                        <Analytics />
                       </CartProvider>
                     </OrderProvider>
                   </CouponProvider>

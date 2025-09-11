@@ -98,8 +98,21 @@ export function WhatsAppButton({
         variant === "outline" ? "bg-transparent text-green-600 hover:bg-green-600 hover:text-white" : ""
       } ${className}`}
     >
-      <MessageCircle className="h-4 w-4 mr-2" />
-      {children || (product?.name || productName ? "Buy via WhatsApp" : "Contact via WhatsApp")}
+      <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+      <span className="truncate">
+        {children ||
+          (product?.name || productName ? (
+            <>
+              <span className="hidden sm:inline">Buy via WhatsApp</span>
+              <span className="sm:hidden">WhatsApp</span>
+            </>
+          ) : (
+            <>
+              <span className="hidden sm:inline">Contact via WhatsApp</span>
+              <span className="sm:hidden">Contact</span>
+            </>
+          ))}
+      </span>
     </Button>
   )
 }

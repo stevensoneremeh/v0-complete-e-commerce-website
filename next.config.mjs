@@ -12,8 +12,8 @@ const nextConfig = {
     process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
   ].filter(Boolean),
   experimental: {
-    // optimizeCss: true, // Disabled to fix build errors with missing 'critters' dependency
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', '@supabase/supabase-js'],
+    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
   images: {
     formats: ['image/webp', 'image/avif'],
@@ -27,6 +27,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'via.placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.blob.vercel-storage.com',
       },
     ],
     dangerouslyAllowSVG: true,
@@ -44,14 +52,59 @@ const nextConfig = {
             value: 'nosniff',
           },
           {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
           },
           {
-            key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate',
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
           },
         ],
+      },
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/(.*\\.(png|jpg|jpeg|gif|webp|svg|ico)$)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, s-maxage=31536000',
+          },
+        ],
+      },
+    ]
+  },
+  async redirects() {
+    return [
+      {
+        source: '/shop',
+        destination: '/products',
+        permanent: true,
+      },
+      {
+        source: '/store',
+        destination: '/products',
+        permanent: true,
+      },
+      {
+        source: '/real-estate',
+        destination: '/properties',
+        permanent: true,
       },
     ]
   },

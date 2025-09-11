@@ -23,21 +23,16 @@ import { useWishlist } from "@/components/wishlist-provider"
 import { Badge } from "@/components/ui/badge"
 
 const searchSuggestions = [
-  "wireless headphones",
-  "smart watch",
-  "laptop backpack",
-  "bluetooth speaker",
-  "running shoes",
-  "coffee maker",
-  "phone case",
-  "fitness tracker",
-  "gaming mouse",
-  "portable charger",
-  "wireless earbuds",
-  "tablet stand",
-  "desk lamp",
-  "water bottle",
-  "yoga mat",
+  "luxury perfumes",
+  "premium wigs",
+  "body creams",
+  "luxury cars",
+  "fine wines",
+  "apartment rentals",
+  "luxury apartments",
+  "premium skincare",
+  "designer fragrances",
+  "luxury lifestyle",
 ]
 
 export function Header() {
@@ -45,7 +40,6 @@ export function Header() {
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const { items } = useCart()
   const { user, logout } = useAuth()
@@ -94,7 +88,6 @@ export function Header() {
     setSearchQuery(query)
     setShowSuggestions(false)
     setSelectedSuggestionIndex(-1)
-    // Navigate to products page with search query
     window.location.href = `/products?search=${encodeURIComponent(query)}`
   }
 
@@ -103,32 +96,28 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-20 items-center justify-between">
-        {/* Logo */}
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
+      <div className="responsive-container flex h-20 items-center justify-between">
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="relative">
-            <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center premium-shadow group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+            <div className="h-12 w-12 rounded-xl bg-card flex items-center justify-center premium-shadow group-hover:scale-105 elegant-hover overflow-hidden border border-primary/20">
               <Image
                 src="/abl-natasha-logo.png"
                 alt="ABL Natasha Enterprises"
-                width={40}
-                height={40}
+                width={32}
+                height={32}
                 className="object-contain"
               />
             </div>
-            <div className="absolute -top-1 -right-1 h-4 w-4 bg-accent rounded-full animate-pulse"></div>
+            <div className="absolute -top-1 -right-1 h-3 w-3 bg-primary rounded-full animate-pulse"></div>
           </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ABL Natasha
-            </span>
+          <div className="flex flex-col mobile-hidden">
+            <span className="font-bold text-xl text-gradient">ABL Natasha</span>
             <span className="text-xs text-muted-foreground font-medium tracking-wider uppercase">Enterprises</span>
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden lg:flex items-center space-x-8">
           <Link href="/" className="text-sm font-medium hover:text-primary transition-colors relative group">
             Home
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
@@ -155,14 +144,13 @@ export function Header() {
           </Link>
         </nav>
 
-        {/* Search Bar */}
-        <div className="hidden md:flex items-center space-x-2 flex-1 max-w-sm mx-6">
+        <div className="hidden md:flex items-center space-x-2 flex-1 max-w-md mx-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search products & properties..."
-              className="pl-10 h-12 bg-card border-2 border-transparent focus:border-primary/20 rounded-xl transition-all duration-300"
+              placeholder="Search luxury products & properties..."
+              className="luxury-input pl-10 h-12 rounded-xl transition-all duration-300 border-2 focus:border-primary/30"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -170,12 +158,12 @@ export function Header() {
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             />
             {showSuggestions && (
-              <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-xl shadow-lg z-50 mt-2 overflow-hidden">
+              <div className="absolute top-full left-0 right-0 luxury-card mt-2 overflow-hidden z-50">
                 {filteredSuggestions.map((suggestion, index) => (
                   <button
                     key={suggestion}
-                    className={`w-full text-left px-4 py-3 hover:bg-muted transition-colors ${
-                      index === selectedSuggestionIndex ? "bg-muted" : ""
+                    className={`w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors ${
+                      index === selectedSuggestionIndex ? "bg-muted/50" : ""
                     }`}
                     onClick={() => handleSuggestionClick(suggestion)}
                   >
@@ -190,14 +178,13 @@ export function Header() {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
           {/* Theme Toggle */}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            className="h-10 w-10 rounded-xl hover:bg-muted transition-all duration-300"
+            className="h-10 w-10 rounded-xl hover:bg-muted/50 elegant-hover"
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -208,13 +195,13 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="relative h-10 w-10 rounded-xl hover:bg-muted transition-all duration-300"
+            className="relative h-10 w-10 rounded-xl hover:bg-muted/50 elegant-hover mobile-hidden"
             asChild
           >
             <Link href="/wishlist">
               <Heart className="h-4 w-4" />
               {wishlistCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-accent">
+                <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-primary text-primary-foreground">
                   {wishlistCount}
                 </Badge>
               )}
@@ -229,16 +216,12 @@ export function Header() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-xl hover:bg-muted transition-all duration-300"
-                >
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-muted/50 elegant-hover">
                   <User className="h-4 w-4" />
                   <span className="sr-only">User menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-xl">
+              <DropdownMenuContent align="end" className="w-56 rounded-xl luxury-card">
                 <DropdownMenuItem asChild>
                   <Link href="/profile">Profile</Link>
                 </DropdownMenuItem>
@@ -255,42 +238,65 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button
-              asChild
-              className="rounded-xl px-6 luxury-gradient text-white font-medium hover:scale-105 transition-transform duration-300"
-            >
+            <Button asChild className="luxury-button rounded-xl px-6 font-medium mobile-hidden">
               <Link href="/auth">Login</Link>
             </Button>
           )}
 
-          {/* Mobile Menu */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 rounded-xl">
+              <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10 rounded-xl">
                 <Menu className="h-4 w-4" />
                 <span className="sr-only">Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80">
+            <SheetContent side="right" className="w-80 luxury-card">
               <div className="flex flex-col space-y-6 mt-8">
-                <Link href="/" className="text-lg font-medium hover:text-primary transition-colors">
-                  Home
-                </Link>
-                <Link href="/products" className="text-lg font-medium hover:text-primary transition-colors">
-                  Products
-                </Link>
-                <Link href="/properties" className="text-lg font-medium hover:text-primary transition-colors">
-                  Properties
-                </Link>
-                <Link href="/categories" className="text-lg font-medium hover:text-primary transition-colors">
-                  Categories
-                </Link>
-                <Link href="/about" className="text-lg font-medium hover:text-primary transition-colors">
-                  About
-                </Link>
-                <Link href="/contact" className="text-lg font-medium hover:text-primary transition-colors">
-                  Contact
-                </Link>
+                {/* Mobile Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input type="search" placeholder="Search..." className="luxury-input pl-10 h-12 rounded-xl" />
+                </div>
+
+                {/* Navigation Links */}
+                <div className="space-y-4">
+                  <Link href="/" className="block text-lg font-medium hover:text-primary transition-colors">
+                    Home
+                  </Link>
+                  <Link href="/products" className="block text-lg font-medium hover:text-primary transition-colors">
+                    Products
+                  </Link>
+                  <Link href="/properties" className="block text-lg font-medium hover:text-primary transition-colors">
+                    Properties
+                  </Link>
+                  <Link href="/categories" className="block text-lg font-medium hover:text-primary transition-colors">
+                    Categories
+                  </Link>
+                  <Link href="/about" className="block text-lg font-medium hover:text-primary transition-colors">
+                    About
+                  </Link>
+                  <Link href="/contact" className="block text-lg font-medium hover:text-primary transition-colors">
+                    Contact
+                  </Link>
+                </div>
+
+                {/* Mobile Actions */}
+                <div className="pt-6 border-t border-border space-y-4">
+                  <Link
+                    href="/wishlist"
+                    className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors"
+                  >
+                    <Heart className="h-5 w-5" />
+                    Wishlist
+                    {wishlistCount > 0 && <Badge className="bg-primary text-primary-foreground">{wishlistCount}</Badge>}
+                  </Link>
+
+                  {!user && (
+                    <Button asChild className="luxury-button w-full rounded-xl">
+                      <Link href="/auth">Login</Link>
+                    </Button>
+                  )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>

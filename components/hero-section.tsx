@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
-import { Sparkles, Shield, Clock, Building2, Play, Pause } from "lucide-react"
+import { Sparkles, Shield, Clock, Building2, Play, Pause, ArrowRight } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
 export function HeroSection() {
@@ -21,7 +21,6 @@ export function HeroSection() {
     const video = videoRef.current
     if (video) {
       const handleLoadedData = () => {
-        console.log("[v0] Video loaded successfully")
         setIsVideoLoaded(true)
         setHasError(false)
 
@@ -29,40 +28,33 @@ export function HeroSection() {
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              console.log("[v0] Autoplay started successfully")
               setIsPlaying(true)
             })
-            .catch((error) => {
-              console.log("[v0] Autoplay prevented by browser:", error.name)
+            .catch(() => {
               setIsPlaying(false)
             })
         }
       }
 
       const handlePlay = () => {
-        console.log("[v0] Video started playing")
         setIsPlaying(true)
       }
 
       const handlePause = () => {
-        console.log("[v0] Video paused")
         setIsPlaying(false)
       }
 
       const handleEnded = () => {
-        console.log("[v0] Video ended")
         setIsPlaying(false)
       }
 
-      const handleError = (e: Event) => {
-        console.error("[v0] Video error:", e)
+      const handleError = () => {
         setHasError(true)
         setIsVideoLoaded(false)
         setIsPlaying(false)
       }
 
       const handleCanPlay = () => {
-        console.log("[v0] Video can start playing")
         setIsVideoLoaded(true)
       }
 
@@ -93,8 +85,7 @@ export function HeroSection() {
       } else {
         const playPromise = videoRef.current.play()
         if (playPromise !== undefined) {
-          playPromise.catch((error) => {
-            console.error("[v0] Play failed:", error)
+          playPromise.catch(() => {
             setHasError(true)
           })
         }
@@ -103,7 +94,7 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative overflow-hidden h-[80vh] flex items-center">
+    <section className="relative overflow-hidden min-h-[90vh] flex items-center luxury-gradient-subtle">
       <div className="absolute inset-0 z-0">
         <video
           ref={videoRef}
@@ -114,147 +105,155 @@ export function HeroSection() {
           className="w-full h-full object-cover"
           poster="/luxury-living-room.jpeg"
         >
-          <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/64bb5c83-2bb1-4c22-8f9f-642334f46cac-d87osryg91ycSMO0JRVMoOSmYnhH4e.mp4" type="video/mp4" />
+          <source
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/64bb5c83-2bb1-4c22-8f9f-642334f46cac-d87osryg91ycSMO0JRVMoOSmYnhH4e.mp4"
+            type="video/mp4"
+          />
           <source src="/luxury-apartment-video.webm" type="video/webm" />
           Your browser does not support the video tag.
         </video>
-        <div className="absolute inset-0 bg-black/50"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-background/90 via-background/60 to-background/80"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-accent/20"></div>
       </div>
 
       <button
         onClick={toggleVideo}
         disabled={!isVideoLoaded || hasError}
-        className="absolute top-6 right-6 z-20 bg-black/30 backdrop-blur-sm hover:bg-black/50 rounded-full p-3 transition-all duration-300 border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute top-6 right-6 z-20 glass-effect hover:bg-white/20 rounded-full p-3 elegant-hover disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label={isPlaying ? "Pause video" : "Play video"}
       >
         {hasError ? (
-          <div className="h-5 w-5 text-red-400">⚠</div>
+          <div className="h-5 w-5 text-destructive">⚠</div>
         ) : !isVideoLoaded ? (
-          <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
         ) : isPlaying ? (
-          <Pause className="h-5 w-5 text-white" />
+          <Pause className="h-5 w-5 text-foreground" />
         ) : (
-          <Play className="h-5 w-5 text-white fill-white" />
+          <Play className="h-5 w-5 text-foreground fill-current" />
         )}
       </button>
 
-      <div className="container mx-auto px-4 py-16 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 backdrop-blur-sm border border-yellow-400/30 rounded-full px-4 py-2">
-              <Sparkles className="h-4 w-4 text-yellow-400" />
-              <span className="text-sm font-medium text-white">ABL Natasha Enterprises 2024</span>
+      <div className="responsive-container section-padding relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-16 items-center">
+          <div className="space-y-8 fade-in">
+            <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-full px-4 py-2 slide-up">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">ABL Natasha Enterprises 2024</span>
             </div>
 
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-bold leading-tight text-balance text-white">
+            <div className="space-y-6">
+              <h1 className="display-1 text-balance slide-up">
                 Premium
-                <span className="block bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 bg-clip-text text-transparent">
-                  Lifestyle
-                </span>
-                <span className="block text-white">& Luxury Living</span>
+                <span className="block text-gradient">Lifestyle</span>
+                <span className="block">& Luxury Living</span>
               </h1>
-              <p className="text-lg text-white/90 max-w-lg leading-relaxed text-pretty">
+              <p className="body-large text-muted-foreground max-w-2xl text-pretty slide-up">
                 Discover exceptional luxury apartments, premium products, and unmatched elegance. ABL Natasha
                 Enterprises - Where luxury meets lifestyle.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button
-                size="lg"
-                asChild
-                className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-semibold px-8 py-4 rounded-xl hover:scale-105 transition-transform duration-300 shadow-2xl"
-              >
-                <Link href="/properties">Explore Luxury Stays</Link>
+            <div className="flex flex-col sm:flex-row gap-4 slide-up">
+              <Button size="lg" asChild className="luxury-button h-14 px-8 rounded-xl text-base font-semibold group">
+                <Link href="/properties" className="flex items-center gap-2">
+                  Explore Luxury Stays
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 asChild
-                className="border-2 border-white/30 hover:border-white/50 px-8 py-4 rounded-xl hover:bg-white/10 transition-all duration-300 bg-white/5 backdrop-blur-sm text-white"
+                className="h-14 px-8 rounded-xl text-base font-semibold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300 bg-transparent"
               >
                 <Link href="/products">Shop Premium</Link>
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-yellow-400" />
+            <div className="responsive-grid pt-8 slide-up">
+              <div className="flex flex-col items-center text-center space-y-3 feature-highlight p-4 rounded-xl">
+                <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center elegant-hover">
+                  <Building2 className="h-7 w-7 text-primary" />
                 </div>
-                <span className="text-sm font-medium text-white">Luxury Apartments</span>
-                <span className="text-xs text-white/70">Premium locations</span>
+                <div>
+                  <span className="text-sm font-semibold block">Luxury Apartments</span>
+                  <span className="text-xs text-muted-foreground">Premium locations</span>
+                </div>
               </div>
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-orange-400" />
+              <div className="flex flex-col items-center text-center space-y-3 feature-highlight p-4 rounded-xl">
+                <div className="h-14 w-14 rounded-xl bg-accent/20 flex items-center justify-center elegant-hover">
+                  <Clock className="h-7 w-7 text-accent" />
                 </div>
-                <span className="text-sm font-medium text-white">24/7 Concierge</span>
-                <span className="text-xs text-white/70">Premium service</span>
+                <div>
+                  <span className="text-sm font-semibold block">24/7 Concierge</span>
+                  <span className="text-xs text-muted-foreground">Premium service</span>
+                </div>
               </div>
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-yellow-400" />
+              <div className="flex flex-col items-center text-center space-y-3 feature-highlight p-4 rounded-xl">
+                <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center elegant-hover">
+                  <Shield className="h-7 w-7 text-primary" />
                 </div>
-                <span className="text-sm font-medium text-white">Secure Booking</span>
-                <span className="text-xs text-white/70">Protected payments</span>
+                <div>
+                  <span className="text-sm font-semibold block">Secure Booking</span>
+                  <span className="text-xs text-muted-foreground">Protected payments</span>
+                </div>
               </div>
-              <div className="flex flex-col items-center text-center space-y-2">
-                <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <Sparkles className="h-6 w-6 text-orange-400" />
+              <div className="flex flex-col items-center text-center space-y-3 feature-highlight p-4 rounded-xl">
+                <div className="h-14 w-14 rounded-xl bg-accent/20 flex items-center justify-center elegant-hover">
+                  <Sparkles className="h-7 w-7 text-accent" />
                 </div>
-                <span className="text-sm font-medium text-white">Premium Quality</span>
-                <span className="text-xs text-white/70">Curated excellence</span>
+                <div>
+                  <span className="text-sm font-semibold block">Premium Quality</span>
+                  <span className="text-xs text-muted-foreground">Curated excellence</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-500/20 rounded-3xl blur-3xl scale-110"></div>
-            <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-2xl">
+          <div className="relative scale-in">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-3xl scale-110"></div>
+            <div className="relative luxury-card p-8 rounded-3xl premium-shadow">
               <div className="relative group cursor-pointer" onClick={toggleVideo}>
                 <Image
                   src="/luxury-living-room.jpeg"
                   alt="Luxury Living Room - ABL Natasha Enterprises"
-                  width={500}
-                  height={300}
-                  className="rounded-2xl shadow-2xl w-full h-auto object-cover"
+                  width={600}
+                  height={400}
+                  className="rounded-2xl w-full h-auto object-cover elegant-hover"
                   priority
                 />
-                <div className="absolute inset-0 bg-black/20 rounded-2xl group-hover:bg-black/10 transition-all duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl group-hover:from-black/10 transition-all duration-300"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 group-hover:scale-110 transition-transform duration-300 border border-white/30">
+                  <div className="glass-effect rounded-full p-6 group-hover:scale-110 elegant-hover border border-white/30">
                     {hasError ? (
-                      <div className="h-6 w-6 text-red-400 flex items-center justify-center">⚠</div>
+                      <div className="h-8 w-8 text-destructive flex items-center justify-center">⚠</div>
                     ) : !isVideoLoaded ? (
-                      <div className="h-6 w-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                     ) : isPlaying ? (
-                      <Pause className="h-6 w-6 text-white" />
+                      <Pause className="h-8 w-8 text-foreground" />
                     ) : (
-                      <Play className="h-6 w-6 text-white fill-white" />
+                      <Play className="h-8 w-8 text-foreground fill-current" />
                     )}
                   </div>
                 </div>
                 {!isPlaying && isVideoLoaded && !hasError && (
-                  <div className="absolute bottom-4 left-4 right-4 text-center">
-                    <div className="bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-6 left-6 right-6 text-center">
+                    <div className="glass-effect rounded-lg px-4 py-2 text-foreground text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       Click to play video
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="mt-4 text-center">
-                <h3 className="text-lg font-semibold text-white mb-2">Experience ABL Natasha</h3>
-                <p className="text-white/80 text-sm">
+              <div className="mt-6 text-center">
+                <h3 className="heading-3 mb-3">Experience ABL Natasha</h3>
+                <p className="text-muted-foreground body-small">
                   {hasError ? "Video unavailable" : "Premium lifestyle and luxury living redefined"}
                 </p>
               </div>
 
-              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-black rounded-full p-2 shadow-2xl">
-                <Building2 className="h-5 w-5" />
+              <div className="absolute -top-4 -right-4 bg-primary text-primary-foreground rounded-full p-3 premium-shadow">
+                <Building2 className="h-6 w-6" />
               </div>
             </div>
           </div>
