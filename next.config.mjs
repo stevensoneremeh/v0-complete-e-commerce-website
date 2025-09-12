@@ -86,10 +86,7 @@ const nextConfig = {
       value: 'public, max-age=86400, s-maxage=31536000',
     },
   ],
-        ],
       },
-    ]
-  },
   async redirects() {
     return [
       {
