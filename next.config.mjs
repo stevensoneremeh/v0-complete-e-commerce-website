@@ -45,67 +45,36 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        source: '/((?!_next/static|_next/image|favicon.ico|.*\\.(svg|png|jpg|jpeg|gif|webp)$).*)',
         headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
       },
       {
         source: '/_next/static/(.*)',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       {
-  source: '/:path*\\.(png|jpg|jpeg|gif|webp|svg|ico)',
-  headers: [
-    {
-      key: 'Cache-Control',
-      value: 'public, max-age=86400, s-maxage=31536000',
-    },
-  ],
+        source: '/:path*\\.(png|jpg|jpeg|gif|webp|svg|ico)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, s-maxage=31536000' },
+        ],
       },
+    ];
+  },
   async redirects() {
     return [
-      {
-        source: '/shop',
-        destination: '/products',
-        permanent: true,
-      },
-      {
-        source: '/store',
-        destination: '/products',
-        permanent: true,
-      },
-      {
-        source: '/real-estate',
-        destination: '/properties',
-        permanent: true,
-      },
-    ]
+      { source: '/shop', destination: '/products', permanent: true },
+      { source: '/store', destination: '/products', permanent: true },
+      { source: '/real-estate', destination: '/properties', permanent: true },
+    ];
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;
