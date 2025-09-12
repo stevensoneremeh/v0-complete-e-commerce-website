@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: false, // Enable ESLint in production builds
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: false, // Enable TypeScript checking in production builds
+    ignoreBuildErrors: false,
   },
   allowedDevOrigins: [
     'http://127.0.0.1:5000',
@@ -20,22 +20,10 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'via.placeholder.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com',
-      },
-      {
-        protocol: 'https',
-        hostname: '*.blob.vercel-storage.com',
-      },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'via.placeholder.com' },
+      { protocol: 'https', hostname: 'hebbkx1anhila5yf.public.blob.vercel-storage.com' },
+      { protocol: 'https', hostname: '*.blob.vercel-storage.com' },
     ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
@@ -44,8 +32,12 @@ const nextConfig = {
   poweredByHeader: false,
   async headers() {
     return [
+      // Security headers for all routes except static assets & images
       {
-        source: '/((?!_next/static|_next/image|favicon.ico|.*\\.(svg|png|jpg|jpeg|gif|webp)$).*)',
+        source: '/:path*',
+        has: [
+          { type: 'header', key: 'Accept', value: '.*' }
+        ],
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
@@ -54,12 +46,14 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
       },
+      // Cache static files
       {
-        source: '/_next/static/(.*)',
+        source: '/_next/static/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
+      // Cache images
       {
         source: '/:path*\\.(png|jpg|jpeg|gif|webp|svg|ico)',
         headers: [
