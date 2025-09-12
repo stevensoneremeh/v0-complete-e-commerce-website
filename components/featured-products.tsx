@@ -235,11 +235,11 @@ export function FeaturedProducts() {
                     </div>
                     <div className="flex items-center justify-between mb-2 xs:mb-3 sm:mb-4 flex-shrink-0">
                       <div className="flex flex-col space-y-0.5 xs:space-y-1">
-                        <DualCurrencyDisplay usdAmount={product.price} size="xs" variant="primary" compact={true} />
+                        <DualCurrencyDisplay usdAmount={product.price} size="sm" variant="primary" compact={true} />
                         {product.originalPrice && product.originalPrice > product.price && (
                           <DualCurrencyDisplay
                             usdAmount={product.originalPrice}
-                            size="xs"
+                            size="sm"
                             variant="muted"
                             compact={true}
                             className="line-through"
