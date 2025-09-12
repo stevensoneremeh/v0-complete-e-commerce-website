@@ -11,7 +11,8 @@ const nextConfig = {
     'http://localhost:5000',
     process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
   ].filter(Boolean),
-  serverExternalPackages: ['@supabase/supabase-js'],
+  // Removed @supabase/supabase-js from serverExternalPackages to avoid conflict
+  serverExternalPackages: [],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', '@supabase/supabase-js'],
   },
@@ -32,12 +33,8 @@ const nextConfig = {
   poweredByHeader: false,
   async headers() {
     return [
-      // Security headers for all routes except static assets & images
       {
         source: '/:path*',
-        has: [
-          { type: 'header', key: 'Accept', value: '.*' }
-        ],
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
@@ -46,14 +43,12 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         ],
       },
-      // Cache static files
       {
         source: '/_next/static/:path*',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
-      // Cache images
       {
         source: '/:path*\\.(png|jpg|jpeg|gif|webp|svg|ico)',
         headers: [
