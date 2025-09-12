@@ -497,7 +497,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
                           {product.originalPrice && product.originalPrice > product.price && (
                             <DualCurrencyDisplay
                               usdAmount={product.originalPrice}
-                              size="xs"
+                              size="sm"
                               variant="muted"
                               compact={true}
                               className="line-through"
