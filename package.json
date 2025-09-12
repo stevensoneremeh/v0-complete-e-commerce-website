@@ -13,7 +13,6 @@
   "author": "ABL Natasha Enterprises",
   "scripts": {
     "build": "next build",
-    "postbuild": "next-sitemap",
     "build:analyze": "ANALYZE=true next build",
     "dev": "next dev",
     "lint": "next lint --fix",
