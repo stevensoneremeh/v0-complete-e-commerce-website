@@ -13,7 +13,7 @@ const nextConfig = {
   ].filter(Boolean),
   serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', '@supabase/supabase-js'],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   images: {
     formats: ['image/webp', 'image/avif'],
