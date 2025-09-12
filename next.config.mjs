@@ -78,15 +78,7 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico)$',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=86400, s-maxage=31536000',
-          },
-        ],
-      },
+      // Static assets will be cached by Vercel's default behavior
     ]
   },
   async redirects() {
