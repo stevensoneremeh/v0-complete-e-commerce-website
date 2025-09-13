@@ -58,6 +58,15 @@ const categories = [
     description: "Fine jewelry",
     gradient: "from-yellow-500/20 to-amber-500/20",
   },
+  {
+    id: 7,
+    name: "Hire Services",
+    image: "/luxury-car-hire-boat-cruise-premium-services.jpg",
+    count: 45,
+    slug: "hire",
+    description: "Car hire & boat cruises",
+    gradient: "from-teal-500/20 to-blue-500/20",
+  },
 ]
 
 export function Categories() {

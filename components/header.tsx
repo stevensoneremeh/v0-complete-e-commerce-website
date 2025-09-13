@@ -100,20 +100,20 @@ export function Header() {
       <div className="responsive-container flex h-16 xs:h-18 sm:h-20 items-center justify-between gap-2 xs:gap-3 sm:gap-4">
         <Link href="/" className="flex items-center space-x-2 xs:space-x-3 group flex-shrink-0">
           <div className="relative">
-            <div className="h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12 rounded-lg xs:rounded-xl bg-card flex items-center justify-center premium-shadow group-hover:scale-105 elegant-hover overflow-hidden border border-primary/20">
+            <div className="h-12 w-12 xs:h-14 xs:w-14 sm:h-16 sm:w-16 md:h-18 md:w-18 lg:h-20 lg:w-20 rounded-lg xs:rounded-xl bg-card flex items-center justify-center premium-shadow group-hover:scale-105 elegant-hover overflow-hidden border border-primary/20">
               <Image
                 src="/abl-natasha-logo.png"
                 alt="ABL Natasha Enterprises"
-                width={32}
-                height={32}
-                className="object-contain w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8"
+                width={64}
+                height={64}
+                className="object-contain w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16"
               />
             </div>
             <div className="absolute -top-0.5 xs:-top-1 -right-0.5 xs:-right-1 h-2 w-2 xs:h-3 xs:w-3 bg-primary rounded-full animate-pulse"></div>
           </div>
           <div className="flex flex-col mobile-hidden">
-            <span className="font-bold text-lg xs:text-xl text-gradient">ABL Natasha</span>
-            <span className="text-[10px] xs:text-xs text-muted-foreground font-medium tracking-wider uppercase">
+            <span className="font-bold text-sm xs:text-base sm:text-lg md:text-xl text-gradient">ABL Natasha</span>
+            <span className="text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium tracking-wider uppercase">
               Enterprises
             </span>
           </div>
@@ -130,6 +130,10 @@ export function Header() {
           </Link>
           <Link href="/properties" className="text-sm font-medium hover:text-primary transition-colors relative group">
             Properties
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+          </Link>
+          <Link href="/hire" className="text-sm font-medium hover:text-primary transition-colors relative group">
+            Hire
             <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
           </Link>
           <Link href="/categories" className="text-sm font-medium hover:text-primary transition-colors relative group">
@@ -170,7 +174,7 @@ export function Header() {
                     onClick={() => handleSuggestionClick(suggestion)}
                   >
                     <div className="flex items-center space-x-2 lg:space-x-3">
-                      <Search className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-muted-foreground" />
+                      <Search className="h-3.5 w-3.5 xs:h-4 xs:w-4 text-muted-foreground" />
                       <span className="text-xs lg:text-sm">{suggestion}</span>
                     </div>
                   </button>
@@ -305,6 +309,12 @@ export function Header() {
                     className="block text-base xs:text-lg font-medium hover:text-primary transition-colors py-2"
                   >
                     Properties
+                  </Link>
+                  <Link
+                    href="/hire"
+                    className="block text-base xs:text-lg font-medium hover:text-primary transition-colors py-2"
+                  >
+                    Hire
                   </Link>
                   <Link
                     href="/categories"
