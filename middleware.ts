@@ -1,18 +1,8 @@
-import { NextResponse, type NextRequest } from "next/server"
+import { updateSession } from "@/lib/supabase/middleware"
+import type { NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
-  // Protect admin routes - check for Supabase auth cookie without calling Supabase API
-  if (request.nextUrl.pathname.startsWith("/admin")) {
-    const authCookie = request.cookies.get("sb-access-token") || request.cookies.get("supabase-auth-token")
-    
-    if (!authCookie) {
-      const url = request.nextUrl.clone()
-      url.pathname = "/auth/login"
-      return NextResponse.redirect(url)
-    }
-  }
-
-  return NextResponse.next()
+  return await updateSession(request)
 }
 
 export const config = {

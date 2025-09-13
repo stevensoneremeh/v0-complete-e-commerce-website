@@ -1,8 +1,8 @@
 "use client"
-
-import type React from "react"
-
-import { createContext, useContext, useReducer, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { useAuth } from "@/components/auth-provider"
+import { createOrderClient, getUserOrdersClient } from "@/lib/orders"
+import type { Order, CreateOrderData } from "@/lib/orders"
 
 interface OrderItem {
   id: string
@@ -12,7 +12,7 @@ interface OrderItem {
   image: string
 }
 
-interface Order {
+interface LegacyOrder {
   id: string
   date: string
   status: "processing" | "shipped" | "delivered" | "cancelled"
@@ -38,30 +38,57 @@ interface Order {
 }
 
 interface OrderState {
-  orders: Order[]
+  orders: LegacyOrder[]
+  isLoading: boolean
 }
-
-type OrderAction =
-  | { type: "ADD_ORDER"; payload: Order }
-  | { type: "CANCEL_ORDER"; payload: { orderId: string; reason: string } }
-  | { type: "DELETE_ORDER"; payload: string }
-  | { type: "UPDATE_ORDER_STATUS"; payload: { orderId: string; status: Order["status"]; tracking?: string } }
 
 const OrderContext = createContext<{
   state: OrderState
-  dispatch: React.Dispatch<OrderAction>
-  addOrder: (order: Omit<Order, "id" | "date">) => string
+  addOrder: (order: Omit<LegacyOrder, "id" | "date">) => Promise<string>
   cancelOrder: (orderId: string, reason: string) => boolean
   deleteOrder: (orderId: string) => boolean
-  updateOrderStatus: (orderId: string, status: Order["status"], tracking?: string) => boolean
-  getOrder: (orderId: string) => Order | undefined
-  getUserOrders: () => Order[]
-  canCancelOrder: (order: Order) => boolean
-  canDeleteOrder: (order: Order) => boolean
+  updateOrderStatus: (orderId: string, status: LegacyOrder["status"], tracking?: string) => boolean
+  getOrder: (orderId: string) => LegacyOrder | undefined
+  getUserOrders: () => LegacyOrder[]
+  canCancelOrder: (order: LegacyOrder) => boolean
+  canDeleteOrder: (order: LegacyOrder) => boolean
+  refreshOrders: () => Promise<void>
+  createDatabaseOrder: (orderData: CreateOrderData) => Promise<{ orderId: string | null; error: string | null }>
 } | null>(null)
 
-// Mock orders data
-const initialOrders: Order[] = [
+const convertDatabaseOrderToLegacy = (dbOrder: Order): LegacyOrder => {
+  return {
+    id: dbOrder.order_number,
+    date: new Date(dbOrder.created_at).toISOString().split("T")[0],
+    status: dbOrder.status === "pending" ? "processing" : dbOrder.status,
+    total: dbOrder.total_amount,
+    items: dbOrder.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image,
+    })),
+    tracking: dbOrder.tracking_number || null,
+    estimatedDelivery: dbOrder.shipped_at
+      ? new Date(new Date(dbOrder.shipped_at).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+      : null,
+    shippingAddress: {
+      firstName: dbOrder.shipping_name.split(" ")[0] || "",
+      lastName: dbOrder.shipping_name.split(" ").slice(1).join(" ") || "",
+      address: dbOrder.shipping_address,
+      city: dbOrder.shipping_city,
+      state: "", // Not stored separately in database
+      zipCode: dbOrder.shipping_postal_code,
+      country: dbOrder.shipping_country,
+    },
+    paymentMethod: dbOrder.payment_method,
+    paymentReference: dbOrder.payment_reference,
+  }
+}
+
+// Mock orders data for fallback
+const initialOrders: LegacyOrder[] = [
   {
     id: "#3210",
     date: "2024-01-15",
@@ -97,163 +124,71 @@ const initialOrders: Order[] = [
     paymentMethod: "Credit Card",
     paymentReference: "PAY123456",
   },
-  {
-    id: "#3209",
-    date: "2024-01-10",
-    status: "shipped",
-    total: 89.99,
-    items: [
-      {
-        id: "3",
-        name: "Smart Fitness Watch",
-        price: 89.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-    tracking: "1Z999AA1234567891",
-    estimatedDelivery: "2024-01-20",
-    shippingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "USA",
-    },
-    paymentMethod: "Credit Card",
-    paymentReference: "PAY123457",
-  },
-  {
-    id: "#3208",
-    date: "2024-01-05",
-    status: "processing",
-    total: 199.99,
-    items: [
-      {
-        id: "4",
-        name: "Premium Laptop Backpack",
-        price: 49.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: "5",
-        name: "Bluetooth Speaker",
-        price: 79.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-      {
-        id: "6",
-        name: "USB Cable",
-        price: 19.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-    tracking: null,
-    estimatedDelivery: "2024-01-25",
-    shippingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "USA",
-    },
-    paymentMethod: "Credit Card",
-    paymentReference: "PAY123458",
-  },
-  {
-    id: "#3207",
-    date: "2024-01-01",
-    status: "cancelled",
-    total: 59.99,
-    items: [
-      {
-        id: "7",
-        name: "Wireless Mouse",
-        price: 59.99,
-        quantity: 1,
-        image: "/placeholder.svg?height=100&width=100",
-      },
-    ],
-    tracking: null,
-    estimatedDelivery: null,
-    shippingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address: "123 Main St",
-      city: "New York",
-      state: "NY",
-      zipCode: "10001",
-      country: "USA",
-    },
-    paymentMethod: "Credit Card",
-    paymentReference: "PAY123459",
-    cancelReason: "Changed my mind",
-    cancelDate: "2024-01-02",
-  },
 ]
 
-function orderReducer(state: OrderState, action: OrderAction): OrderState {
-  switch (action.type) {
-    case "ADD_ORDER": {
-      return {
-        orders: [action.payload, ...state.orders],
-      }
-    }
-    case "CANCEL_ORDER": {
-      return {
-        orders: state.orders.map((order) =>
-          order.id === action.payload.orderId
-            ? {
-                ...order,
-                status: "cancelled" as const,
-                cancelReason: action.payload.reason,
-                cancelDate: new Date().toISOString().split("T")[0],
-              }
-            : order,
-        ),
-      }
-    }
-    case "DELETE_ORDER": {
-      return {
-        orders: state.orders.filter((order) => order.id !== action.payload),
-      }
-    }
-    case "UPDATE_ORDER_STATUS": {
-      return {
-        orders: state.orders.map((order) =>
-          order.id === action.payload.orderId
-            ? {
-                ...order,
-                status: action.payload.status,
-                tracking: action.payload.tracking || order.tracking,
-              }
-            : order,
-        ),
-      }
-    }
-    default:
-      return state
-  }
-}
-
 export function OrderProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(orderReducer, { orders: initialOrders })
+  const { user } = useAuth()
+  const [state, setState] = useState<OrderState>({
+    orders: initialOrders,
+    isLoading: false,
+  })
 
-  const addOrder = (orderData: Omit<Order, "id" | "date">) => {
+  const refreshOrders = async () => {
+    if (!user?.id) {
+      setState((prev) => ({ ...prev, orders: initialOrders }))
+      return
+    }
+
+    setState((prev) => ({ ...prev, isLoading: true }))
+
+    try {
+      const dbOrders = await getUserOrdersClient(user.id)
+      const legacyOrders = dbOrders.map(convertDatabaseOrderToLegacy)
+      setState((prev) => ({
+        ...prev,
+        orders: legacyOrders.length > 0 ? legacyOrders : initialOrders,
+        isLoading: false,
+      }))
+    } catch (error) {
+      console.error("Error loading orders:", error)
+      setState((prev) => ({ ...prev, orders: initialOrders, isLoading: false }))
+    }
+  }
+
+  useEffect(() => {
+    refreshOrders()
+  }, [user?.id])
+
+  const createDatabaseOrder = async (
+    orderData: CreateOrderData,
+  ): Promise<{ orderId: string | null; error: string | null }> => {
+    try {
+      const { order, error } = await createOrderClient(orderData)
+      if (error || !order) {
+        return { orderId: null, error: error || "Failed to create order" }
+      }
+
+      // Refresh orders to include the new one
+      await refreshOrders()
+
+      return { orderId: order.order_number, error: null }
+    } catch (error) {
+      console.error("Error creating database order:", error)
+      return { orderId: null, error: error instanceof Error ? error.message : "Unknown error" }
+    }
+  }
+
+  const addOrder = async (orderData: Omit<LegacyOrder, "id" | "date">): Promise<string> => {
     const orderId = `#${Date.now().toString().slice(-4)}`
-    const order: Order = {
+    const order: LegacyOrder = {
       ...orderData,
       id: orderId,
       date: new Date().toISOString().split("T")[0],
     }
-    dispatch({ type: "ADD_ORDER", payload: order })
+    setState((prev) => ({
+      ...prev,
+      orders: [order, ...prev.orders],
+    }))
     return orderId
   }
 
@@ -262,7 +197,20 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     if (!order || !canCancelOrder(order)) {
       return false
     }
-    dispatch({ type: "CANCEL_ORDER", payload: { orderId, reason } })
+
+    setState((prev) => ({
+      ...prev,
+      orders: prev.orders.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              status: "cancelled" as const,
+              cancelReason: reason,
+              cancelDate: new Date().toISOString().split("T")[0],
+            }
+          : order,
+      ),
+    }))
     return true
   }
 
@@ -271,16 +219,32 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     if (!order || !canDeleteOrder(order)) {
       return false
     }
-    dispatch({ type: "DELETE_ORDER", payload: orderId })
+
+    setState((prev) => ({
+      ...prev,
+      orders: prev.orders.filter((order) => order.id !== orderId),
+    }))
     return true
   }
 
-  const updateOrderStatus = (orderId: string, status: Order["status"], tracking?: string) => {
+  const updateOrderStatusLocal = (orderId: string, status: LegacyOrder["status"], tracking?: string) => {
     const order = state.orders.find((o) => o.id === orderId)
     if (!order) {
       return false
     }
-    dispatch({ type: "UPDATE_ORDER_STATUS", payload: { orderId, status, tracking } })
+
+    setState((prev) => ({
+      ...prev,
+      orders: prev.orders.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              status: status,
+              tracking: tracking || order.tracking,
+            }
+          : order,
+      ),
+    }))
     return true
   }
 
@@ -292,11 +256,11 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     return state.orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }
 
-  const canCancelOrder = (order: Order) => {
+  const canCancelOrder = (order: LegacyOrder) => {
     return order.status === "processing"
   }
 
-  const canDeleteOrder = (order: Order) => {
+  const canDeleteOrder = (order: LegacyOrder) => {
     return order.status === "cancelled"
   }
 
@@ -304,15 +268,16 @@ export function OrderProvider({ children }: { children: ReactNode }) {
     <OrderContext.Provider
       value={{
         state,
-        dispatch,
         addOrder,
         cancelOrder,
         deleteOrder,
-        updateOrderStatus,
+        updateOrderStatus: updateOrderStatusLocal,
         getOrder,
         getUserOrders,
         canCancelOrder,
         canDeleteOrder,
+        refreshOrders,
+        createDatabaseOrder,
       }}
     >
       {children}

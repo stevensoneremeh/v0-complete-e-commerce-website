@@ -14,7 +14,7 @@ import { useReviews } from "@/components/reviews-provider"
 import { useToast } from "@/hooks/use-toast"
 import { WhatsAppButton } from "@/components/whatsapp-button"
 import { DualCurrencyDisplay } from "@/components/dual-currency-display"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase/client"
 
 const fallbackProducts = [
   {
@@ -105,10 +105,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
     const fetchProducts = async () => {
       try {
         setLoading(true)
-        const supabase = createBrowserClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        )
+        const supabase = createClient()
 
         const { data, error } = await supabase
           .from("products")

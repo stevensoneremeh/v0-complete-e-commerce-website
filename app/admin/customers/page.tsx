@@ -9,10 +9,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { getCustomers, updateCustomer, type Customer } from "@/lib/local-storage"
-import { Search, Eye, UserCheck, UserX, Users, DollarSign, ShoppingCart } from "lucide-react"
+import { getCustomers, updateCustomer, saveCustomers, type Customer } from "@/lib/local-storage"
+import {
+  Search,
+  Eye,
+  UserCheck,
+  UserX,
+  Users,
+  DollarSign,
+  ShoppingCart,
+  UserPlus,
+  Shield,
+  Settings,
+} from "lucide-react"
 
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -20,7 +39,20 @@ export default function AdminCustomersPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [roleFilter, setRoleFilter] = useState("all")
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+
+  const [newCustomer, setNewCustomer] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    country: "",
+    role: "user" as "user" | "admin",
+  })
+
   const { toast } = useToast()
 
   useEffect(() => {
@@ -61,9 +93,104 @@ export default function AdminCustomersPage() {
     }
   }
 
+  const handleToggleRole = async (customerId: string) => {
+    const customer = customers.find((c) => c.id === customerId)
+    if (!customer) return
+
+    const newRole = customer.role === "admin" ? "user" : "admin"
+    const updatedCustomer = updateCustomer(customerId, { role: newRole })
+
+    if (updatedCustomer) {
+      setCustomers(customers.map((c) => (c.id === customerId ? updatedCustomer : c)))
+      toast({
+        title: "Role Updated",
+        description: `Customer role changed to ${newRole}`,
+      })
+    }
+  }
+
+  const handleCreateCustomer = () => {
+    if (!newCustomer.name || !newCustomer.email) {
+      toast({
+        title: "Missing Information",
+        description: "Name and email are required fields.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Check if email already exists
+    if (customers.some((c) => c.email === newCustomer.email)) {
+      toast({
+        title: "Email Already Exists",
+        description: "A customer with this email already exists.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const customer: Customer = {
+      id: Date.now().toString(),
+      ...newCustomer,
+      isActive: true,
+      totalOrders: 0,
+      totalSpent: 0,
+      createdAt: new Date().toISOString(),
+    }
+
+    const updatedCustomers = [...customers, customer]
+    setCustomers(updatedCustomers)
+    saveCustomers(updatedCustomers)
+
+    toast({
+      title: "Customer Created",
+      description: `${customer.name} has been added successfully.`,
+    })
+
+    // Reset form
+    setNewCustomer({
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+      city: "",
+      country: "",
+      role: "user",
+    })
+    setIsCreateDialogOpen(false)
+  }
+
+  const handleUpdateCustomer = () => {
+    if (!selectedCustomer) return
+
+    const updatedCustomer = updateCustomer(selectedCustomer.id, {
+      name: selectedCustomer.name,
+      email: selectedCustomer.email,
+      phone: selectedCustomer.phone,
+      address: selectedCustomer.address,
+      city: selectedCustomer.city,
+      country: selectedCustomer.country,
+      role: selectedCustomer.role,
+    })
+
+    if (updatedCustomer) {
+      setCustomers(customers.map((c) => (c.id === selectedCustomer.id ? updatedCustomer : c)))
+      toast({
+        title: "Customer Updated",
+        description: "Customer information has been updated successfully.",
+      })
+      setIsEditDialogOpen(false)
+    }
+  }
+
   const openViewDialog = (customer: Customer) => {
     setSelectedCustomer(customer)
     setIsViewDialogOpen(true)
+  }
+
+  const openEditDialog = (customer: Customer) => {
+    setSelectedCustomer({ ...customer })
+    setIsEditDialogOpen(true)
   }
 
   // Calculate stats
@@ -83,8 +210,106 @@ export default function AdminCustomersPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold">Customers</h1>
-                <p className="text-muted-foreground">Manage your customers</p>
+                <p className="text-muted-foreground">Manage your customers and user accounts</p>
               </div>
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add Customer
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Customer</DialogTitle>
+                    <DialogDescription>Add a new customer to the system</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Full Name *</Label>
+                        <Input
+                          id="name"
+                          value={newCustomer.name}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+                          placeholder="Enter full name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={newCustomer.email}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Phone</Label>
+                        <Input
+                          id="phone"
+                          value={newCustomer.phone}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Select
+                          value={newCustomer.role}
+                          onValueChange={(value: "user" | "admin") => setNewCustomer({ ...newCustomer, role: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">User</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="address">Address</Label>
+                      <Input
+                        id="address"
+                        value={newCustomer.address}
+                        onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
+                        placeholder="Enter address"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="city">City</Label>
+                        <Input
+                          id="city"
+                          value={newCustomer.city}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, city: e.target.value })}
+                          placeholder="Enter city"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="country">Country</Label>
+                        <Input
+                          id="country"
+                          value={newCustomer.country}
+                          onChange={(e) => setNewCustomer({ ...newCustomer, country: e.target.value })}
+                          placeholder="Enter country"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateCustomer}>Create Customer</Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Stats Cards */}
@@ -202,6 +427,7 @@ export default function AdminCustomersPage() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={customer.role === "admin" ? "default" : "secondary"}>
+                            {customer.role === "admin" && <Shield className="h-3 w-3 mr-1" />}
                             {customer.role.charAt(0).toUpperCase() + customer.role.slice(1)}
                           </Badge>
                         </TableCell>
@@ -220,6 +446,17 @@ export default function AdminCustomersPage() {
                           <div className="flex items-center space-x-2">
                             <Button variant="ghost" size="sm" onClick={() => openViewDialog(customer)}>
                               <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => openEditDialog(customer)}>
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleRole(customer.id)}
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              <Shield className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
@@ -276,6 +513,7 @@ export default function AdminCustomersPage() {
                   <h4 className="font-semibold mb-2">Account Status</h4>
                   <div className="space-y-2">
                     <Badge variant={selectedCustomer.role === "admin" ? "default" : "secondary"}>
+                      {selectedCustomer.role === "admin" && <Shield className="h-3 w-3 mr-1" />}
                       {selectedCustomer.role.charAt(0).toUpperCase() + selectedCustomer.role.slice(1)}
                     </Badge>
                     <Badge variant={selectedCustomer.isActive ? "default" : "destructive"}>
@@ -332,6 +570,97 @@ export default function AdminCustomersPage() {
                       : "Never logged in"}
                   </p>
                 </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+            <DialogDescription>Update customer information</DialogDescription>
+          </DialogHeader>
+          {selectedCustomer && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Full Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={selectedCustomer.name}
+                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={selectedCustomer.email}
+                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, email: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-phone">Phone</Label>
+                  <Input
+                    id="edit-phone"
+                    value={selectedCustomer.phone || ""}
+                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, phone: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-role">Role</Label>
+                  <Select
+                    value={selectedCustomer.role}
+                    onValueChange={(value: "user" | "admin") =>
+                      setSelectedCustomer({ ...selectedCustomer, role: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-address">Address</Label>
+                <Input
+                  id="edit-address"
+                  value={selectedCustomer.address || ""}
+                  onChange={(e) => setSelectedCustomer({ ...selectedCustomer, address: e.target.value })}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-city">City</Label>
+                  <Input
+                    id="edit-city"
+                    value={selectedCustomer.city || ""}
+                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, city: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-country">Country</Label>
+                  <Input
+                    id="edit-country"
+                    value={selectedCustomer.country || ""}
+                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, country: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateCustomer}>Update Customer</Button>
               </div>
             </div>
           )}

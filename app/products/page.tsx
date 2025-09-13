@@ -6,6 +6,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ProductGrid } from "@/components/product-grid"
 import { ProductFilters } from "@/components/product-filters"
+import { ProductSearch } from "@/components/product-search"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -66,6 +67,10 @@ export default function ProductsPage() {
                 <span>Clear Search</span>
               </Button>
             )}
+          </div>
+
+          <div className="mt-6 max-w-md">
+            <ProductSearch onSearch={setSearchQuery} placeholder="Search products, categories, brands..." />
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

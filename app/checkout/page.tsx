@@ -52,7 +52,7 @@ export default function CheckoutPage() {
   const { items, total, clearCart } = useCart()
   const { user } = useAuth()
   const { applyCoupon, removeCoupon, calculateDiscount, appliedCoupon } = useCoupon()
-  const { addOrder } = useOrders()
+  const { createDatabaseOrder } = useOrders()
   const { toast } = useToast()
   const router = useRouter()
 
@@ -153,46 +153,67 @@ export default function CheckoutPage() {
   const completeOrder = async (reference?: string) => {
     setIsProcessing(true)
 
-    // Simulate order processing
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const orderData = {
+        user_id: user?.id,
+        guest_id: !user ? `guest_${Date.now()}` : undefined,
+        items: items.map((item) => ({
+          product_id: item.id,
+          product_name: item.name,
+          product_sku: item.sku || `SKU-${item.id}`,
+          quantity: item.quantity,
+          unit_price: item.price,
+        })),
+        subtotal: total,
+        tax_amount: tax,
+        shipping_amount: shippingCost,
+        total_amount: finalTotal,
+        currency: selectedCurrency,
+        payment_method: paymentMethods.find((pm) => pm.id === paymentMethod)?.name || paymentMethod,
+        payment_reference: reference || paymentReference,
+        shipping_name: `${firstName} ${lastName}`,
+        shipping_email: email,
+        shipping_phone: phone,
+        shipping_address: address,
+        shipping_city: city,
+        shipping_country: country,
+        shipping_postal_code: zipCode,
+        billing_name: `${firstName} ${lastName}`,
+        billing_email: email,
+        billing_phone: phone,
+        billing_address: address,
+        billing_city: city,
+        billing_country: country,
+        billing_postal_code: zipCode,
+        notes: orderNotes,
+      }
 
-    // Create order
-    const orderId = addOrder({
-      status: "processing",
-      total: finalTotal,
-      items: items.map((item) => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-      })),
-      shippingAddress: {
-        firstName,
-        lastName,
-        address,
-        city,
-        state,
-        zipCode,
-        country,
-      },
-      paymentMethod: paymentMethods.find((pm) => pm.id === paymentMethod)?.name || paymentMethod,
-      paymentReference: reference || paymentReference,
-      couponCode: appliedCoupon?.code,
-      discount,
-    })
+      const { orderId, error } = await createDatabaseOrder(orderData)
 
-    toast({
-      title: "Order placed successfully!",
-      description: `Thank you for your purchase with ABL Natasha Enterprises. Order ${orderId} has been created. ${appliedCoupon ? `You saved $${discount.toFixed(2)} with coupon ${appliedCoupon.code}!` : ""} You will receive a confirmation email shortly.`,
-    })
+      if (error) {
+        throw new Error(error)
+      }
 
-    clearCart()
-    if (appliedCoupon) {
-      removeCoupon()
+      toast({
+        title: "Order placed successfully!",
+        description: `Thank you for your purchase with ABL Natasha Enterprises. Order ${orderId} has been created. ${appliedCoupon ? `You saved $${discount.toFixed(2)} with coupon ${appliedCoupon.code}!` : ""} You will receive a confirmation email shortly.`,
+      })
+
+      clearCart()
+      if (appliedCoupon) {
+        removeCoupon()
+      }
+      router.push("/orders")
+    } catch (error) {
+      console.error("Error creating order:", error)
+      toast({
+        title: "Order Failed",
+        description: error instanceof Error ? error.message : "Failed to create order. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsProcessing(false)
     }
-    router.push("/orders")
-    setIsProcessing(false)
   }
 
   const handlePlaceOrder = async (e: React.FormEvent) => {

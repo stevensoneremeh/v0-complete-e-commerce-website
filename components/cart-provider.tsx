@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { createContext, useContext, useReducer, type ReactNode } from "react"
+import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react"
 
 interface CartItem {
   id: string
@@ -10,6 +10,8 @@ interface CartItem {
   price: number
   quantity: number
   image: string
+  sku?: string
+  maxQuantity?: number
 }
 
 interface CartState {
@@ -22,6 +24,7 @@ type CartAction =
   | { type: "REMOVE_ITEM"; payload: string }
   | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
   | { type: "CLEAR_CART" }
+  | { type: "LOAD_CART"; payload: CartState }
 
 const CartContext = createContext<{
   state: CartState
@@ -32,6 +35,9 @@ const CartContext = createContext<{
   clearCart: () => void
   items: CartItem[]
   total: number
+  itemCount: number
+  isInCart: (id: string) => boolean
+  getItemQuantity: (id: string) => number
 } | null>(null)
 
 function cartReducer(state: CartState, action: CartAction): CartState {
@@ -39,8 +45,14 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     case "ADD_ITEM": {
       const existingItem = state.items.find((item) => item.id === action.payload.id)
       if (existingItem) {
+        const newQuantity = existingItem.quantity + 1
+        const maxQuantity = action.payload.maxQuantity || 99
+        if (newQuantity > maxQuantity) {
+          return state // Don't add if exceeds max quantity
+        }
+
         const updatedItems = state.items.map((item) =>
-          item.id === action.payload.id ? { ...item, quantity: item.quantity + 1 } : item,
+          item.id === action.payload.id ? { ...item, quantity: newQuantity } : item,
         )
         return {
           items: updatedItems,
@@ -63,7 +75,14 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     }
     case "UPDATE_QUANTITY": {
       const updatedItems = state.items
-        .map((item) => (item.id === action.payload.id ? { ...item, quantity: action.payload.quantity } : item))
+        .map((item) => {
+          if (item.id === action.payload.id) {
+            const maxQuantity = item.maxQuantity || 99
+            const newQuantity = Math.min(action.payload.quantity, maxQuantity)
+            return { ...item, quantity: newQuantity }
+          }
+          return item
+        })
         .filter((item) => item.quantity > 0)
       return {
         items: updatedItems,
@@ -72,6 +91,8 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     }
     case "CLEAR_CART":
       return { items: [], total: 0 }
+    case "LOAD_CART":
+      return action.payload
     default:
       return state
   }
@@ -79,6 +100,26 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 })
+
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem("abl-natasha-cart")
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart)
+        dispatch({ type: "LOAD_CART", payload: parsedCart })
+      }
+    } catch (error) {
+      console.error("Error loading cart from localStorage:", error)
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("abl-natasha-cart", JSON.stringify(state))
+    } catch (error) {
+      console.error("Error saving cart to localStorage:", error)
+    }
+  }, [state])
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
     dispatch({ type: "ADD_ITEM", payload: item })
@@ -96,6 +137,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "CLEAR_CART" })
   }
 
+  const isInCart = (id: string) => {
+    return state.items.some((item) => item.id === id)
+  }
+
+  const getItemQuantity = (id: string) => {
+    const item = state.items.find((item) => item.id === id)
+    return item ? item.quantity : 0
+  }
+
+  const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0)
+
   return (
     <CartContext.Provider
       value={{
@@ -107,6 +159,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         clearCart,
         items: state.items,
         total: state.total,
+        itemCount,
+        isInCart,
+        getItemQuantity,
       }}
     >
       {children}
