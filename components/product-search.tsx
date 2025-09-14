@@ -89,7 +89,7 @@ export function ProductSearch({ onSearch, placeholder = "Search products...", cl
             price: Number.parseFloat(product.price),
             image:
               product.images?.[0] || "/placeholder.svg?height=60&width=60&text=" + encodeURIComponent(product.name),
-            category: product.categories?.name || "General",
+            category: (product.categories as any)?.name || "General",
           }))
           setResults(searchResults)
         }

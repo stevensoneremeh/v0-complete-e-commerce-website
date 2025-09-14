@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@/lib/supabase/server"
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = createServerClient()
+    const { id } = await params
+    const supabase = await createServerClient()
 
     // Check if user is admin
     const {
@@ -29,7 +30,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         ...body,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single()
 
@@ -45,9 +46,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = createServerClient()
+    const { id } = await params
+    const supabase = await createServerClient()
 
     // Check if user is admin
     const {
@@ -65,7 +67,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     // Delete hire booking
-    const { error } = await supabase.from("hire_bookings").delete().eq("id", params.id)
+    const { error } = await supabase.from("hire_bookings").delete().eq("id", id)
 
     if (error) {
       console.error("Error deleting hire booking:", error)

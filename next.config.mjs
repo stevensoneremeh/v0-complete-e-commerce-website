@@ -6,11 +6,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false, // Enable TypeScript checking in production builds
   },
-  allowedDevOrigins: [
-    'http://127.0.0.1:5000',
-    'http://localhost:5000',
-    process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : null,
-  ].filter(Boolean),
   serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
@@ -53,7 +48,7 @@ const nextConfig = {
           },
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           {
             key: 'X-XSS-Protection',
@@ -78,7 +73,6 @@ const nextConfig = {
           },
         ],
       },
-      // Static assets will be cached by Vercel's default behavior
     ]
   },
   async redirects() {
