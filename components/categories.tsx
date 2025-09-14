@@ -61,7 +61,7 @@ const categories = [
   {
     id: 7,
     name: "Hire Services",
-    image: "/luxury-car-hire-boat-cruise-premium-services.jpg",
+    image: "/luxury-sports-car-showroom-premium-vehicles.jpg",
     count: 45,
     slug: "hire",
     description: "Car hire & boat cruises",
