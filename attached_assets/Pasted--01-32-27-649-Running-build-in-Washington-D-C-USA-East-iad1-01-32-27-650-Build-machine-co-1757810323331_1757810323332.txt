@@ -1,0 +1,52 @@
+[01:32:27.649] Running build in Washington, D.C., USA (East) – iad1
+[01:32:27.650] Build machine configuration: 2 cores, 8 GB
+[01:32:27.668] Cloning github.com/stevensoneremeh/v0-complete-e-commerce-website (Branch: main, Commit: 9ba2df0)
+[01:32:28.781] Cloning completed: 1.113s
+[01:32:29.016] Skipping build cache since Package Manager changed from "pnpm" to "npm"
+[01:32:29.311] Running "vercel build"
+[01:32:29.720] Vercel CLI 47.1.1
+[01:32:30.123] Warning: Detected "engines": { "node": ">=18.17.0" } in your `package.json` that will automatically upgrade when a new major Node.js Version is released. Learn More: http://vercel.link/node-version
+[01:32:30.135] Installing dependencies...
+[01:32:31.755] npm error code ERESOLVE
+[01:32:31.756] npm error ERESOLVE could not resolve
+[01:32:31.757] npm error
+[01:32:31.757] npm error While resolving: vaul@0.9.9
+[01:32:31.758] npm error Found: react@19.1.1
+[01:32:31.758] npm error node_modules/react
+[01:32:31.758] npm error   react@"^19" from the root project
+[01:32:31.758] npm error   peer react@">=16.8.0" from @floating-ui/react-dom@2.1.6
+[01:32:31.759] npm error   node_modules/@floating-ui/react-dom
+[01:32:31.759] npm error     @floating-ui/react-dom@"^2.0.0" from @radix-ui/react-popper@1.2.8
+[01:32:31.759] npm error     node_modules/@radix-ui/react-dropdown-menu/node_modules/@radix-ui/react-popper
+[01:32:31.759] npm error       @radix-ui/react-popper@"1.2.8" from @radix-ui/react-menu@2.1.16
+[01:32:31.760] npm error       node_modules/@radix-ui/react-dropdown-menu/node_modules/@radix-ui/react-menu
+[01:32:31.760] npm error         @radix-ui/react-menu@"2.1.16" from @radix-ui/react-dropdown-menu@2.1.16
+[01:32:31.760] npm error         node_modules/@radix-ui/react-dropdown-menu
+[01:32:31.760] npm error     @floating-ui/react-dom@"^2.0.0" from @radix-ui/react-popper@1.2.8
+[01:32:31.761] npm error     node_modules/@radix-ui/react-popover/node_modules/@radix-ui/react-popper
+[01:32:31.761] npm error       @radix-ui/react-popper@"1.2.8" from @radix-ui/react-popover@1.1.15
+[01:32:31.761] npm error       node_modules/@radix-ui/react-popover
+[01:32:31.761] npm error         @radix-ui/react-popover@"latest" from the root project
+[01:32:31.761] npm error     2 more (@radix-ui/react-popper, @radix-ui/react-popper)
+[01:32:31.762] npm error   203 more (@radix-ui/react-accordion, ...)
+[01:32:31.762] npm error
+[01:32:31.762] npm error Could not resolve dependency:
+[01:32:31.762] npm error peer react@"^16.8 || ^17.0 || ^18.0" from vaul@0.9.9
+[01:32:31.763] npm error node_modules/vaul
+[01:32:31.763] npm error   vaul@"^0.9.6" from the root project
+[01:32:31.763] npm error
+[01:32:31.763] npm error Conflicting peer dependency: react@18.3.1
+[01:32:31.768] npm error node_modules/react
+[01:32:31.768] npm error   peer react@"^16.8 || ^17.0 || ^18.0" from vaul@0.9.9
+[01:32:31.768] npm error   node_modules/vaul
+[01:32:31.768] npm error     vaul@"^0.9.6" from the root project
+[01:32:31.769] npm error
+[01:32:31.769] npm error Fix the upstream dependency conflict, or retry
+[01:32:31.769] npm error this command with --force or --legacy-peer-deps
+[01:32:31.769] npm error to accept an incorrect (and potentially broken) dependency resolution.
+[01:32:31.772] npm error
+[01:32:31.772] npm error
+[01:32:31.772] npm error For a full report see:
+[01:32:31.773] npm error /vercel/.npm/_logs/2025-09-14T00_32_30_361Z-eresolve-report.txt
+[01:32:31.773] npm error A complete log of this run can be found in: /vercel/.npm/_logs/2025-09-14T00_32_30_361Z-debug-0.log
+[01:32:31.815] Error: Command "npm install" exited with 1
