@@ -7,6 +7,8 @@ const nextConfig = {
     ignoreBuildErrors: false, // Enable TypeScript checking in production builds
   },
   serverExternalPackages: ['@supabase/supabase-js'],
+  // Allow all hosts for Replit proxy environment
+  allowedHosts: ['*'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
