@@ -1,9 +1,28 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from "@supabase/ssr"
+import { cookies } from "next/headers"
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerClient()
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+            } catch {
+              // The `setAll` method was called from a Server Component.
+            }
+          },
+        },
+      },
+    )
 
     // Check if user is admin
     const {
@@ -14,9 +33,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: userData, error: userError } = await supabase.from("users").select("role").eq("id", user.id).single()
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single()
 
-    if (userError || userData?.role !== "admin") {
+    if (profileError || !profile?.is_admin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -25,7 +48,7 @@ export async function GET(request: NextRequest) {
       .from("hire_bookings")
       .select(`
         *,
-        users (
+        profiles (
           id,
           email,
           full_name
@@ -47,7 +70,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerClient()
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+            } catch {
+              // The `setAll` method was called from a Server Component.
+            }
+          },
+        },
+      },
+    )
 
     // Check if user is admin
     const {
@@ -58,9 +99,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: userData, error: userError } = await supabase.from("users").select("role").eq("id", user.id).single()
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single()
 
-    if (userError || userData?.role !== "admin") {
+    if (profileError || !profile?.is_admin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
