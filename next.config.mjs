@@ -10,8 +10,11 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
-  // Allow Replit proxy domain and localhost for development
-  allowedDevOrigins: ['*.replit.dev', '127.0.0.1:5000', 'localhost:5000'],
+  // Allow all hosts for Replit proxy environment
+  env: {
+    // Disable host checking for dev server in Replit environment
+    DANGEROUSLY_DISABLE_HOST_CHECK: 'true',
+  },
   images: {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
