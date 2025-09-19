@@ -250,7 +250,16 @@ export function Header() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-sm">
+                <DropdownMenuItem
+                  onClick={async () => {
+                    try {
+                      await logout()
+                    } catch (error) {
+                      console.error("Logout failed:", error)
+                    }
+                  }}
+                  className="text-sm"
+                >
                   Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -378,7 +387,13 @@ export function Header() {
                         </Link>
                       )}
                       <Button
-                        onClick={logout}
+                        onClick={async () => {
+                          try {
+                            await logout()
+                          } catch (error) {
+                            console.error("Logout failed:", error)
+                          }
+                        }}
                         variant="outline"
                         className="w-full rounded-xl h-10 xs:h-11 text-sm xs:text-base mt-2 bg-transparent"
                       >

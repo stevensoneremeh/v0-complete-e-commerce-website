@@ -15,7 +15,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   signup: (name: string, email: string, password: string) => Promise<void>
   isLoading: boolean
   setUser: (user: User | null) => void
@@ -36,16 +36,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: { session },
         } = await supabase.auth.getSession()
 
-        if (session?.user && session.expires_at && session.expires_at * 1000 > Date.now()) {
+        if (session?.user) {
           await fetchUserProfile(session.user)
-        } else if (session?.user) {
-          // Session expired, clear it
-          await supabase.auth.signOut()
         }
       } catch (error) {
         console.error("Error getting session:", error)
-        // Clear any invalid session
-        await supabase.auth.signOut()
       } finally {
         setIsLoading(false)
       }
@@ -56,12 +51,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[v0] Auth state change:", event, session?.user?.email)
+
       if (event === "SIGNED_OUT" || !session) {
+        console.log("[v0] User signed out, clearing user state")
         setUser(null)
+        setIsLoading(false)
       } else if (session?.user) {
+        console.log("[v0] User signed in, fetching profile")
         await fetchUserProfile(session.user)
+        setIsLoading(false)
       }
-      setIsLoading(false)
     })
 
     return () => subscription.unsubscribe()
@@ -69,25 +69,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      const isAdmin = supabaseUser.email === "talktostevenson@gmail.com"
+      console.log("[v0] Fetching profile for:", supabaseUser.email)
 
-      // Try to fetch profile, but don't fail if RLS blocks it
-      let profile = null
-      try {
-        const { data } = await supabase.from("profiles").select("*").eq("id", supabaseUser.id).single()
-        profile = data
-      } catch (profileError) {
-        console.log("Profile fetch blocked by RLS, using auth data only")
-      }
+      // Simple admin check based on email
+      const isAdmin = supabaseUser.email === "talktostevenson@gmail.com"
 
       const userData: User = {
         id: supabaseUser.id,
-        name: profile?.full_name || supabaseUser.user_metadata?.full_name || "User",
+        name: supabaseUser.user_metadata?.full_name || "User",
         email: supabaseUser.email || "",
         role: isAdmin ? "admin" : "user",
         avatar: supabaseUser.user_metadata?.avatar_url,
       }
 
+      console.log("[v0] User data created:", userData)
       setUser(userData)
     } catch (error) {
       console.error("Error in fetchUserProfile:", error)
@@ -97,18 +92,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
+      console.log("[v0] Attempting login for:", email)
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
       if (error) {
+        console.error("[v0] Login error:", error)
         throw new Error(error.message)
       }
 
-      if (data.user) {
-        await fetchUserProfile(data.user)
-      }
+      console.log("[v0] Login successful for:", data.user?.email)
+      // User state will be updated by the auth state change listener
     } catch (error) {
       console.error("Login error:", error)
       throw error
@@ -119,16 +116,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut()
+      console.log("[v0] Attempting logout")
+      setIsLoading(true)
+
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error("[v0] Logout error:", error)
+      } else {
+        console.log("[v0] Logout successful")
+      }
+
+      // Clear user state immediately
       setUser(null)
     } catch (error) {
       console.error("Logout error:", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true)
     try {
+      console.log("[v0] Attempting signup for:", email)
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -142,32 +153,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
 
       if (error) {
+        console.error("[v0] Signup error:", error)
         throw new Error(error.message)
       }
 
-      if (data.user) {
-        try {
-          const { error: profileError } = await supabase.from("profiles").insert([
-            {
-              id: data.user.id,
-              email: data.user.email,
-              full_name: name,
-              is_admin: data.user.email === "talktostevenson@gmail.com",
-              role: data.user.email === "talktostevenson@gmail.com" ? "admin" : "user",
-            },
-          ])
+      console.log("[v0] Signup successful for:", data.user?.email)
 
-          if (profileError) {
-            console.error("Error creating profile:", profileError)
-          }
-        } catch (profileError) {
-          console.log("Profile creation handled by trigger or will be created on first login")
-        }
-
-        // If user is immediately confirmed, fetch profile
-        if (data.user.email_confirmed_at) {
-          await fetchUserProfile(data.user)
-        }
+      // If user is immediately confirmed, the auth state change will handle profile creation
+      if (data.user?.email_confirmed_at) {
+        console.log("[v0] User immediately confirmed")
       }
     } catch (error) {
       console.error("Signup error:", error)

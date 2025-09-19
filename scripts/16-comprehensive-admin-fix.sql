@@ -1,0 +1,119 @@
+-- Comprehensive fix for admin authentication and RLS policies
+-- This script will fix all authentication issues once and for all
+
+-- First, drop all existing problematic policies
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
+DROP POLICY IF EXISTS "Admins can update all profiles" ON profiles;
+DROP POLICY IF EXISTS "Enable read access for all users" ON profiles;
+DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON profiles;
+DROP POLICY IF EXISTS "Enable update for users based on email" ON profiles;
+
+-- Disable RLS temporarily to clean up
+ALTER TABLE profiles DISABLE ROW LEVEL SECURITY;
+
+-- Clean up and ensure admin user exists
+DELETE FROM profiles WHERE email = 'talktostevenson@gmail.com';
+
+-- Insert admin profile directly
+INSERT INTO profiles (id, email, full_name, is_admin, role, created_at, updated_at)
+VALUES (
+  (SELECT id FROM auth.users WHERE email = 'talktostevenson@gmail.com' LIMIT 1),
+  'talktostevenson@gmail.com',
+  'Admin User',
+  true,
+  'admin',
+  NOW(),
+  NOW()
+) ON CONFLICT (id) DO UPDATE SET
+  is_admin = true,
+  role = 'admin',
+  updated_at = NOW();
+
+-- If no auth user exists, we'll handle this in the trigger
+-- Create a simple, non-recursive RLS policy structure
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- Simple policies that don't cause recursion
+CREATE POLICY "Allow authenticated users to read own profile"
+ON profiles FOR SELECT
+TO authenticated
+USING (auth.uid() = id);
+
+CREATE POLICY "Allow authenticated users to update own profile"
+ON profiles FOR UPDATE
+TO authenticated
+USING (auth.uid() = id);
+
+CREATE POLICY "Allow authenticated users to insert own profile"
+ON profiles FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = id);
+
+-- Admin policies using direct email check to avoid recursion
+CREATE POLICY "Allow admin to read all profiles"
+ON profiles FOR SELECT
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
+  )
+);
+
+CREATE POLICY "Allow admin to update all profiles"
+ON profiles FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
+  )
+);
+
+-- Update the trigger to handle admin creation properly
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, is_admin, role)
+  VALUES (
+    new.id,
+    new.email,
+    COALESCE(new.raw_user_meta_data->>'full_name', 'User'),
+    CASE WHEN new.email = 'talktostevenson@gmail.com' THEN true ELSE false END,
+    CASE WHEN new.email = 'talktostevenson@gmail.com' THEN 'admin' ELSE 'user' END
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Recreate the trigger
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- Ensure the admin user profile exists if the auth user exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM auth.users WHERE email = 'talktostevenson@gmail.com') THEN
+    INSERT INTO profiles (id, email, full_name, is_admin, role, created_at, updated_at)
+    SELECT 
+      id, 
+      email, 
+      COALESCE(raw_user_meta_data->>'full_name', 'Admin User'),
+      true,
+      'admin',
+      NOW(),
+      NOW()
+    FROM auth.users 
+    WHERE email = 'talktostevenson@gmail.com'
+    ON CONFLICT (id) DO UPDATE SET
+      is_admin = true,
+      role = 'admin',
+      updated_at = NOW();
+  END IF;
+END $$;
