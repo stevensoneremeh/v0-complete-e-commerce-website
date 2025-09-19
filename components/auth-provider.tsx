@@ -69,18 +69,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", supabaseUser.id).single()
+      const isAdmin = supabaseUser.email === "talktostevenson@gmail.com"
 
-      if (error && error.code !== "PGRST116") {
-        console.error("Error fetching profile:", error)
-        return
+      // Try to fetch profile, but don't fail if RLS blocks it
+      let profile = null
+      try {
+        const { data } = await supabase.from("profiles").select("*").eq("id", supabaseUser.id).single()
+        profile = data
+      } catch (profileError) {
+        console.log("Profile fetch blocked by RLS, using auth data only")
       }
 
       const userData: User = {
         id: supabaseUser.id,
         name: profile?.full_name || supabaseUser.user_metadata?.full_name || "User",
         email: supabaseUser.email || "",
-        role: profile?.is_admin ? "admin" : "user",
+        role: isAdmin ? "admin" : "user",
         avatar: supabaseUser.user_metadata?.avatar_url,
       }
 
@@ -141,20 +145,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(error.message)
       }
 
-      // Create profile record
       if (data.user) {
-        const { error: profileError } = await supabase.from("profiles").insert([
-          {
-            id: data.user.id,
-            email: data.user.email,
-            full_name: name,
-            is_admin: false,
-            role: "user",
-          },
-        ])
+        try {
+          const { error: profileError } = await supabase.from("profiles").insert([
+            {
+              id: data.user.id,
+              email: data.user.email,
+              full_name: name,
+              is_admin: data.user.email === "talktostevenson@gmail.com",
+              role: data.user.email === "talktostevenson@gmail.com" ? "admin" : "user",
+            },
+          ])
 
-        if (profileError) {
-          console.error("Error creating profile:", profileError)
+          if (profileError) {
+            console.error("Error creating profile:", profileError)
+          }
+        } catch (profileError) {
+          console.log("Profile creation handled by trigger or will be created on first login")
         }
 
         // If user is immediately confirmed, fetch profile
