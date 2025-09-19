@@ -9,6 +9,10 @@ const nextConfig = {
   serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizeCss: false,
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
   },
   // Allow Replit proxy domain and localhost for development
   allowedDevOrigins: ['*.replit.dev', '127.0.0.1:5000', 'localhost:5000'],
@@ -39,6 +43,7 @@ const nextConfig = {
   },
   compress: true,
   poweredByHeader: false,
+  output: 'standalone',
   async headers() {
     return [
       {
