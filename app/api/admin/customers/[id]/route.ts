@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { verifyAdmin } from "../../auth/middleware"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Check admin access
   const adminCheck = await verifyAdmin(request)
   if (adminCheck) return adminCheck
@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     })
 
     const customerData = await request.json()
-    const { id } = params
+    const { id } = await params
 
     const { data: customer, error } = await supabase
       .from("profiles")
@@ -55,7 +55,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Check admin access
   const adminCheck = await verifyAdmin(request)
   if (adminCheck) return adminCheck
@@ -77,7 +77,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       },
     })
 
-    const { id } = params
+    const { id } = await params
 
     // Delete user from auth
     const { error: authError } = await supabase.auth.admin.deleteUser(id)

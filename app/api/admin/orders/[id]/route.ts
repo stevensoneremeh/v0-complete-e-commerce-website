@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { verifyAdmin } from "../../auth/middleware"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Check admin access
   const adminCheck = await verifyAdmin(request)
   if (adminCheck) return adminCheck
@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     })
 
     const orderData = await request.json()
-    const { id } = params
+    const { id } = await params
 
     const { data: order, error } = await supabase
       .from("orders")
