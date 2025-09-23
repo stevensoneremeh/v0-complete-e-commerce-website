@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 
@@ -8,8 +9,10 @@ interface User {
   id: string
   name: string
   email: string
-  role: "user" | "admin"
+  role: "customer" | "admin" | "super_admin"
   avatar?: string
+  phone?: string
+  isVerified: boolean
 }
 
 interface AuthContextType {
@@ -26,6 +29,7 @@ const AuthContext = createContext<AuthContextType | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   const supabase = createClient()
 
@@ -71,19 +75,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("[v0] Fetching profile for:", supabaseUser.email)
 
-      // Simple admin check based on email
-      const isAdmin = supabaseUser.email === "talktostevenson@gmail.com"
+      let { data: profile, error } = await supabase.from("profiles").select("*").eq("id", supabaseUser.id).single()
+
+      if (error) {
+        console.error("[v0] Error fetching profile:", error)
+        // If profile doesn't exist, create one (fallback for existing users)
+        const { data: newProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert({
+            id: supabaseUser.id,
+            email: supabaseUser.email || "",
+            full_name: supabaseUser.user_metadata?.full_name || "User",
+            role: "customer",
+          })
+          .select()
+          .single()
+
+        if (createError) {
+          console.error("[v0] Error creating profile:", createError)
+          return
+        }
+
+        profile = newProfile
+      }
 
       const userData: User = {
         id: supabaseUser.id,
-        name: supabaseUser.user_metadata?.full_name || "User",
-        email: supabaseUser.email || "",
-        role: isAdmin ? "admin" : "user",
-        avatar: supabaseUser.user_metadata?.avatar_url,
+        name: profile.full_name || supabaseUser.user_metadata?.full_name || "User",
+        email: profile.email || supabaseUser.email || "",
+        role: profile.role || "customer",
+        avatar: profile.avatar_url || supabaseUser.user_metadata?.avatar_url,
+        phone: profile.phone,
+        isVerified: profile.is_verified || false,
       }
 
       console.log("[v0] User data created:", userData)
       setUser(userData)
+
+      if (userData.role === "admin" || userData.role === "super_admin") {
+        console.log("[v0] Admin user detected, redirecting to admin dashboard")
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          router.push("/admin")
+        }, 100)
+      }
     } catch (error) {
       console.error("Error in fetchUserProfile:", error)
     }
@@ -128,6 +163,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Clear user state immediately
       setUser(null)
+      // Redirect to home page after logout
+      router.push("/")
     } catch (error) {
       console.error("Logout error:", error)
     } finally {

@@ -246,16 +246,39 @@ export async function getUserOrdersClient(userId: string): Promise<Order[]> {
     const { data: orders, error } = await supabase
       .from("orders")
       .select(`
-        *,
-        order_items (
-          id,
-          product_id,
-          product_name,
-          product_sku,
-          quantity,
-          unit_price,
-          total_price
-        )
+        id,
+        order_number,
+        user_id,
+        guest_id,
+        status,
+        payment_status,
+        payment_method,
+        payment_reference,
+        subtotal,
+        tax_amount,
+        shipping_amount,
+        total_amount,
+        currency,
+        shipping_name,
+        shipping_email,
+        shipping_phone,
+        shipping_address,
+        shipping_city,
+        shipping_country,
+        shipping_postal_code,
+        billing_name,
+        billing_email,
+        billing_phone,
+        billing_address,
+        billing_city,
+        billing_country,
+        billing_postal_code,
+        tracking_number,
+        notes,
+        created_at,
+        updated_at,
+        shipped_at,
+        delivered_at
       `)
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
@@ -264,6 +287,41 @@ export async function getUserOrdersClient(userId: string): Promise<Order[]> {
       console.error("Error fetching user orders:", error)
       return []
     }
+
+    if (!orders || orders.length === 0) {
+      return []
+    }
+
+    const orderIds = orders.map((order) => order.id)
+    const { data: orderItems, error: itemsError } = await supabase
+      .from("order_items")
+      .select(`
+        id,
+        order_id,
+        product_id,
+        product_name,
+        product_sku,
+        quantity,
+        unit_price,
+        total_price
+      `)
+      .in("order_id", orderIds)
+
+    if (itemsError) {
+      console.error("Error fetching order items:", itemsError)
+      // Return orders without items rather than failing completely
+    }
+
+    const itemsByOrderId = (orderItems || []).reduce(
+      (acc, item) => {
+        if (!acc[item.order_id]) {
+          acc[item.order_id] = []
+        }
+        acc[item.order_id].push(item)
+        return acc
+      },
+      {} as Record<string, any[]>,
+    )
 
     return orders.map((order: any) => ({
       id: order.id,
@@ -299,7 +357,7 @@ export async function getUserOrdersClient(userId: string): Promise<Order[]> {
       updated_at: order.updated_at,
       shipped_at: order.shipped_at,
       delivered_at: order.delivered_at,
-      items: order.order_items.map((item: any) => ({
+      items: (itemsByOrderId[order.id] || []).map((item: any) => ({
         id: item.id,
         name: item.product_name,
         price: item.unit_price,
