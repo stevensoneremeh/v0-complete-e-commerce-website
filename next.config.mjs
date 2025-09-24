@@ -11,7 +11,7 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   // Allow cross-origin requests for Replit iframe environment
-  allowedDevOrigins: [/^[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+\.[\w]+\.replit\.dev$/],
+  allowedDevOrigins: ["*.janeway.replit.dev", "*.replit.dev"],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

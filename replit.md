@@ -8,6 +8,38 @@ ABL Natasha Enterprises is a luxury e-commerce platform that combines online sho
 
 Preferred communication style: Simple, everyday language.
 
+## Project Setup Status (Updated September 24, 2025)
+
+### Current Status
+- ✅ Next.js 15.2.4 development server running on 0.0.0.0:5000
+- ✅ Dependencies installed and workflow configured
+- ✅ Replit environment configuration completed
+- ⚠️ Supabase environment variables missing (required for app functionality)
+- ✅ PostgreSQL database available as fallback
+
+### Required Environment Variables
+
+The application requires these Supabase environment variables to function properly:
+
+1. **NEXT_PUBLIC_SUPABASE_URL** - Your Supabase project URL
+2. **NEXT_PUBLIC_SUPABASE_ANON_KEY** - Your Supabase anonymous/public key
+3. **SUPABASE_SERVICE_ROLE_KEY** - Your Supabase service role key (for admin functions)
+
+### How to Set Up Supabase
+
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Once created, go to Settings → API in your Supabase dashboard
+3. Copy the following values:
+   - Project URL → use as NEXT_PUBLIC_SUPABASE_URL
+   - anon/public key → use as NEXT_PUBLIC_SUPABASE_ANON_KEY
+   - service_role key → use as SUPABASE_SERVICE_ROLE_KEY
+4. Add these as secrets in Replit's Secrets panel
+5. Run the database schema scripts from the `/scripts` folder in your Supabase SQL editor
+
+### Alternative: Use Provided PostgreSQL Database
+
+If you prefer to use the built-in PostgreSQL database instead of Supabase, you'll need to modify the authentication system to work with standard PostgreSQL instead of Supabase Auth.
+
 ## System Architecture
 
 ### Frontend Architecture
