@@ -9,11 +9,9 @@ const nextConfig = {
   serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-    // Enable for Replit environment - allow all hosts for proxy
-    ...(process.env.NODE_ENV === 'development' && {
-      allowedHosts: true,
-    }),
   },
+  // Allow cross-origin requests for Replit iframe environment
+  allowedDevOrigins: [/^[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+-[a-z0-9]+\.[\w]+\.replit\.dev$/],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
