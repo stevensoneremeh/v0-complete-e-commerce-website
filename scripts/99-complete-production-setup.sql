@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS public.categories (
   name TEXT NOT NULL UNIQUE,
   description TEXT,
   image_url TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -167,99 +169,154 @@ ALTER TABLE public.product_reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.real_estate_properties ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.real_estate_bookings ENABLE ROW LEVEL SECURITY;
 
--- Profiles policies
-DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
-DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
-DROP POLICY IF EXISTS "Enable insert for authenticated users" ON public.profiles;
+-- Drop existing policies to avoid conflicts
+DO $$ 
+DECLARE
+    policy_record RECORD;
+BEGIN
+    FOR policy_record IN SELECT schemaname, tablename, policyname FROM pg_policies WHERE tablename IN ('profiles', 'categories', 'products', 'orders', 'order_items', 'cart_items', 'wishlist_items', 'product_reviews', 'real_estate_properties', 'real_estate_bookings')
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', policy_record.policyname, policy_record.schemaname, policy_record.tablename);
+    END LOOP;
+END $$;
 
-CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Admins can view all profiles" ON public.profiles FOR ALL USING (
+-- Create profiles policies
+CREATE POLICY "profiles_select_own" ON public.profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "profiles_update_own" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "profiles_insert_own" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Admin policies for profiles
+CREATE POLICY "profiles_admin_all" ON public.profiles FOR ALL USING (
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND (is_admin = true OR role = 'admin' OR role = 'super_admin')
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
   )
 );
-CREATE POLICY "Enable insert for authenticated users" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Public read policies for main content
-CREATE POLICY "Anyone can view categories" ON public.categories FOR SELECT USING (true);
-CREATE POLICY "Anyone can view products" ON public.products FOR SELECT USING (true);
-CREATE POLICY "Anyone can view properties" ON public.real_estate_properties FOR SELECT USING (true);
+CREATE POLICY "categories_public_select" ON public.categories FOR SELECT USING (is_active = true);
+CREATE POLICY "products_public_select" ON public.products FOR SELECT USING (true);
+CREATE POLICY "properties_public_select" ON public.real_estate_properties FOR SELECT USING (is_available = true);
 
--- Admin policies
-CREATE POLICY "Admins can manage categories" ON public.categories FOR ALL USING (
+-- Admin policies for content management
+CREATE POLICY "categories_admin_all" ON public.categories FOR ALL USING (
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND (is_admin = true OR role = 'admin' OR role = 'super_admin')
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
   )
 );
 
-CREATE POLICY "Admins can manage products" ON public.products FOR ALL USING (
+CREATE POLICY "products_admin_all" ON public.products FOR ALL USING (
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND (is_admin = true OR role = 'admin' OR role = 'super_admin')
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
   )
 );
 
-CREATE POLICY "Admins can manage properties" ON public.real_estate_properties FOR ALL USING (
+CREATE POLICY "properties_admin_all" ON public.real_estate_properties FOR ALL USING (
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND (is_admin = true OR role = 'admin' OR role = 'super_admin')
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
   )
 );
 
 -- User-specific policies
-CREATE POLICY "Users can view their orders" ON public.orders FOR SELECT USING (
+CREATE POLICY "orders_user_select" ON public.orders FOR SELECT USING (
   auth.uid() = user_id OR 
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND (is_admin = true OR role = 'admin' OR role = 'super_admin')
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
   )
 );
 
-CREATE POLICY "Users can create orders" ON public.orders FOR INSERT WITH CHECK (
+CREATE POLICY "orders_user_insert" ON public.orders FOR INSERT WITH CHECK (
   auth.uid() = user_id OR user_id IS NULL
 );
 
-CREATE POLICY "Users can manage their cart" ON public.cart_items FOR ALL USING (
-  auth.uid() = user_id OR user_id IS NULL
-);
-
-CREATE POLICY "Users can manage their wishlist" ON public.wishlist_items FOR ALL USING (
-  auth.uid() = user_id OR user_id IS NULL
-);
-
-CREATE POLICY "Users can view their bookings" ON public.real_estate_bookings FOR SELECT USING (
-  auth.uid() = user_id OR 
+CREATE POLICY "orders_admin_all" ON public.orders FOR ALL USING (
   EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND (is_admin = true OR role = 'admin' OR role = 'super_admin')
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
   )
 );
 
-CREATE POLICY "Users can create bookings" ON public.real_estate_bookings FOR INSERT WITH CHECK (
+CREATE POLICY "cart_items_user_all" ON public.cart_items FOR ALL USING (
+  auth.uid() = user_id OR user_id IS NULL OR
+  EXISTS (
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
+  )
+);
+
+CREATE POLICY "wishlist_items_user_all" ON public.wishlist_items FOR ALL USING (
+  auth.uid() = user_id OR user_id IS NULL OR
+  EXISTS (
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
+  )
+);
+
+CREATE POLICY "bookings_user_select" ON public.real_estate_bookings FOR SELECT USING (
+  auth.uid() = user_id OR 
+  EXISTS (
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
+  )
+);
+
+CREATE POLICY "bookings_user_insert" ON public.real_estate_bookings FOR INSERT WITH CHECK (
   auth.uid() = user_id OR user_id IS NULL
+);
+
+CREATE POLICY "bookings_admin_all" ON public.real_estate_bookings FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
+  )
 );
 
 -- Order items policies
-CREATE POLICY "Users can view order items for their orders" ON public.order_items FOR SELECT USING (
+CREATE POLICY "order_items_user_select" ON public.order_items FOR SELECT USING (
   EXISTS (
     SELECT 1 FROM public.orders 
     WHERE id = order_id AND (user_id = auth.uid() OR 
       EXISTS (
-        SELECT 1 FROM public.profiles 
-        WHERE id = auth.uid() AND (is_admin = true OR role = 'admin' OR role = 'super_admin')
+        SELECT 1 FROM auth.users 
+        WHERE auth.users.id = auth.uid() 
+        AND auth.users.email = 'talktostevenson@gmail.com'
       )
     )
   )
 );
 
+CREATE POLICY "order_items_user_insert" ON public.order_items FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.orders 
+    WHERE id = order_id AND user_id = auth.uid()
+  )
+);
+
 -- Reviews policies
-CREATE POLICY "Anyone can view reviews" ON public.product_reviews FOR SELECT USING (true);
-CREATE POLICY "Authenticated users can create reviews" ON public.product_reviews FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their reviews" ON public.product_reviews FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "reviews_public_select" ON public.product_reviews FOR SELECT USING (true);
+CREATE POLICY "reviews_user_insert" ON public.product_reviews FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "reviews_user_update" ON public.product_reviews FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "reviews_admin_all" ON public.product_reviews FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM auth.users 
+    WHERE auth.users.id = auth.uid() 
+    AND auth.users.email = 'talktostevenson@gmail.com'
+  )
+);
 
 -- Create trigger for auto-updating timestamps
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -275,6 +332,16 @@ CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+DROP TRIGGER IF EXISTS update_categories_updated_at ON public.categories;
+CREATE TRIGGER update_categories_updated_at
+  BEFORE UPDATE ON public.categories
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+DROP TRIGGER IF EXISTS update_products_updated_at ON public.products;
+CREATE TRIGGER update_products_updated_at
+  BEFORE UPDATE ON public.products
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
 -- Function to handle new user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
@@ -284,8 +351,8 @@ BEGIN
     NEW.id, 
     NEW.email, 
     COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
-    'user',
-    false
+    CASE WHEN NEW.email = 'talktostevenson@gmail.com' THEN 'admin' ELSE 'user' END,
+    CASE WHEN NEW.email = 'talktostevenson@gmail.com' THEN true ELSE false END
   );
   RETURN NEW;
 END;
@@ -298,47 +365,26 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Insert default categories
-INSERT INTO public.categories (name, description, image_url) VALUES
-('Perfumes', 'Luxury fragrances and premium perfumes', '/luxury-perfume-bottles-elegant-display.jpg'),
-('Wigs', 'Premium human hair wigs and extensions', '/premium-human-hair-wigs-luxury-salon-display.jpg'),
-('Cars', 'Luxury vehicles and premium automobiles', '/luxury-sports-car-showroom-premium-vehicles.jpg'),
-('Wines', 'Fine wines and premium spirits collection', '/premium-wine-collection-luxury-bottles-cellar.jpg'),
-('Body Creams', 'Luxury skincare and premium cosmetics', '/luxury-skincare-products-premium-cosmetics-spa.jpg'),
-('Jewelry', 'Fine jewelry and luxury accessories', '/luxury-jewelry-diamonds-gold-elegant-display.jpg')
+INSERT INTO public.categories (name, description, image_url, sort_order) VALUES
+('Perfumes', 'Luxury fragrances and premium perfumes', '/luxury-perfume-bottles-elegant-display.jpg', 1),
+('Wigs', 'Premium human hair wigs and extensions', '/premium-human-hair-wigs-luxury-salon-display.jpg', 2),
+('Cars', 'Luxury vehicles and premium automobiles', '/luxury-sports-car-showroom-premium-vehicles.jpg', 3),
+('Wines', 'Fine wines and premium spirits collection', '/premium-wine-collection-luxury-bottles-cellar.jpg', 4),
+('Body Creams', 'Luxury skincare and premium cosmetics', '/luxury-skincare-products-premium-cosmetics-spa.jpg', 5),
+('Jewelry', 'Fine jewelry and luxury accessories', '/luxury-jewelry-diamonds-gold-elegant-display.jpg', 6)
 ON CONFLICT (name) DO NOTHING;
 
--- Create admin user function
-CREATE OR REPLACE FUNCTION create_admin_user(admin_email TEXT, admin_password TEXT, admin_name TEXT)
-RETURNS TEXT AS $$
-DECLARE
-  new_user_id UUID;
-BEGIN
-  -- This would typically be handled by your application
-  -- For now, we'll just create a profile entry that can be linked later
-  INSERT INTO public.profiles (id, email, full_name, role, is_admin)
-  VALUES (
-    uuid_generate_v4(),
-    admin_email,
-    admin_name,
-    'super_admin',
-    true
-  );
-  
-  RETURN 'Admin profile created. Please sign up through the application with email: ' || admin_email;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create the admin account profile (you'll need to sign up with this email)
-SELECT create_admin_user('admin@ablnatashaenterprises.com', 'admin123', 'ABL Natasha Admin');
-
--- Also create a profile for the existing admin email from middleware
+-- Ensure admin profile exists for the specified email
 INSERT INTO public.profiles (id, email, full_name, role, is_admin)
 VALUES (
   uuid_generate_v4(),
   'talktostevenson@gmail.com',
-  'Stevenson Admin',
-  'super_admin',
+  'Admin User',
+  'admin',
   true
-) ON CONFLICT DO NOTHING;
+) ON CONFLICT (email) DO UPDATE SET
+  role = 'admin',
+  is_admin = true,
+  updated_at = NOW();
 
 COMMIT;

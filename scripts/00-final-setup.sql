@@ -7,7 +7,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create profiles table first (this extends Supabase's auth.users)
 CREATE TABLE IF NOT EXISTS public.profiles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT UNIQUE,
   full_name TEXT,
   phone TEXT,
@@ -208,6 +208,31 @@ CREATE POLICY "Users can view order items" ON public.order_items FOR ALL USING (
 CREATE POLICY "Anyone can view reviews" ON public.product_reviews FOR SELECT USING (true);
 CREATE POLICY "Users can create reviews" ON public.product_reviews FOR INSERT WITH CHECK (true);
 
+-- Create function to handle new user signups
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.profiles (id, email, full_name, role, is_admin)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', 'User'),
+        CASE 
+            WHEN NEW.email IN ('admin@ablnatashaenterprises.com', 'talktostevenson@gmail.com') THEN 'super_admin'
+            ELSE 'user'
+        END,
+        NEW.email IN ('admin@ablnatashaenterprises.com', 'talktostevenson@gmail.com')
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create the trigger
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
 -- Insert default categories with proper slugs
 INSERT INTO public.categories (name, slug, description, image_url) VALUES
 ('Perfumes', 'perfumes', 'Luxury fragrances and premium perfumes', '/luxury-perfume-bottles-elegant-display.jpg'),
@@ -218,11 +243,5 @@ INSERT INTO public.categories (name, slug, description, image_url) VALUES
 ('Jewelry', 'jewelry', 'Fine jewelry and luxury accessories', '/luxury-jewelry-diamonds-gold-elegant-display.jpg')
 ON CONFLICT (slug) DO NOTHING;
 
--- Create admin profiles that can be linked when users sign up
-INSERT INTO public.profiles (email, full_name, role, is_admin) VALUES
-('admin@ablnatashaenterprises.com', 'ABL Natasha Admin', 'super_admin', true),
-('talktostevenson@gmail.com', 'Stevenson Admin', 'super_admin', true)
-ON CONFLICT (email) DO NOTHING;
-
 -- Success message
-SELECT 'Database setup completed successfully! You can now sign up with admin@ablnatashaenterprises.com or talktostevenson@gmail.com to get admin access.' as status;
+SELECT 'Database setup completed successfully! Admin accounts will be created automatically when users sign up with admin@ablnatashaenterprises.com or talktostevenson@gmail.com' as status;
