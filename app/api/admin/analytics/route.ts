@@ -1,117 +1,92 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
-import { verifyAdmin } from "../auth/middleware"
+import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
-  // Check admin access
-  const adminCheck = await verifyAdmin(request)
-  if (adminCheck) return adminCheck
-
+export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-          }
-        },
-      },
-    })
+    const supabase = await createClient()
 
+    // Check if user is authenticated
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check if user is admin
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role, is_admin")
+      .eq("id", user.id)
+      .single()
+
+    if (profileError || !profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 })
+    }
+
+    if (!profile.is_admin && profile.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    // Get analytics data
     const { searchParams } = new URL(request.url)
-    const period = searchParams.get("period") || "30" // days
+    const period = parseInt(searchParams.get("period") || "30")
 
-    // Get date range
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - Number.parseInt(period))
+    const periodDate = new Date()
+    periodDate.setDate(periodDate.getDate() - period)
 
-    // Get orders analytics
+    // Get orders data
     const { data: orders, error: ordersError } = await supabase
       .from("orders")
-      .select("total_amount, status, created_at")
-      .gte("created_at", startDate.toISOString())
-      .lte("created_at", endDate.toISOString())
+      .select("*")
+      .gte("created_at", periodDate.toISOString())
 
     if (ordersError) {
-      console.error("Error fetching orders analytics:", ordersError)
-      return NextResponse.json({ error: "Failed to fetch orders analytics" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to fetch orders data" }, { status: 500 })
     }
 
-    // Get products analytics
-    const { data: products, error: productsError } = await supabase.from("products").select("id, name, status")
+    // Get products count
+    const { count: productsCount, error: productsError } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
 
     if (productsError) {
-      console.error("Error fetching products analytics:", productsError)
-      return NextResponse.json({ error: "Failed to fetch products analytics" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to fetch products count" }, { status: 500 })
     }
 
-    // Get customers analytics
-    const { data: customers, error: customersError } = await supabase
+    // Get customers count
+    const { count: customersCount, error: customersError } = await supabase
       .from("profiles")
-      .select("id, created_at")
-      .gte("created_at", startDate.toISOString())
-      .lte("created_at", endDate.toISOString())
+      .select("*", { count: "exact", head: true })
 
     if (customersError) {
-      console.error("Error fetching customers analytics:", customersError)
-      return NextResponse.json({ error: "Failed to fetch customers analytics" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to fetch customers count" }, { status: 500 })
     }
 
     // Calculate analytics
     const totalRevenue = orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
     const totalOrders = orders?.length || 0
-    const completedOrders = orders?.filter((order) => order.status === "delivered").length || 0
-    const pendingOrders = orders?.filter((order) => order.status === "pending").length || 0
-    const totalProducts = products?.length || 0
-    const activeProducts = products?.filter((product) => product.status === "active").length || 0
-    const newCustomers = customers?.length || 0
+    const completedOrders = orders?.filter(order => order.status === "completed").length || 0
+    const pendingOrders = orders?.filter(order => order.status === "pending").length || 0
 
-    // Calculate daily revenue for chart
-    const dailyRevenue = []
-    for (let i = Number.parseInt(period) - 1; i >= 0; i--) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
-      const dayStart = new Date(date.setHours(0, 0, 0, 0))
-      const dayEnd = new Date(date.setHours(23, 59, 59, 999))
-
-      const dayOrders =
-        orders?.filter((order) => {
-          const orderDate = new Date(order.created_at)
-          return orderDate >= dayStart && orderDate <= dayEnd
-        }) || []
-
-      const dayRevenue = dayOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
-
-      dailyRevenue.push({
-        date: dayStart.toISOString().split("T")[0],
-        revenue: dayRevenue,
-        orders: dayOrders.length,
-      })
-    }
-
-    const analytics = {
+    return NextResponse.json({
       totalRevenue,
       totalOrders,
       completedOrders,
       pendingOrders,
-      totalProducts,
-      activeProducts,
-      newCustomers,
-      dailyRevenue,
-      period: Number.parseInt(period),
-    }
+      totalProducts: productsCount || 0,
+      totalCustomers: customersCount || 0,
+      recentOrders: orders?.slice(0, 10) || [],
+      period
+    })
 
-    return NextResponse.json(analytics)
   } catch (error) {
-    console.error("Error in analytics API:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Analytics API error:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
 }

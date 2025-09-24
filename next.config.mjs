@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -20,9 +21,8 @@ const nextConfig = {
   serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
-  // Allow cross-origin requests for Replit iframe environment
-  allowedDevOrigins: ["*.janeway.replit.dev", "*.replit.dev", "127.0.0.1"],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

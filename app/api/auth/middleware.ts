@@ -2,7 +2,7 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-export async function verifyAdmin(request: NextRequest) {
+export async function verifyAdmin(request: NextRequest): Promise<NextResponse> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/^"(.*)"$/, '$1')
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/^"(.*)"$/, '$1')
@@ -58,7 +58,9 @@ export async function verifyAdmin(request: NextRequest) {
       )
     }
 
-    return { user, profile }
+    // User is admin, continue
+    return NextResponse.next()
+
   } catch (error) {
     console.error("Admin verification error:", error)
     return NextResponse.json(
