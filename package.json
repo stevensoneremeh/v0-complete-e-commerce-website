@@ -12,11 +12,11 @@
   ],
   "author": "ABL Natasha Enterprises",
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 3000",
+    "dev": "next dev",
     "lint": "next lint --fix",
     "lint:check": "next lint",
+    "start": "next start -p 3000",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
