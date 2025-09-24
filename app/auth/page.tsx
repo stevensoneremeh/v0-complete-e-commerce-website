@@ -27,7 +27,7 @@ export default function AuthPage() {
   const [loginError, setLoginError] = useState("")
   const [signupError, setSignupError] = useState("")
   const [signupSuccess, setSignupSuccess] = useState("")
-  const { login, signup, isLoading, user } = useAuth()
+  const { login, signup, isLoading, user, error } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -155,9 +155,9 @@ export default function AuthPage() {
 
               <TabsContent value="login" className="space-y-4 mt-6">
                 <form onSubmit={handleLogin} className="space-y-4">
-                  {loginError && (
+                  {(loginError || error) && (
                     <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
-                      <AlertDescription>{loginError}</AlertDescription>
+                      <AlertDescription>{loginError || error}</AlertDescription>
                     </Alert>
                   )}
 
@@ -216,9 +216,9 @@ export default function AuthPage() {
 
               <TabsContent value="signup" className="space-y-4 mt-6">
                 <form onSubmit={handleSignup} className="space-y-4">
-                  {signupError && (
+                  {(signupError || error) && (
                     <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
-                      <AlertDescription>{signupError}</AlertDescription>
+                      <AlertDescription>{signupError || error}</AlertDescription>
                     </Alert>
                   )}
 

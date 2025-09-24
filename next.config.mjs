@@ -20,7 +20,6 @@ const nextConfig = {
   serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
@@ -53,6 +52,14 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   output: 'standalone',
+  // Allow dev origins for Replit
+  allowedDevOrigins: [
+    '*.replit.dev',
+    '*.replit.com',
+    'localhost:5000',
+    '127.0.0.1:5000'
+  ],
+  
   async headers() {
     return [
       {
@@ -77,6 +84,10 @@ const nextConfig = {
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: process.env.NODE_ENV === 'development' ? '*' : 'https://www.ablnatashaenterprises.com',
           },
         ],
       },

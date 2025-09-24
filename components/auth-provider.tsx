@@ -22,6 +22,7 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<void>
   isLoading: boolean
   setUser: (user: User | null) => void
+  error: string | null
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -29,31 +30,71 @@ const AuthContext = createContext<AuthContextType | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [supabase, setSupabaseClient] = useState<any>(null)
   const router = useRouter()
 
-  const supabase = createClient()
+  useEffect(() => {
+    try {
+      const client = createClient()
+      setSupabaseClient(client)
+    } catch (err) {
+      console.error("Failed to initialize Supabase client:", err)
+      setError("Failed to initialize authentication system")
+      setIsLoading(false)
+      return
+    }
+  }, [])
 
   useEffect(() => {
-    const getSession = async () => {
+    if (!supabase) return
+
+    const getInitialSession = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+        if (sessionError) {
+          console.error("Session error:", sessionError)
+          setIsLoading(false)
+          return
+        }
 
         if (session?.user) {
-          await fetchUserProfile(session.user)
+          try {
+            const { data: profile, error: profileError } = await supabase
+              .from("profiles")
+              .select("role, is_admin")
+              .eq("id", session.user.id)
+              .single()
+
+            if (profileError) {
+              console.log("Profile not found, using defaults:", profileError)
+            }
+
+            setUser({
+              ...session.user,
+              role: profile?.role || "user",
+              is_admin: profile?.is_admin || false,
+            })
+          } catch (profileErr) {
+            console.error("Error fetching profile:", profileErr)
+            // Still set user even if profile fetch fails
+            setUser({
+              ...session.user,
+              role: "user",
+              is_admin: false,
+            })
+          }
         }
       } catch (error) {
-        console.error("Error getting session:", error)
-        if (error.message?.includes("Supabase not configured")) {
-          console.warn("Supabase is not properly configured. Please set up environment variables.")
-        }
+        console.error("Error getting initial session:", error)
+        setError("Failed to load user session")
       } finally {
         setIsLoading(false)
       }
     }
 
-    getSession()
+    getInitialSession()
 
     const {
       data: { subscription },
@@ -72,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
@@ -128,87 +169,119 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true)
-    try {
-      console.log("[v0] Attempting login for:", email)
+    if (!supabase) {
+      throw new Error("Authentication system not initialized")
+    }
 
+    try {
+      setError(null)
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      if (error) {
-        console.error("[v0] Login error:", error)
-        throw new Error(error.message)
-      }
+      if (error) throw error
 
-      console.log("[v0] Login successful for:", data.user?.email)
-      // User state will be updated by the auth state change listener
-    } catch (error) {
-      console.error("Login error:", error)
+      if (data.user) {
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role, is_admin")
+            .eq("id", data.user.id)
+            .single()
+
+          setUser({
+            ...data.user,
+            role: profile?.role || "user",
+            is_admin: profile?.is_admin || false,
+          })
+        } catch (profileErr) {
+          console.error("Error fetching profile during login:", profileErr)
+          // Still set user even if profile fetch fails
+          setUser({
+            ...data.user,
+            role: "user",
+            is_admin: false,
+          })
+        }
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Login failed"
+      setError(errorMessage)
       throw error
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const logout = async () => {
+    if (!supabase) {
+      throw new Error("Authentication system not initialized")
+    }
+
     try {
-      console.log("[v0] Attempting logout")
-      setIsLoading(true)
-
+      setError(null)
       const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error("[v0] Logout error:", error)
-      } else {
-        console.log("[v0] Logout successful")
-      }
-
-      // Clear user state immediately
+      if (error) throw error
       setUser(null)
-      // Redirect to home page after logout
-      router.push("/")
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Logout failed"
+      setError(errorMessage)
       console.error("Logout error:", error)
-    } finally {
-      setIsLoading(false)
+      throw error
     }
   }
 
   const signup = async (name: string, email: string, password: string) => {
-    setIsLoading(true)
-    try {
-      console.log("[v0] Attempting signup for:", email)
+    if (!supabase) {
+      throw new Error("Authentication system not initialized")
+    }
 
+    try {
+      setError(null)
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo:
-            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`,
           data: {
             full_name: name,
           },
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5000'}/auth/callback`
         },
       })
 
-      if (error) {
-        console.error("[v0] Signup error:", error)
-        throw new Error(error.message)
-      }
+      if (error) throw error
 
-      console.log("[v0] Signup successful for:", data.user?.email)
-
-      // If user is immediately confirmed, the auth state change will handle profile creation
-      if (data.user?.email_confirmed_at) {
-        console.log("[v0] User immediately confirmed")
+      // Note: User will be null until email is confirmed
+      if (data.user && data.user.email_confirmed_at) {
+        setUser({
+          ...data.user,
+          role: "user",
+          is_admin: false,
+        })
       }
-    } catch (error) {
-      console.error("Signup error:", error)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Signup failed"
+      setError(errorMessage)
       throw error
-    } finally {
-      setIsLoading(false)
     }
+  }
+
+  // If there's a critical error and no supabase client, show error state
+  if (error && !supabase) {
+    return (
+      <AuthContext.Provider
+        value={{
+          user: null,
+          login: async () => { throw new Error(error) },
+          signup: async () => { throw new Error(error) },
+          logout: async () => { throw new Error(error) },
+          isLoading: false,
+          setUser: () => {},
+          error,
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    )
   }
 
   return (
@@ -216,10 +289,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         login,
-        logout,
         signup,
+        logout,
         isLoading,
         setUser,
+        error,
       }}
     >
       {children}
