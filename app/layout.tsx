@@ -167,6 +167,7 @@ export default function RootLayout({
             </AuthProvider>
           </ThemeProvider>
         </ErrorBoundary>
+        <script src="https://js.paystack.co/v1/inline.js"></script>
       </body>
     </html>
   )

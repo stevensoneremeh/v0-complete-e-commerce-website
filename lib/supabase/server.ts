@@ -30,7 +30,3 @@ export async function createClient() {
     },
   })
 }
-
-export async function createServerClient() {
-  return await createClient()
-}
