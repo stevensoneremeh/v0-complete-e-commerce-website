@@ -61,7 +61,14 @@ export function AdminHeader() {
 
   return (
     <header className="flex h-16 items-center justify-between border-b bg-background px-6">
-      <h1 className="text-xl font-semibold">{getPageTitle()}</h1>
+      <div className="flex items-center space-x-4">
+        <h1 className="text-xl font-semibold">{getPageTitle()}</h1>
+        {process.env.NODE_ENV === "development" && (
+          <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+            DEV MODE
+          </Badge>
+        )}
+      </div>
       <div className="flex items-center space-x-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/admin/notifications">

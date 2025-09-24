@@ -45,6 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         console.error("Error getting session:", error)
+        if (error.message?.includes("Supabase not configured")) {
+          console.warn("Supabase is not properly configured. Please set up environment variables.")
+        }
       } finally {
         setIsLoading(false)
       }

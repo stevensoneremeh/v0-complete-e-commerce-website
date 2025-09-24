@@ -14,6 +14,7 @@ import {
   Home,
   Building2,
   Calendar,
+  TestTube,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -30,8 +31,9 @@ export function AdminSidebar() {
     { href: "/admin/customers", icon: Users, label: "Customers" },
     { href: "/admin/coupons", icon: TicketPercent, label: "Coupons" },
     { href: "/admin/notifications", icon: Bell, label: "Notifications" },
-    { href: "/admin/settings", icon: Settings, label: "Settings" },
     { href: "/admin/analytics", icon: BarChart, label: "Analytics" },
+    { href: "/admin/settings", icon: Settings, label: "Settings" },
+    { href: "/admin/test", icon: TestTube, label: "System Test" },
   ]
 
   return (

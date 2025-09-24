@@ -9,14 +9,21 @@ export async function updateSession(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/^"(.*)"$/, '$1')
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/^"(.*)"$/, '$1')
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("[v0] Missing Supabase environment variables:", {
+  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'undefined' || supabaseAnonKey === 'undefined') {
+    console.error("[v0] Missing or invalid Supabase environment variables:", {
       url: !!supabaseUrl,
       key: !!supabaseAnonKey,
       urlValue: supabaseUrl,
       keyLength: supabaseAnonKey?.length
     })
-    // Return early if environment variables are missing
+    
+    // If accessing admin routes without proper config, redirect to setup
+    if (request.nextUrl.pathname.startsWith("/admin")) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/admin/access"
+      return NextResponse.redirect(url)
+    }
+    
     return supabaseResponse
   }
 

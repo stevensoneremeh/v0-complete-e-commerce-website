@@ -1,21 +1,26 @@
+
 import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 
 export async function verifyAdmin(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/^"(.*)"$/, '$1')
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/^"(.*)"$/, '$1')
+
+    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'undefined' || supabaseAnonKey === 'undefined') {
+      return NextResponse.json(
+        { error: "Supabase configuration missing" },
+        { status: 500 }
+      )
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-          }
+          // This is handled by the response
         },
       },
     })
@@ -26,23 +31,39 @@ export async function verifyAdmin(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (userError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      )
     }
 
     // Check if user is admin
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("is_admin, role")
+      .select("role, is_admin")
       .eq("id", user.id)
       .single()
 
-    if (profileError || !profile?.is_admin) {
-      return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 })
+    if (profileError || !profile) {
+      return NextResponse.json(
+        { error: "Profile not found" },
+        { status: 404 }
+      )
     }
 
-    return null // No error, user is admin
+    if (!profile.is_admin && profile.role !== "admin") {
+      return NextResponse.json(
+        { error: "Admin access required" },
+        { status: 403 }
+      )
+    }
+
+    return { user, profile }
   } catch (error) {
-    console.error("Error verifying admin:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Admin verification error:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
   }
 }

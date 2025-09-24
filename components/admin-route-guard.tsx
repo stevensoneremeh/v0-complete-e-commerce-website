@@ -19,21 +19,26 @@ export function AdminRouteGuard({ children, requiredRole = "admin" }: AdminRoute
     if (!isLoading) {
       if (!user) {
         // Not logged in, redirect to auth page
+        console.log("User not authenticated, redirecting to auth")
         router.push("/auth")
         return
       }
 
       if (user.role === "customer") {
         // Regular user trying to access admin area
+        console.log("Customer trying to access admin area, redirecting to home")
         router.push("/")
         return
       }
 
       if (requiredRole === "super_admin" && user.role !== "super_admin") {
         // Admin trying to access super admin area
+        console.log("Admin trying to access super admin area, redirecting to admin dashboard")
         router.push("/admin")
         return
       }
+
+      console.log("Admin access granted for user:", user.email, "role:", user.role)
     }
   }, [user, isLoading, router, requiredRole])
 
