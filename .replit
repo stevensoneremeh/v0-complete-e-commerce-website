@@ -30,6 +30,15 @@ task = "shell.exec"
 args = "npm run dev -- --port 5000 --hostname 0.0.0.0"
 waitForPort = 5000
 
+[[workflows.workflow]]
+name = "Build for Production"
+author = 47957149
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
@@ -44,5 +53,13 @@ externalPort = 3001
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["npm", "start"]
-build = ["npm", "run", "build"]
+run = ["sh", "-c", "npm start"]
+build = ["sh", "-c", "npm run build"]
+
+[[deployment.envVarsSpec]]
+name = "NEXT_PUBLIC_SUPABASE_URL"
+description = "Supabase project URL"
+
+[[deployment.envVarsSpec]]
+name = "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+description = "Supabase anonymous key"
