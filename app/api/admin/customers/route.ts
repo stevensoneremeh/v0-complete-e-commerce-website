@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { verifyAdmin } from "../auth/middleware"
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   // Check admin access
   const adminCheck = await verifyAdmin(request)
   if (adminCheck) return adminCheck
