@@ -9,6 +9,10 @@ const nextConfig = {
   serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    // Enable for Replit environment - allow all hosts for proxy
+    ...(process.env.NODE_ENV === 'development' && {
+      allowedHosts: true,
+    }),
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
