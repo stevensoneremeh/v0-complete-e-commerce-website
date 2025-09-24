@@ -25,8 +25,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE TABLE IF NOT EXISTS public.categories (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL UNIQUE,
+  slug TEXT NOT NULL UNIQUE,
   description TEXT,
   image_url TEXT,
+  parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -204,15 +208,15 @@ CREATE POLICY "Users can view order items" ON public.order_items FOR ALL USING (
 CREATE POLICY "Anyone can view reviews" ON public.product_reviews FOR SELECT USING (true);
 CREATE POLICY "Users can create reviews" ON public.product_reviews FOR INSERT WITH CHECK (true);
 
--- Insert default categories
-INSERT INTO public.categories (name, description, image_url) VALUES
-('Perfumes', 'Luxury fragrances and premium perfumes', '/luxury-perfume-bottles-elegant-display.jpg'),
-('Wigs', 'Premium human hair wigs and extensions', '/premium-human-hair-wigs-luxury-salon-display.jpg'),
-('Cars', 'Luxury vehicles and premium automobiles', '/luxury-sports-car-showroom-premium-vehicles.jpg'),
-('Wines', 'Fine wines and premium spirits collection', '/premium-wine-collection-luxury-bottles-cellar.jpg'),
-('Body Creams', 'Luxury skincare and premium cosmetics', '/luxury-skincare-products-premium-cosmetics-spa.jpg'),
-('Jewelry', 'Fine jewelry and luxury accessories', '/luxury-jewelry-diamonds-gold-elegant-display.jpg')
-ON CONFLICT (name) DO NOTHING;
+-- Insert default categories with proper slugs
+INSERT INTO public.categories (name, slug, description, image_url) VALUES
+('Perfumes', 'perfumes', 'Luxury fragrances and premium perfumes', '/luxury-perfume-bottles-elegant-display.jpg'),
+('Wigs', 'wigs', 'Premium human hair wigs and extensions', '/premium-human-hair-wigs-luxury-salon-display.jpg'),
+('Cars', 'cars', 'Luxury vehicles and premium automobiles', '/luxury-sports-car-showroom-premium-vehicles.jpg'),
+('Wines', 'wines', 'Fine wines and premium spirits collection', '/premium-wine-collection-luxury-bottles-cellar.jpg'),
+('Body Creams', 'body-creams', 'Luxury skincare and premium cosmetics', '/luxury-skincare-products-premium-cosmetics-spa.jpg'),
+('Jewelry', 'jewelry', 'Fine jewelry and luxury accessories', '/luxury-jewelry-diamonds-gold-elegant-display.jpg')
+ON CONFLICT (slug) DO NOTHING;
 
 -- Create admin profiles that can be linked when users sign up
 INSERT INTO public.profiles (email, full_name, role, is_admin) VALUES
