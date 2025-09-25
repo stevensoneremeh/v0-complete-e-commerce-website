@@ -20,7 +20,6 @@ const nextConfig = {
   serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-    allowedHosts: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
@@ -58,7 +57,8 @@ const nextConfig = {
     '*.replit.dev',
     '*.replit.com',
     'localhost:5000',
-    '127.0.0.1:5000'
+    '127.0.0.1:5000',
+    '*.riker.replit.dev'
   ],
   
   
