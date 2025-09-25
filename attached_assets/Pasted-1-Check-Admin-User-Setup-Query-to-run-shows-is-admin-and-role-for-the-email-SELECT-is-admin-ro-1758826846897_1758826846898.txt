@@ -1,0 +1,73 @@
+1) Check Admin User Setup
+Query to run (shows is_admin and role for the email): SELECT is_admin, role FROM public.profiles WHERE email = 'talktostevenson@gmail.com';
+
+(There are 0 rows in public.profiles according to schema metadata — run the query above to confirm whether that user exists.)
+
+2) Verify profiles Table Structure
+Found (from schema metadata):
+
+Table: public.profiles (RLS enabled)
+Columns:
+id uuid
+email text UNIQUE
+full_name text
+phone text
+address text
+city text
+state text
+country text
+postal_code text
+avatar_url text
+date_of_birth date
+role user_role (enum: customer, admin, super_admin) DEFAULT 'customer'
+is_admin boolean DEFAULT false
+created_at timestamptz DEFAULT now()
+updated_at timestamptz DEFAULT now()
+Primary key: id
+Foreign key: public.profiles.id -> auth.users.id
+Index checks:
+
+email is marked UNIQUE (so there is a unique index on email).
+role: metadata does not show an explicit index on role. If you want an index on role, create one: CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
+3) Check RLS Policies
+I need to list policies; please run: SELECT policyname, permissive, roles, cmd, qual, with_check FROM pg_policies WHERE schemaname = 'public' AND tablename = 'profiles';
+
+Note: metadata says public.profiles has RLS enabled. To enforce "admin can access all; regular users only their own", expected policies are:
+
+CREATE POLICY "Admins can read all" ON public.profiles FOR SELECT TO authenticated USING ((auth.jwt() ->> 'role') = 'admin' OR (auth.jwt() ->> 'role') = 'super_admin');
+CREATE POLICY "Users can read own" ON public.profiles FOR SELECT TO authenticated USING ((SELECT auth.uid()) = id);
+If you want, I can generate exact CREATE POLICY statements after you share current pg_policies results.
+
+4) Verify Auth Integration (trigger/function)
+Metadata shows auth.users exists and a foreign key from public.profiles.id -> auth.users.id, but I did not find functions/triggers in the returned tables list. To inspect the specific function and trigger, run: -- function source SELECT proname, prosrc FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE proname = 'handle_new_user';
+
+-- triggers on auth.users SELECT event_object_schema, event_object_table, trigger_name, action_statement FROM information_schema.triggers WHERE event_object_schema = 'auth' AND event_object_table = 'users';
+
+If you prefer, I can produce a canonical handle_new_user function + trigger to create a public.profiles row when a new auth.users row is inserted.
+
+Example function + trigger (ready to deploy if missing): CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN INSERT INTO public.profiles (id, email, created_at, updated_at) VALUES (NEW.id, NEW.email, now(), now()) ON CONFLICT (id) DO NOTHING; RETURN NEW; END; $$;
+
+CREATE TRIGGER handle_new_user_trigger AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+Ask me to deploy if you want these added.
+
+5) Test Admin Access Query
+Query to check whether that email has admin access (checks both is_admin and role): SELECT email, is_admin, role, (is_admin = true OR role = 'admin' OR role = 'super_admin') AS has_admin_access FROM public.profiles WHERE email = 'talktostevenson@gmail.com';
+
+Run this to simulate the check.
+
+6) Check Database Relationships
+From metadata (foreign_key_constraints referencing public.profiles):
+
+public.profiles.id -> auth.users.id (profiles_id_fkey)
+public.wishlists.user_id -> public.profiles.id
+public.reviews.customer_id -> public.profiles.id
+public.bookings.customer_id -> public.profiles.id
+public.properties.owner_id -> public.profiles.id
+public.shopping_carts.user_id -> public.profiles.id
+public.orders.customer_id -> public.profiles.id
+This confirms the connection between auth.users and public.profiles via profiles.id = auth.users.id.
+
+Next steps
+
+Run the SELECT queries I provided to get live results for user row, policies, and triggers. Tell me the results and I will produce policy edits or create the trigger/function if needed.
