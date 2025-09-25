@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Package, ShoppingCart, Users, DollarSign, AlertCircle, Building2, Calendar } from "lucide-react"
+import { Package, ShoppingCart, Users, DollarSign, AlertCircle, Building2, Calendar, CreditCard, TrendingUp } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface DashboardStats {
@@ -14,6 +14,10 @@ interface DashboardStats {
   totalBookings: number
   activeOrders: number
   pendingOrders: number
+  paystackRevenue: number
+  successfulPayments: number
+  failedPayments: number
+  monthlyGrowth: number
 }
 
 export function DashboardStats() {
@@ -26,6 +30,10 @@ export function DashboardStats() {
     totalBookings: 0,
     activeOrders: 0,
     pendingOrders: 0,
+    paystackRevenue: 0,
+    successfulPayments: 0,
+    failedPayments: 0,
+    monthlyGrowth: 12.5,
   })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -55,6 +63,10 @@ export function DashboardStats() {
           totalBookings: 34,
           activeOrders: 8,
           pendingOrders: 3,
+          paystackRevenue: 38750.00,
+          successfulPayments: 142,
+          failedPayments: 14,
+          monthlyGrowth: 12.5,
         })
       } finally {
         setIsLoading(false)
@@ -107,6 +119,20 @@ export function DashboardStats() {
       color: "text-pink-600",
       bgColor: "bg-pink-50",
     },
+    {
+      title: "Paystack Revenue",
+      value: `$${stats.paystackRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      icon: CreditCard,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+    },
+    {
+      title: "Successful Payments",
+      value: stats.successfulPayments.toLocaleString(),
+      icon: TrendingUp,
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-50",
+    },
   ]
 
   if (error && !isLoading) {
@@ -139,7 +165,7 @@ export function DashboardStats() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6">
       {statCards.map((stat, index) => (
         <Card key={index} className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -151,7 +177,7 @@ export function DashboardStats() {
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
             <p className="text-xs text-gray-500 mt-1">
-              {index < 4 ? "↗ +12% from last month" : "📈 Growing"}
+              {index < 4 ? `↗ +${stats.monthlyGrowth}% from last month` : index < 6 ? "📈 Growing" : "💳 Payment Gateway"}
             </p>
           </CardContent>
         </Card>

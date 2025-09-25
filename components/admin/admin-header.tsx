@@ -16,9 +16,11 @@ import { Badge } from "@/components/ui/badge"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import { getNotifications } from "@/lib/local-storage"
+import { useAuth } from "@/components/auth-provider"
 
 export function AdminHeader() {
   const pathname = usePathname()
+  const { user } = useAuth()
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0)
 
   useEffect(() => {
@@ -97,8 +99,8 @@ export function AdminHeader() {
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Admin User</p>
-                <p className="text-xs leading-none text-muted-foreground">talktostevenson@gmail.com</p>
+                <p className="text-sm font-medium leading-none">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Admin User"}</p>
+                <p className="text-xs leading-none text-muted-foreground">{user?.email || "admin@ablnatasha.com"}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

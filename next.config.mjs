@@ -22,7 +22,9 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn']
+    } : false,
   },
   images: {
     formats: ['image/webp', 'image/avif'],
@@ -52,6 +54,15 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   output: 'standalone',
+  
+  // Production optimizations
+  optimizeFonts: true,
+  swcMinify: true,
+  
+  // Environment variables validation
+  env: {
+    CUSTOM_KEY: process.env.NODE_ENV,
+  },
   // Allow dev origins for Replit
   allowedDevOrigins: [
     '*.replit.dev',

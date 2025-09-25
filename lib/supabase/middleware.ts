@@ -62,7 +62,28 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    const isAdmin = user.email === "talktostevenson@gmail.com"
+    // Check admin status through Supabase profile or hardcoded email as fallback
+    let isAdmin = false
+    
+    try {
+      // Try to check admin status from profile first
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin, role")
+        .eq("id", user.id)
+        .single()
+      
+      if (profile) {
+        isAdmin = profile.is_admin || profile.role === 'admin' || profile.role === 'super_admin'
+      }
+    } catch (error) {
+      console.log("Profile check failed, using fallback email check:", error)
+    }
+    
+    // Fallback to hardcoded email check if profile lookup fails
+    if (!isAdmin) {
+      isAdmin = user.email === "talktostevenson@gmail.com"
+    }
 
     if (!isAdmin) {
       const url = request.nextUrl.clone()
