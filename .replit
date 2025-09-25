@@ -53,8 +53,8 @@ externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["sh", "-c", "npm start"]
-build = ["sh", "-c", "npm run build"]
+run = ["npm", "start"]
+build = ["npm", "run", "build"]
 
 [[deployment.envVarsSpec]]
 name = "NEXT_PUBLIC_SUPABASE_URL"
