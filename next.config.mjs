@@ -20,6 +20,7 @@ const nextConfig = {
   serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    allowedHosts: true,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
@@ -59,6 +60,7 @@ const nextConfig = {
     'localhost:5000',
     '127.0.0.1:5000'
   ],
+  
   
   async headers() {
     return [
