@@ -1,30 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { createPublicSupabaseClient, verifyAdmin } from "@/lib/supabase-server-secure"
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    
-    // Use service role for reliable access
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
+    // Use public client for GET requests to enforce RLS
+    const supabase = await createPublicSupabaseClient()
 
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
@@ -72,25 +52,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
+    // Verify admin access for POST operations
+    const supabase = await verifyAdmin()
+    if (!supabase) {
+      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 })
+    }
 
     const productData = await request.json()
 
