@@ -10,6 +10,7 @@ import { WishlistProvider } from "@/components/wishlist-provider"
 import { ReviewsProvider } from "@/components/reviews-provider"
 import { CouponProvider } from "@/components/coupon-provider"
 import { OrderProvider } from "@/components/order-provider"
+import { RealtimeProvider } from "@/components/realtime-provider"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { Analytics } from "@vercel/analytics/react"
 import { Suspense } from "react"
@@ -150,21 +151,23 @@ export default function RootLayout({
       <body className={`${dmSans.className} antialiased`}>
         <ErrorBoundary>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            <AuthProvider>
-              <ReviewsProvider>
-                <WishlistProvider>
-                  <CouponProvider>
-                    <OrderProvider>
-                      <CartProvider>
+            <RealtimeProvider>
+              <AuthProvider>
+                <ReviewsProvider>
+                  <WishlistProvider>
+                    <CouponProvider>
+                      <OrderProvider>
+                        <CartProvider>
                         <Suspense fallback={null}>{children}</Suspense>
                         <Toaster />
                         <Analytics />
-                      </CartProvider>
-                    </OrderProvider>
-                  </CouponProvider>
-                </WishlistProvider>
-              </ReviewsProvider>
-            </AuthProvider>
+                        </CartProvider>
+                      </OrderProvider>
+                    </CouponProvider>
+                  </WishlistProvider>
+                </ReviewsProvider>
+              </AuthProvider>
+            </RealtimeProvider>
           </ThemeProvider>
         </ErrorBoundary>
         <script src="https://js.paystack.co/v1/inline.js"></script>
