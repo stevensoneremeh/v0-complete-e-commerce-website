@@ -12,14 +12,17 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { PlusCircle, Edit, Trash } from "lucide-react"
-import {
-  type Category,
-  getCategories,
-  addCategory,
-  updateCategory,
-  deleteCategory,
-  getProducts,
-} from "@/lib/local-storage"
+interface Category {
+  id: string
+  name: string
+  slug: string
+  description: string
+  image_url: string
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
 import Image from "next/image"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
@@ -32,25 +35,50 @@ export default function AdminCategoriesPage() {
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false)
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null)
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false)
-  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null)
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
+  const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
   useEffect(() => {
     loadData()
   }, [])
 
-  const loadData = () => {
-    const allCategories = getCategories()
-    const allProducts = getProducts()
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const [categoriesRes, productsRes] = await Promise.all([
+        fetch("/api/categories"),
+        fetch("/api/admin/products")
+      ])
 
-    // Update productCount for each category based on current products
-    const updatedCategories = allCategories.map((category) => ({
-      ...category,
-      productCount: allProducts.filter((product) => product.category === category.name).length,
-    }))
+      if (categoriesRes.ok) {
+        const categoriesData = await categoriesRes.json()
+        let productsData = []
+        
+        if (productsRes.ok) {
+          const productResult = await productsRes.json()
+          productsData = productResult.products || productResult || []
+        }
 
-    setCategories(updatedCategories)
+        // Update productCount for each category
+        const updatedCategories = categoriesData.map((category: Category) => ({
+          ...category,
+          productCount: productsData.filter((product: any) => product.category_id === category.id).length,
+        }))
+
+        setCategories(updatedCategories)
+      }
+    } catch (error) {
+      console.error("Error loading data:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load data. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const filteredCategories = categories.filter(
@@ -59,44 +87,55 @@ export default function AdminCategoriesPage() {
       category.description.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const handleAddEditCategory = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddEditCategory = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const name = formData.get("name") as string
     const description = formData.get("description") as string
-    const image =
+    const image_url =
       (formData.get("image") as string) || `/placeholder.svg?height=200&width=200&text=${encodeURIComponent(name)}`
-    const isActive = formData.get("isActive") === "on"
+    const is_active = formData.get("isActive") === "on"
 
-    const categoryData: Omit<Category, "id" | "createdAt" | "productCount"> = {
+    const categoryData = {
       name,
       description,
-      image,
-      isActive,
+      image_url,
+      is_active,
+      sort_order: 0,
     }
 
-    if (currentCategory) {
-      const updated = updateCategory(currentCategory.id, categoryData)
-      if (updated) {
-        setCategories(getCategories())
+    try {
+      const method = currentCategory ? "PUT" : "POST"
+      const url = currentCategory ? `/api/categories/${currentCategory.id}` : "/api/categories"
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(categoryData),
+      })
+
+      if (response.ok) {
+        await loadData()
         toast({
-          title: "Category Updated",
-          description: `Category "${updated.name}" has been updated.`,
+          title: currentCategory ? "Category Updated" : "Category Added",
+          description: `Category "${name}" has been ${currentCategory ? "updated" : "added"}.`,
         })
+      } else {
+        throw new Error("Failed to save category")
       }
-    } else {
-      const added = addCategory({ ...categoryData, productCount: 0 }) // New categories start with 0 products
-      if (added) {
-        setCategories(getCategories())
-        toast({
-          title: "Category Added",
-          description: `Category "${added.name}" has been added.`,
-        })
-      }
+    } catch (error) {
+      console.error("Error saving category:", error)
+      toast({
+        title: "Error",
+        description: "Failed to save category. Please try again.",
+        variant: "destructive",
+      })
     }
+    
     setIsAddEditModalOpen(false)
     setCurrentCategory(null)
-    loadData() // Reload data to update product counts
   }
 
   const openAddModal = () => {
@@ -109,7 +148,7 @@ export default function AdminCategoriesPage() {
     setIsAddEditModalOpen(true)
   }
 
-  const openDeleteConfirmModal = (id: number) => {
+  const openDeleteConfirmModal = (id: string) => {
     const category = categories.find((c) => c.id === id)
     if (category && category.productCount > 0) {
       toast({
@@ -123,17 +162,33 @@ export default function AdminCategoriesPage() {
     setIsDeleteConfirmModalOpen(true)
   }
 
-  const handleDeleteCategory = () => {
+  const handleDeleteCategory = async () => {
     if (categoryToDelete !== null) {
-      deleteCategory(categoryToDelete)
-      setCategories(getCategories())
+      try {
+        const response = await fetch(`/api/categories/${categoryToDelete}`, {
+          method: "DELETE",
+        })
+
+        if (response.ok) {
+          await loadData()
+          toast({
+            title: "Category Deleted",
+            description: "The category has been successfully deleted.",
+          })
+        } else {
+          throw new Error("Failed to delete category")
+        }
+      } catch (error) {
+        console.error("Error deleting category:", error)
+        toast({
+          title: "Error",
+          description: "Failed to delete category. Please try again.",
+          variant: "destructive",
+        })
+      }
+      
       setIsDeleteConfirmModalOpen(false)
       setCategoryToDelete(null)
-      toast({
-        title: "Category Deleted",
-        description: "The category has been successfully deleted.",
-      })
-      loadData() // Reload data to update product counts
     }
   }
 

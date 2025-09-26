@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useReducer, useEffect, useState, type ReactNode } from "react"
 
 interface CartItem {
   id: string
@@ -98,71 +98,103 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   }
 }
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, { items: [], total: 0 })
+const CART_STORAGE_KEY = "abl-natasha-cart"
 
+export function CartProvider({ children }: { children: React.ReactNode }) {
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const [isOpen, setIsOpen] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // Load cart from localStorage on mount
   useEffect(() => {
-    try {
-      const savedCart = localStorage.getItem("abl-natasha-cart")
-      if (savedCart) {
-        const parsedCart = JSON.parse(savedCart)
-        dispatch({ type: "LOAD_CART", payload: parsedCart })
+    setIsHydrated(true)
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY)
+    if (savedCart) {
+      try {
+        setCartItems(JSON.parse(savedCart))
+      } catch (error) {
+        console.error("Error parsing cart from localStorage:", error)
       }
-    } catch (error) {
-      console.error("Error loading cart from localStorage:", error)
     }
   }, [])
 
   useEffect(() => {
-    try {
-      localStorage.setItem("abl-natasha-cart", JSON.stringify(state))
-    } catch (error) {
-      console.error("Error saving cart to localStorage:", error)
+    if (isHydrated) {
+      try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
+      } catch (error) {
+        console.error("Error saving cart to localStorage:", error)
+      }
     }
-  }, [state])
+  }, [cartItems, isHydrated])
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
-    dispatch({ type: "ADD_ITEM", payload: item })
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((cartItem) => cartItem.id === item.id)
+      if (existingItem) {
+        const newQuantity = existingItem.quantity + 1
+        const maxQuantity = item.maxQuantity || 99
+        if (newQuantity > maxQuantity) {
+          return prevItems
+        }
+        return prevItems.map((cartItem) =>
+          cartItem.id === item.id ? { ...cartItem, quantity: newQuantity } : cartItem,
+        )
+      } else {
+        return [...prevItems, { ...item, quantity: 1 }]
+      }
+    })
   }
 
   const removeItem = (id: string) => {
-    dispatch({ type: "REMOVE_ITEM", payload: id })
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id))
   }
 
   const updateQuantity = (id: string, quantity: number) => {
-    dispatch({ type: "UPDATE_QUANTITY", payload: { id, quantity } })
+    setCartItems((prevItems) => {
+      if (quantity <= 0) {
+        return prevItems.filter((item) => item.id !== id)
+      }
+      return prevItems.map((item) =>
+        item.id === id ? { ...item, quantity: Math.min(quantity, item.maxQuantity || 99) } : item,
+      )
+    })
   }
 
   const clearCart = () => {
-    dispatch({ type: "CLEAR_CART" })
+    setCartItems([])
   }
 
+  const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+  const totalAmount = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
   const isInCart = (id: string) => {
-    return state.items.some((item) => item.id === id)
+    return cartItems.some((item) => item.id === id)
   }
 
   const getItemQuantity = (id: string) => {
-    const item = state.items.find((item) => item.id === id)
+    const item = cartItems.find((item) => item.id === id)
     return item ? item.quantity : 0
   }
 
-  const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0)
+  const value = {
+    items: isHydrated ? cartItems : [],
+    itemCount: isHydrated ? itemCount : 0,
+    totalAmount: isHydrated ? totalAmount : 0,
+    isOpen,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    openCart: () => setIsOpen(true),
+    closeCart: () => setIsOpen(false),
+    isInCart,
+    getItemQuantity,
+  }
 
   return (
     <CartContext.Provider
-      value={{
-        state,
-        dispatch,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        items: state.items,
-        total: state.total,
-        itemCount,
-        isInCart,
-        getItemQuantity,
-      }}
+      value={value}
     >
       {children}
     </CartContext.Provider>

@@ -5,9 +5,11 @@ import { cookies } from "next/headers"
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies()
+    
+    // Use service role for reliable access
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           getAll() {
@@ -51,6 +53,8 @@ export async function GET(request: NextRequest) {
     if (limit) {
       query = query.limit(Number.parseInt(limit))
     }
+
+    query = query.order("created_at", { ascending: false })
 
     const { data: products, error } = await query
 

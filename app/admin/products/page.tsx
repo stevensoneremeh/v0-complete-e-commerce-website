@@ -77,13 +77,19 @@ export default function AdminProductsPage() {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [productsRes, categoriesRes] = await Promise.all([fetch("/api/products"), fetch("/api/categories")])
+      const [productsRes, categoriesRes] = await Promise.all([
+        fetch("/api/admin/products"),
+        fetch("/api/categories")
+      ])
 
       if (productsRes.ok && categoriesRes.ok) {
         const productsData = await productsRes.json()
         const categoriesData = await categoriesRes.json()
-        setProducts(productsData)
-        setCategories(categoriesData)
+        
+        setProducts(productsData.products || productsData || [])
+        setCategories(categoriesData || [])
+      } else {
+        console.error("API error:", productsRes.status, categoriesRes.status)
       }
     } catch (error) {
       console.error("Error loading data:", error)
@@ -161,7 +167,7 @@ export default function AdminProductsPage() {
 
     try {
       const method = currentProduct ? "PUT" : "POST"
-      const url = currentProduct ? `/api/products/${currentProduct.id}` : "/api/products"
+      const url = currentProduct ? `/api/admin/products/${currentProduct.id}` : "/api/admin/products"
 
       const response = await fetch(url, {
         method,
@@ -180,13 +186,14 @@ export default function AdminProductsPage() {
         setIsAddEditModalOpen(false)
         setCurrentProduct(null)
       } else {
-        throw new Error("Failed to save product")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to save product")
       }
     } catch (error) {
       console.error("Error saving product:", error)
       toast({
         title: "Error",
-        description: "Failed to save product. Please try again.",
+        description: `Failed to save product: ${error.message}`,
         variant: "destructive",
       })
     }
@@ -210,7 +217,7 @@ export default function AdminProductsPage() {
   const handleDeleteProduct = async () => {
     if (productToDelete) {
       try {
-        const response = await fetch(`/api/products/${productToDelete}`, {
+        const response = await fetch(`/api/admin/products/${productToDelete}`, {
           method: "DELETE",
         })
 

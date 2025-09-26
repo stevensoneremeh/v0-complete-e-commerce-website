@@ -74,42 +74,39 @@ export function FeaturedProducts() {
   const { getProductRating } = useReviews()
   const { toast } = useToast()
   const [products, setProducts] = useState(featuredProducts)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const supabase = createClient()
+        setLoading(true)
+        const response = await fetch('/api/products?featured=true&limit=8')
+        if (response.ok) {
+          const data = await response.json()
 
-        const { data, error } = await supabase
-          .from("products")
-          .select(`
-            *,
-            categories (
-              name,
-              slug
-            )
-          `)
-          .eq("is_featured", true)
-          .eq("is_active", true)
-          .limit(5)
+          // Handle both direct array and wrapped response
+          const productsData = Array.isArray(data) ? data : (data.products || [])
 
-        if (data && !error) {
-          const formattedProducts = data.map((product) => ({
-            id: String(product.id),
+          // Map database products to expected format
+          const mappedProducts = productsData.map((product: any) => ({
+            id: product.id,
             name: product.name,
-            price: Number.parseFloat(product.price),
-            originalPrice: product.compare_at_price ? Number.parseFloat(product.compare_at_price) : 0,
-            image:
-              product.images?.[0] || "/placeholder.svg?height=300&width=300&text=" + encodeURIComponent(product.name),
-            badge: product.compare_at_price ? "Sale" : "Featured",
+            price: parseFloat(product.price || '0'),
+            originalPrice: product.compare_at_price ? parseFloat(product.compare_at_price) : undefined,
+            image: product.images?.[0] || '/placeholder.svg?height=300&width=300&text=Product',
+            category: product.categories?.name || 'General',
+            badge: product.compare_at_price ? 'Sale' : (product.is_featured ? 'Featured' : 'New'),
             inStock: product.stock_quantity > 0,
-            category: product.categories?.name || "General",
           }))
-          setProducts(formattedProducts)
+
+          setProducts(mappedProducts)
+        } else {
+          console.error('Failed to fetch products')
         }
       } catch (error) {
-        console.error("Error fetching products:", error)
-        // Keep default products as fallback
+        console.error('Error fetching products:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
@@ -164,113 +161,123 @@ export function FeaturedProducts() {
           </p>
         </div>
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 xs:gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-          {products.map((product) => {
-            const { average: rating, count: reviewCount } = getProductRating(product.id)
+          {loading ? (
+            <div className="col-span-full flex justify-center items-center py-10">
+              <p>Loading featured products...</p>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="col-span-full flex justify-center items-center py-10">
+              <p>No featured products found.</p>
+            </div>
+          ) : (
+            products.map((product) => {
+              const { average: rating, count: reviewCount } = getProductRating(product.id)
 
-            return (
-              <Card key={product.id} className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col">
-                <CardContent className="p-0 flex-1">
-                  <div className="relative overflow-hidden">
-                    <Link href={`/products/${product.id}`}>
-                      <Image
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.name}
-                        width={300}
-                        height={300}
-                        className="w-full h-32 xs:h-40 sm:h-48 md:h-52 lg:h-56 xl:h-60 object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                      />
-                    </Link>
-                    <Badge
-                      className="absolute top-1 xs:top-1.5 sm:top-2 left-1 xs:left-1.5 sm:left-2 text-[10px] xs:text-xs px-1 xs:px-2 py-0.5"
-                      variant="secondary"
-                    >
-                      {product.badge}
-                    </Badge>
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className={`absolute top-1 xs:top-1.5 sm:top-2 right-1 xs:right-1.5 sm:right-2 h-6 w-6 xs:h-7 xs:w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 transition-opacity ${
-                        isInWishlist(product.id) ? "text-red-500" : ""
-                      }`}
-                      onClick={() => handleWishlistToggle(product)}
-                    >
-                      <Heart
-                        className={`h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 ${isInWishlist(product.id) ? "fill-current" : ""}`}
-                      />
-                    </Button>
-                    {!product.inStock && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <div className="text-center px-1 xs:px-2">
-                          <Badge variant="destructive" className="mb-1 text-[10px] xs:text-xs">
-                            Out of Stock
-                          </Badge>
-                          <p className="text-white text-[10px] xs:text-xs">Still available for wishlist</p>
+              return (
+                <Card key={product.id} className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+                  <CardContent className="p-0 flex-1">
+                    <div className="relative overflow-hidden">
+                      <Link href={`/products/${product.id}`}>
+                        <Image
+                          src={product.image || "/placeholder.svg"}
+                          alt={product.name}
+                          width={300}
+                          height={300}
+                          className="w-full h-32 xs:h-40 sm:h-48 md:h-52 lg:h-56 xl:h-60 object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        />
+                      </Link>
+                      <Badge
+                        className="absolute top-1 xs:top-1.5 sm:top-2 left-1 xs:left-1.5 sm:left-2 text-[10px] xs:text-xs px-1 xs:px-2 py-0.5"
+                        variant="secondary"
+                      >
+                        {product.badge}
+                      </Badge>
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        className={`absolute top-1 xs:top-1.5 sm:top-2 right-1 xs:right-1.5 sm:right-2 h-6 w-6 xs:h-7 xs:w-7 sm:h-8 sm:w-8 opacity-0 group-hover:opacity-100 transition-opacity ${
+                          isInWishlist(product.id) ? "text-red-500" : ""
+                        }`}
+                        onClick={() => handleWishlistToggle(product)}
+                      >
+                        <Heart
+                          className={`h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 ${isInWishlist(product.id) ? "fill-current" : ""}`}
+                        />
+                      </Button>
+                      {!product.inStock && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <div className="text-center px-1 xs:px-2">
+                            <Badge variant="destructive" className="mb-1 text-[10px] xs:text-xs">
+                              Out of Stock
+                            </Badge>
+                            <p className="text-white text-[10px] xs:text-xs">Still available for wishlist</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-2 xs:p-3 sm:p-4 flex-1 flex flex-col">
+                      <Link href={`/products/${product.id}`}>
+                        <h3 className="font-semibold text-xs xs:text-sm sm:text-base mb-1 xs:mb-2 hover:text-primary transition-colors cursor-pointer line-clamp-2 flex-shrink-0">
+                          {product.name}
+                        </h3>
+                      </Link>
+                      <div className="flex items-center mb-1 xs:mb-2 flex-shrink-0">
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 ${
+                                i < Math.floor(rating) ? "text-yellow-400 fill-current" : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-[10px] xs:text-xs sm:text-sm text-muted-foreground ml-1 xs:ml-1 sm:ml-2">
+                          {reviewCount > 0 ? `(${reviewCount})` : "(0)"}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mb-2 xs:mb-3 sm:mb-4 flex-shrink-0">
+                        <div className="flex flex-col space-y-0.5 xs:space-y-1">
+                          <DualCurrencyDisplay usdAmount={product.price} size="sm" variant="primary" compact={true} />
+                          {product.originalPrice && product.originalPrice > product.price && (
+                            <DualCurrencyDisplay
+                              usdAmount={product.originalPrice}
+                              size="sm"
+                              variant="muted"
+                              compact={true}
+                              className="line-through"
+                            />
+                          )}
                         </div>
                       </div>
-                    )}
-                  </div>
-                  <div className="p-2 xs:p-3 sm:p-4 flex-1 flex flex-col">
-                    <Link href={`/products/${product.id}`}>
-                      <h3 className="font-semibold text-xs xs:text-sm sm:text-base mb-1 xs:mb-2 hover:text-primary transition-colors cursor-pointer line-clamp-2 flex-shrink-0">
-                        {product.name}
-                      </h3>
-                    </Link>
-                    <div className="flex items-center mb-1 xs:mb-2 flex-shrink-0">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 ${
-                              i < Math.floor(rating) ? "text-yellow-400 fill-current" : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[10px] xs:text-xs sm:text-sm text-muted-foreground ml-1 xs:ml-1 sm:ml-2">
-                        {reviewCount > 0 ? `(${reviewCount})` : "(0)"}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="p-2 xs:p-3 sm:p-4 pt-0 space-y-1.5 xs:space-y-2 mt-auto">
+                    <Button
+                      className="w-full h-8 xs:h-9 sm:h-10 text-[10px] xs:text-xs sm:text-sm px-2 xs:px-3"
+                      disabled={!product.inStock}
+                      onClick={() => handleAddToCart(product)}
+                    >
+                      <ShoppingCart className="h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 mr-1 xs:mr-1.5 sm:mr-2 flex-shrink-0" />
+                      <span className="hidden xs:inline truncate">
+                        {product.inStock ? "Add to Cart" : "Out of Stock"}
                       </span>
-                    </div>
-                    <div className="flex items-center justify-between mb-2 xs:mb-3 sm:mb-4 flex-shrink-0">
-                      <div className="flex flex-col space-y-0.5 xs:space-y-1">
-                        <DualCurrencyDisplay usdAmount={product.price} size="sm" variant="primary" compact={true} />
-                        {product.originalPrice && product.originalPrice > product.price && (
-                          <DualCurrencyDisplay
-                            usdAmount={product.originalPrice}
-                            size="sm"
-                            variant="muted"
-                            compact={true}
-                            className="line-through"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="p-2 xs:p-3 sm:p-4 pt-0 space-y-1.5 xs:space-y-2 mt-auto">
-                  <Button
-                    className="w-full h-8 xs:h-9 sm:h-10 text-[10px] xs:text-xs sm:text-sm px-2 xs:px-3"
-                    disabled={!product.inStock}
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    <ShoppingCart className="h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 mr-1 xs:mr-1.5 sm:mr-2 flex-shrink-0" />
-                    <span className="hidden xs:inline truncate">
-                      {product.inStock ? "Add to Cart" : "Out of Stock"}
-                    </span>
-                    <span className="xs:hidden truncate">{product.inStock ? "Add" : "Out"}</span>
-                  </Button>
-                  <WhatsAppButton
-                    product={{
-                      name: product.name,
-                      price: product.price,
-                      category: product.category,
-                    }}
-                    className="w-full h-8 xs:h-9 sm:h-10 text-[10px] xs:text-xs sm:text-sm px-2 xs:px-3"
-                    variant="outline"
-                  />
-                </CardFooter>
-              </Card>
-            )
-          })}
+                      <span className="xs:hidden truncate">{product.inStock ? "Add" : "Out"}</span>
+                    </Button>
+                    <WhatsAppButton
+                      product={{
+                        name: product.name,
+                        price: product.price,
+                        category: product.category,
+                      }}
+                      className="w-full h-8 xs:h-9 sm:h-10 text-[10px] xs:text-xs sm:text-sm px-2 xs:px-3"
+                      variant="outline"
+                    />
+                  </CardFooter>
+                </Card>
+              )
+            })
+          )}
         </div>
         <div className="text-center mt-6 sm:mt-8 md:mt-10 lg:mt-12">
           <Button
