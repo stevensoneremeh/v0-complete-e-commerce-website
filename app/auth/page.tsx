@@ -27,7 +27,7 @@ export default function AuthPage() {
   const [loginError, setLoginError] = useState("")
   const [signupError, setSignupError] = useState("")
   const [signupSuccess, setSignupSuccess] = useState("")
-  const { login, signup, isLoading, user, error } = useAuth()
+  const { signIn, signUp, loading, user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -54,12 +54,11 @@ export default function AuthPage() {
     e.preventDefault()
     setLoginError("")
 
-    try {
-      await login(loginEmail, loginPassword)
+    const { error } = await signIn(loginEmail, loginPassword)
+    if (error) {
+      setLoginError(error.message || "Invalid email or password")
+    } else {
       router.push("/")
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Invalid email or password"
-      setLoginError(errorMessage)
     }
   }
 
@@ -78,17 +77,16 @@ export default function AuthPage() {
       return
     }
 
-    try {
-      await signup(signupName, signupEmail, signupPassword)
+    const { error } = await signUp(signupEmail, signupPassword, signupName)
+    if (error) {
+      setSignupError(error.message || "Failed to create account")
+    } else {
       setSignupSuccess("Account created successfully! Please check your email to verify your account.")
       // Clear form
       setSignupName("")
       setSignupEmail("")
       setSignupPassword("")
       setConfirmPassword("")
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to create account"
-      setSignupError(errorMessage)
     }
   }
 
@@ -208,8 +206,8 @@ export default function AuthPage() {
                     </Link>
                   </div>
 
-                  <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
+                  <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
+                    {loading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
               </TabsContent>
@@ -310,8 +308,8 @@ export default function AuthPage() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Create Account"}
+                  <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
+                    {loading ? "Creating account..." : "Create Account"}
                   </Button>
                 </form>
               </TabsContent>

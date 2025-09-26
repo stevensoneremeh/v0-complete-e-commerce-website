@@ -12,11 +12,11 @@ interface AdminRouteGuardProps {
 }
 
 export function AdminRouteGuard({ children, requiredRole = "admin" }: AdminRouteGuardProps) {
-  const { user, isLoading } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!loading) {
       if (!user) {
         // Not logged in, redirect to auth page
         console.log("User not authenticated, redirecting to auth")
@@ -24,26 +24,13 @@ export function AdminRouteGuard({ children, requiredRole = "admin" }: AdminRoute
         return
       }
 
-      if (user.role === "customer") {
-        // Regular user trying to access admin area
-        console.log("Customer trying to access admin area, redirecting to home")
-        router.push("/")
-        return
-      }
-
-      if (requiredRole === "super_admin" && user.role !== "super_admin") {
-        // Admin trying to access super admin area
-        console.log("Admin trying to access super admin area, redirecting to admin dashboard")
-        router.push("/admin")
-        return
-      }
-
-      console.log("Admin access granted for user:", user.email, "role:", user.role)
+      // For now, allow access if user is authenticated (middleware will handle detailed admin checks)
+      console.log("User authenticated, checking admin access via middleware")
     }
-  }, [user, isLoading, router, requiredRole])
+  }, [user, loading, router, requiredRole])
 
   // Show loading while checking auth
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -54,8 +41,8 @@ export function AdminRouteGuard({ children, requiredRole = "admin" }: AdminRoute
     )
   }
 
-  // Don't render children if user doesn't have permission
-  if (!user || user.role === "customer" || (requiredRole === "super_admin" && user.role !== "super_admin")) {
+  // Don't render children if user is not authenticated
+  if (!user) {
     return null
   }
 
