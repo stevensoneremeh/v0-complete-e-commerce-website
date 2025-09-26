@@ -153,9 +153,9 @@ export default function AuthPage() {
 
               <TabsContent value="login" className="space-y-4 mt-6">
                 <form onSubmit={handleLogin} className="space-y-4">
-                  {(loginError || error) && (
+                  {loginError && (
                     <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
-                      <AlertDescription>{loginError || error}</AlertDescription>
+                      <AlertDescription>{loginError}</AlertDescription>
                     </Alert>
                   )}
 
@@ -214,9 +214,9 @@ export default function AuthPage() {
 
               <TabsContent value="signup" className="space-y-4 mt-6">
                 <form onSubmit={handleSignup} className="space-y-4">
-                  {(signupError || error) && (
+                  {signupError && (
                     <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
-                      <AlertDescription>{signupError || error}</AlertDescription>
+                      <AlertDescription>{signupError}</AlertDescription>
                     </Alert>
                   )}
 
