@@ -79,7 +79,7 @@ export default function AdminProductsPage() {
       setLoading(true)
       const [productsRes, categoriesRes] = await Promise.all([
         fetch("/api/admin/products"),
-        fetch("/api/categories")
+        fetch("/api/admin/categories") // Use admin endpoint to get all categories
       ])
 
       if (productsRes.ok && categoriesRes.ok) {
@@ -90,6 +90,11 @@ export default function AdminProductsPage() {
         setCategories(categoriesData || [])
       } else {
         console.error("API error:", productsRes.status, categoriesRes.status)
+        toast({
+          title: "Error",
+          description: "Failed to load data from server.",
+          variant: "destructive",
+        })
       }
     } catch (error) {
       console.error("Error loading data:", error)

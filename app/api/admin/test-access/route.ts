@@ -1,66 +1,124 @@
+import { NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
-import { NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/^"(.*)"$/, '$1')
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/^"(.*)"$/, '$1')
+    const supabase = await createClient()
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json({ error: "Supabase not configured" }, { status: 500 })
-    }
+    // Check if user is authenticated
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          // No-op for read-only operation
-        },
-      },
-    })
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      return NextResponse.json({ 
-        success: false, 
-        message: "Not authenticated",
-        user: null,
-        profile: null 
+    if (authError || !user) {
+      return NextResponse.json({
+        success: false,
+        error: "Unauthorized",
+        authError: authError?.message,
+        step: "authentication"
       }, { status: 401 })
     }
 
-    // Check profile
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single()
+    // Check if user is admin (with fallback to email check)
+    let isAdmin = false
+    let profile = null
 
-    const isAdmin = profile?.is_admin || profile?.role === 'admin' || user.email === 'talktostevenson@gmail.com'
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("role, is_admin, email")
+        .eq("id", user.id)
+        .single()
+
+      if (!profileError && profileData) {
+        profile = profileData
+        isAdmin = profileData.is_admin || profileData.role === "admin" || profileData.role === "super_admin"
+      }
+    } catch (error) {
+      console.log("Profile check failed, using email fallback:", error)
+    }
+
+    // Fallback to hardcoded email check
+    if (!isAdmin) {
+      isAdmin = user.email === "talktostevenson@gmail.com"
+    }
+
+    if (!isAdmin) {
+      return NextResponse.json({
+        success: false,
+        error: "Forbidden - Admin access required",
+        userEmail: user.email,
+        profile: profile,
+        step: "authorization"
+      }, { status: 403 })
+    }
+
+    // Test database access
+    const databaseTests = {
+      products: { count: 0, error: null },
+      orders: { count: 0, error: null },
+      categories: { count: 0, error: null },
+      profiles: { count: 0, error: null }
+    }
+
+    try {
+      const { count: productsCount, error: productsError } = await supabase
+        .from("products")
+        .select("*", { count: "exact", head: true })
+      databaseTests.products = { count: productsCount || 0, error: productsError?.message || null }
+    } catch (error) {
+      databaseTests.products.error = error.message
+    }
+
+    try {
+      const { count: ordersCount, error: ordersError } = await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+      databaseTests.orders = { count: ordersCount || 0, error: ordersError?.message || null }
+    } catch (error) {
+      databaseTests.orders.error = error.message
+    }
+
+    try {
+      const { count: categoriesCount, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*", { count: "exact", head: true })
+      databaseTests.categories = { count: categoriesCount || 0, error: categoriesError?.message || null }
+    } catch (error) {
+      databaseTests.categories.error = error.message
+    }
+
+    try {
+      const { count: profilesCount, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+      databaseTests.profiles = { count: profilesCount || 0, error: profilesError?.message || null }
+    } catch (error) {
+      databaseTests.profiles.error = error.message
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Access check complete",
+      message: "Admin access verified successfully",
       user: {
         id: user.id,
         email: user.email,
-        created_at: user.created_at
       },
       profile: profile,
       isAdmin: isAdmin,
-      profileError: profileError?.message || null
+      databaseAccess: databaseTests,
+      timestamp: new Date().toISOString(),
+      step: "complete"
     })
 
   } catch (error) {
-    console.error("Admin test error:", error)
-    return NextResponse.json({ 
-      success: false, 
+    console.error("Admin test access error:", error)
+    return NextResponse.json({
+      success: false,
       error: "Internal server error",
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error.message,
+      step: "error"
     }, { status: 500 })
   }
 }

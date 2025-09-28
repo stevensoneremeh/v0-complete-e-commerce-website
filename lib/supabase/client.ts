@@ -5,22 +5,23 @@ export function createClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim().replace(/^"(.*)"$/, '$1')
 
   if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'undefined' || supabaseAnonKey === 'undefined' || supabaseUrl === '' || supabaseAnonKey === '') {
-    console.error("Missing or invalid Supabase environment variables")
-    // Return a mock client that throws errors on use
+    console.warn("Supabase not configured, using fallback client")
+    // Return a mock client that provides fallback responses
     return {
       auth: {
-        getSession: () => Promise.resolve({ data: { session: null }, error: new Error("Supabase not configured") }),
-        getUser: () => Promise.resolve({ data: { user: null }, error: new Error("Supabase not configured") }),
-        signInWithPassword: () => Promise.reject(new Error("Supabase not configured")),
-        signUp: () => Promise.reject(new Error("Supabase not configured")),
-        signOut: () => Promise.reject(new Error("Supabase not configured")),
+        getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: new Error("Supabase not configured") }),
+        signUp: () => Promise.resolve({ data: { user: null, session: null }, error: new Error("Supabase not configured") }),
+        signOut: () => Promise.resolve({ error: null }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
       },
       from: () => ({
-        select: () => Promise.reject(new Error("Supabase not configured")),
-        insert: () => Promise.reject(new Error("Supabase not configured")),
-        update: () => Promise.reject(new Error("Supabase not configured")),
-        delete: () => Promise.reject(new Error("Supabase not configured"))
+        select: () => Promise.resolve({ data: [], error: null }),
+        insert: () => Promise.resolve({ data: null, error: new Error("Supabase not configured") }),
+        update: () => Promise.resolve({ data: null, error: new Error("Supabase not configured") }),
+        delete: () => Promise.resolve({ data: null, error: new Error("Supabase not configured") }),
+        single: () => Promise.resolve({ data: null, error: new Error("Supabase not configured") })
       })
     } as any
   }

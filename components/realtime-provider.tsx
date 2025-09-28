@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
 interface RealtimeContextType {
@@ -40,17 +40,17 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
   // Only create client if environment variables are properly configured
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  
-  const supabase = (supabaseUrl && supabaseAnonKey && 
-                   supabaseUrl !== 'undefined' && supabaseAnonKey !== 'undefined') 
-    ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+
+  const supabase = (supabaseUrl && supabaseAnonKey &&
+                   supabaseUrl !== 'undefined' && supabaseAnonKey !== 'undefined')
+    ? createClient()
     : null
 
   // Refresh functions that can be called by components
   const refreshProducts = useCallback(() => {
     refreshCallbacks.products.forEach(callback => callback())
     setLastUpdate(new Date())
-    
+
     // Also dispatch a custom event for components not using the context
     window.dispatchEvent(new CustomEvent('products-updated'))
   }, [refreshCallbacks.products])
@@ -58,28 +58,28 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
   const refreshCategories = useCallback(() => {
     refreshCallbacks.categories.forEach(callback => callback())
     setLastUpdate(new Date())
-    
+
     window.dispatchEvent(new CustomEvent('categories-updated'))
   }, [refreshCallbacks.categories])
 
   const refreshProperties = useCallback(() => {
     refreshCallbacks.properties.forEach(callback => callback())
     setLastUpdate(new Date())
-    
+
     window.dispatchEvent(new CustomEvent('properties-updated'))
   }, [refreshCallbacks.properties])
 
   const refreshOrders = useCallback(() => {
     refreshCallbacks.orders.forEach(callback => callback())
     setLastUpdate(new Date())
-    
+
     window.dispatchEvent(new CustomEvent('orders-updated'))
   }, [refreshCallbacks.orders])
 
   const refreshBookings = useCallback(() => {
     refreshCallbacks.bookings.forEach(callback => callback())
     setLastUpdate(new Date())
-    
+
     window.dispatchEvent(new CustomEvent('bookings-updated'))
   }, [refreshCallbacks.bookings])
 
@@ -155,7 +155,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
         // Check for updates via custom events or manual refresh
         const lastCheck = localStorage.getItem('last-data-check')
         const now = Date.now()
-        
+
         if (!lastCheck || now - parseInt(lastCheck) > 30000) { // 30 seconds
           // Trigger refresh for all data types
           refreshProducts()
@@ -163,7 +163,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
           refreshProperties()
           refreshOrders()
           refreshBookings()
-          
+
           localStorage.setItem('last-data-check', now.toString())
         }
       }, 30000) // Poll every 30 seconds
