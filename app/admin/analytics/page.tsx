@@ -5,7 +5,21 @@ import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getAnalytics, type Analytics } from "@/lib/local-storage"
+import { toast } from "sonner"
+
+interface Analytics {
+  totalRevenue: number
+  totalOrders: number
+  totalCustomers: number
+  totalProducts: number
+  revenueGrowth: number
+  orderGrowth: number
+  customerGrowth: number
+  productGrowth: number
+  topProducts: Array<{ id: string; name: string; sales: number; revenue: number }>
+  salesData: Array<{ date: string; revenue: number; orders: number }>
+  categoryStats: Array<{ name: string; products: number; sales: number }>
+}
 import { DollarSign, ShoppingCart, Users, Package, TrendingUp, TrendingDown } from "lucide-react"
 import {
   LineChart,
@@ -27,18 +41,40 @@ const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"]
 export default function AdminAnalyticsPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
   const [timeRange, setTimeRange] = useState("7d")
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     loadAnalytics()
   }, [])
 
-  const loadAnalytics = () => {
-    const analyticsData = getAnalytics()
-    setAnalytics(analyticsData)
+  const loadAnalytics = async () => {
+    try {
+      const response = await fetch("/api/admin/analytics")
+      if (response.ok) {
+        const data = await response.json()
+        setAnalytics(data)
+      } else {
+        toast.error("Failed to fetch analytics data")
+      }
+    } catch (error) {
+      toast.error("Failed to load analytics")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  if (!analytics) {
-    return <div>Loading...</div>
+  if (isLoading || !analytics) {
+    return (
+      <div className="flex h-screen bg-background">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <AdminHeader />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-muted/50 p-6">
+            <div>Loading...</div>
+          </main>
+        </div>
+      </div>
+    )
   }
 
   return (
