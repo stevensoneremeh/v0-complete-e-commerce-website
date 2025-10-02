@@ -1,4 +1,3 @@
-
 import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
@@ -25,23 +24,45 @@ export async function GET(request: NextRequest) {
       },
     )
 
-    const { data: orders, error } = await supabase
-      .from("orders")
-      .select(`
-        *,
+    let query = supabase.from("orders").select(`
+        id,
+        order_number,
+        user_id,
+        guest_id,
+        status,
+        payment_status,
+        payment_method,
+        payment_reference,
+        subtotal,
+        tax_amount,
+        shipping_amount,
+        total_amount,
+        currency,
+        shipping_name,
+        shipping_email,
+        shipping_phone,
+        shipping_address,
+        shipping_city,
+        shipping_country,
+        shipping_postal_code,
+        notes,
+        created_at,
+        updated_at,
         order_items (
-          *,
+          id,
+          order_id,
+          product_id,
+          quantity,
+          price,
           products (
             name,
+            price,
             images
           )
-        ),
-        profiles (
-          full_name,
-          email
         )
       `)
-      .order("created_at", { ascending: false })
+
+    const { data: orders, error } = await query.order("created_at", { ascending: false })
 
     if (error) {
       console.error("Error fetching orders:", error)

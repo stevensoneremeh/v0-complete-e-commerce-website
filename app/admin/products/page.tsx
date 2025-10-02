@@ -66,13 +66,18 @@ export default function ProductsPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("/api/categories")
+      const response = await fetch("/api/admin/categories")
       if (response.ok) {
         const data = await response.json()
-        setCategories(data.categories || [])
+        // Handle both array and object responses
+        const categoriesData = Array.isArray(data) ? data : (data.categories || [])
+        // Filter to only active categories for product assignment
+        setCategories(categoriesData.filter((cat: Category) => cat.is_active))
+      } else {
+        console.error(`Failed to fetch categories: ${response.status}`)
       }
     } catch (error) {
-      console.error("Failed to fetch categories")
+      console.error("Failed to fetch categories:", error)
     }
   }
 

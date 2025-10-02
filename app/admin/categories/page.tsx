@@ -51,9 +51,14 @@ export default function CategoriesPage() {
       const response = await fetch("/api/admin/categories")
       if (response.ok) {
         const data = await response.json()
-        setCategories(data)
+        // Handle both array and object responses
+        const categoriesData = Array.isArray(data) ? data : (data.categories || [])
+        setCategories(categoriesData)
+      } else {
+        toast.error(`Failed to fetch categories: ${response.status}`)
       }
     } catch (error) {
+      console.error("Error fetching categories:", error)
       toast.error("Failed to fetch categories")
     } finally {
       setLoading(false)
