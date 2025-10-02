@@ -28,6 +28,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const customerData = await request.json()
     const { id } = await params
 
+    // Update profile
     const { data: customer, error } = await supabase
       .from("profiles")
       .update({
@@ -38,6 +39,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         country: customerData.country,
         role: customerData.role,
         is_admin: customerData.role === "admin",
+        is_active: customerData.isActive !== undefined ? customerData.isActive : true,
       })
       .eq("id", id)
       .select()
@@ -46,6 +48,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (error) {
       console.error("Error updating customer:", error)
       return NextResponse.json({ error: "Failed to update customer" }, { status: 500 })
+    }
+
+    // If changing admin status or disabling user, update auth user metadata
+    if (customerData.role !== undefined || customerData.isActive !== undefined) {
+      await supabase.auth.admin.updateUserById(id, {
+        user_metadata: {
+          role: customerData.role,
+          is_admin: customerData.role === "admin",
+        },
+        ban_duration: customerData.isActive === false ? "876000h" : "none", // Ban for 100 years if inactive
+      })
     }
 
     return NextResponse.json({ customer })

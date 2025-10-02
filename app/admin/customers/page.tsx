@@ -59,9 +59,21 @@ export default function AdminCustomersPage() {
     loadCustomers()
   }, [])
 
-  const loadCustomers = () => {
-    const customersData = getCustomers()
-    setCustomers(customersData)
+  const loadCustomers = async () => {
+    try {
+      const response = await fetch("/api/admin/customers")
+      if (response.ok) {
+        const data = await response.json()
+        setCustomers(data.customers || [])
+      }
+    } catch (error) {
+      console.error("Error loading customers:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load customers",
+        variant: "destructive",
+      })
+    }
   }
 
   const filteredCustomers = customers.filter((customer) => {
@@ -83,12 +95,35 @@ export default function AdminCustomersPage() {
     const customer = customers.find((c) => c.id === customerId)
     if (!customer) return
 
-    const updatedCustomer = updateCustomer(customerId, { isActive: !customer.isActive })
-    if (updatedCustomer) {
-      setCustomers(customers.map((c) => (c.id === customerId ? updatedCustomer : c)))
+    try {
+      const response = await fetch(`/api/admin/customers/${customerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          address: customer.address,
+          city: customer.city,
+          country: customer.country,
+          role: customer.role,
+          isActive: !customer.isActive,
+        }),
+      })
+
+      if (response.ok) {
+        await loadCustomers()
+        toast({
+          title: "Customer Updated",
+          description: `Customer has been ${!customer.isActive ? "activated" : "deactivated"}`,
+        })
+      }
+    } catch (error) {
+      console.error("Error toggling status:", error)
       toast({
-        title: "Customer Updated",
-        description: `Customer has been ${updatedCustomer.isActive ? "activated" : "deactivated"}`,
+        title: "Error",
+        description: "Failed to update customer status",
+        variant: "destructive",
       })
     }
   }
@@ -97,19 +132,42 @@ export default function AdminCustomersPage() {
     const customer = customers.find((c) => c.id === customerId)
     if (!customer) return
 
-    const newRole = customer.role === "admin" ? "user" : "admin"
-    const updatedCustomer = updateCustomer(customerId, { role: newRole })
+    const newRole = customer.role === "admin" ? "customer" : "admin"
 
-    if (updatedCustomer) {
-      setCustomers(customers.map((c) => (c.id === customerId ? updatedCustomer : c)))
+    try {
+      const response = await fetch(`/api/admin/customers/${customerId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          address: customer.address,
+          city: customer.city,
+          country: customer.country,
+          role: newRole,
+          isActive: customer.isActive,
+        }),
+      })
+
+      if (response.ok) {
+        await loadCustomers()
+        toast({
+          title: "Role Updated",
+          description: `Customer role changed to ${newRole}`,
+        })
+      }
+    } catch (error) {
+      console.error("Error toggling role:", error)
       toast({
-        title: "Role Updated",
-        description: `Customer role changed to ${newRole}`,
+        title: "Error",
+        description: "Failed to update customer role",
+        variant: "destructive",
       })
     }
   }
 
-  const handleCreateCustomer = () => {
+  const handleCreateCustomer = async () => {
     if (!newCustomer.name || !newCustomer.email) {
       toast({
         title: "Missing Information",
@@ -129,57 +187,76 @@ export default function AdminCustomersPage() {
       return
     }
 
-    const customer: Customer = {
-      id: Date.now().toString(),
-      ...newCustomer,
-      isActive: true,
-      totalOrders: 0,
-      totalSpent: 0,
-      createdAt: new Date().toISOString(),
+    try {
+      const response = await fetch("/api/admin/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newCustomer),
+      })
+
+      if (response.ok) {
+        await loadCustomers()
+        toast({
+          title: "Customer Created",
+          description: `${newCustomer.name} has been added successfully.`,
+        })
+
+        // Reset form
+        setNewCustomer({
+          name: "",
+          email: "",
+          phone: "",
+          address: "",
+          city: "",
+          country: "",
+          role: "user",
+        })
+        setIsCreateDialogOpen(false)
+      }
+    } catch (error) {
+      console.error("Error creating customer:", error)
+      toast({
+        title: "Error",
+        description: "Failed to create customer",
+        variant: "destructive",
+      })
     }
-
-    const updatedCustomers = [...customers, customer]
-    setCustomers(updatedCustomers)
-    saveCustomers(updatedCustomers)
-
-    toast({
-      title: "Customer Created",
-      description: `${customer.name} has been added successfully.`,
-    })
-
-    // Reset form
-    setNewCustomer({
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-      city: "",
-      country: "",
-      role: "user",
-    })
-    setIsCreateDialogOpen(false)
   }
 
-  const handleUpdateCustomer = () => {
+  const handleUpdateCustomer = async () => {
     if (!selectedCustomer) return
 
-    const updatedCustomer = updateCustomer(selectedCustomer.id, {
-      name: selectedCustomer.name,
-      email: selectedCustomer.email,
-      phone: selectedCustomer.phone,
-      address: selectedCustomer.address,
-      city: selectedCustomer.city,
-      country: selectedCustomer.country,
-      role: selectedCustomer.role,
-    })
-
-    if (updatedCustomer) {
-      setCustomers(customers.map((c) => (c.id === selectedCustomer.id ? updatedCustomer : c)))
-      toast({
-        title: "Customer Updated",
-        description: "Customer information has been updated successfully.",
+    try {
+      const response = await fetch(`/api/admin/customers/${selectedCustomer.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: selectedCustomer.name,
+          email: selectedCustomer.email,
+          phone: selectedCustomer.phone,
+          address: selectedCustomer.address,
+          city: selectedCustomer.city,
+          country: selectedCustomer.country,
+          role: selectedCustomer.role,
+          isActive: selectedCustomer.isActive,
+        }),
       })
-      setIsEditDialogOpen(false)
+
+      if (response.ok) {
+        await loadCustomers()
+        toast({
+          title: "Customer Updated",
+          description: "Customer information has been updated successfully.",
+        })
+        setIsEditDialogOpen(false)
+      }
+    } catch (error) {
+      console.error("Error updating customer:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update customer",
+        variant: "destructive",
+      })
     }
   }
 
