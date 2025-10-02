@@ -13,11 +13,26 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { PlusCircle, Edit, Trash, Copy } from "lucide-react"
-import { type Coupon, getCoupons, addCoupon, updateCoupon, deleteCoupon } from "@/lib/local-storage"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search, Tag, Percent, Calendar, Users } from "lucide-react"
+
+interface Coupon {
+  id: string
+  code: string
+  description: string
+  type: "percentage" | "fixed"
+  value: number
+  min_order_amount?: number
+  max_discount?: number
+  usage_limit?: number
+  usage_count: number
+  expires_at?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
 
 export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([])
@@ -27,14 +42,35 @@ export default function AdminCouponsPage() {
   const [couponToDelete, setCouponToDelete] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
 
   useEffect(() => {
     loadCoupons()
   }, [])
 
-  const loadCoupons = () => {
-    setCoupons(getCoupons())
+  const loadCoupons = async () => {
+    try {
+      const response = await fetch("/api/admin/coupons")
+      if (response.ok) {
+        const data = await response.json()
+        setCoupons(data)
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch coupons",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load coupons",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const filteredCoupons = coupons.filter((coupon) => {
@@ -42,79 +78,82 @@ export default function AdminCouponsPage() {
       coupon.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       coupon.description.toLowerCase().includes(searchTerm.toLowerCase())
     const now = new Date()
-    const expiresAtDate = coupon.expiresAt ? new Date(coupon.expiresAt) : null
+    const expiresAtDate = coupon.expires_at ? new Date(coupon.expires_at) : null
     const isExpired = expiresAtDate && expiresAtDate < now
-    const isUsageLimitReached = coupon.usageLimit && coupon.usageCount >= coupon.usageLimit
+    const isUsageLimitReached = coupon.usage_limit && coupon.usage_count >= coupon.usage_limit
 
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "active" && coupon.isActive && !isExpired && !isUsageLimitReached) ||
-      (statusFilter === "inactive" && !coupon.isActive) ||
+      (statusFilter === "active" && coupon.is_active && !isExpired && !isUsageLimitReached) ||
+      (statusFilter === "inactive" && !coupon.is_active) ||
       (statusFilter === "expired" && isExpired) ||
       (statusFilter === "usage-limit-reached" && isUsageLimitReached)
 
     return matchesSearch && matchesStatus
   })
 
-  const handleAddEditCoupon = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddEditCoupon = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     const code = (formData.get("code") as string).toUpperCase()
     const description = formData.get("description") as string
     const type = formData.get("type") as "percentage" | "fixed"
     const value = Number.parseFloat(formData.get("value") as string)
-    const minOrderAmount = formData.get("minOrderAmount")
+    const min_order_amount = formData.get("minOrderAmount")
       ? Number.parseFloat(formData.get("minOrderAmount") as string)
       : undefined
-    const maxDiscount = formData.get("maxDiscount")
+    const max_discount = formData.get("maxDiscount")
       ? Number.parseFloat(formData.get("maxDiscount") as string)
       : undefined
-    const usageLimit = formData.get("usageLimit") ? Number.parseInt(formData.get("usageLimit") as string) : undefined
+    const usage_limit = formData.get("usageLimit") ? Number.parseInt(formData.get("usageLimit") as string) : undefined
     const expiresAt = (formData.get("expiresAt") as string) || undefined
-    const isActive = formData.get("isActive") === "on"
+    const is_active = formData.get("isActive") === "on"
 
-    const couponData: Omit<Coupon, "id" | "createdAt" | "updatedAt" | "usageCount"> = {
+    const couponData = {
       code,
       description,
       type,
       value,
-      minOrderAmount,
-      maxDiscount,
-      usageLimit,
-      expiresAt,
-      isActive,
+      min_order_amount,
+      max_discount,
+      usage_limit,
+      expires_at: expiresAt ? new Date(expiresAt).toISOString() : undefined,
+      is_active,
     }
 
-    if (currentCoupon) {
-      const updated = updateCoupon(currentCoupon.id, couponData)
-      if (updated) {
-        setCoupons(getCoupons())
+    try {
+      const url = currentCoupon ? `/api/admin/coupons/${currentCoupon.id}` : "/api/admin/coupons"
+      const method = currentCoupon ? "PUT" : "POST"
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(couponData),
+      })
+
+      if (response.ok) {
+        await loadCoupons()
+        setIsAddEditModalOpen(false)
+        setCurrentCoupon(null)
         toast({
-          title: "Coupon Updated",
-          description: `Coupon "${updated.code}" has been updated.`,
+          title: currentCoupon ? "Coupon Updated" : "Coupon Added",
+          description: `Coupon "${code}" has been ${currentCoupon ? "updated" : "added"}.`,
         })
-      }
-    } else {
-      // Check if code already exists
-      if (coupons.some((c) => c.code === code)) {
+      } else {
+        const error = await response.json()
         toast({
           title: "Error",
-          description: "A coupon with this code already exists.",
+          description: error.error || "Failed to save coupon",
           variant: "destructive",
         })
-        return
       }
-      const added = addCoupon(couponData)
-      if (added) {
-        setCoupons(getCoupons())
-        toast({
-          title: "Coupon Added",
-          description: `Coupon "${added.code}" has been added.`,
-        })
-      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save coupon",
+        variant: "destructive",
+      })
     }
-    setIsAddEditModalOpen(false)
-    setCurrentCoupon(null)
   }
 
   const openAddModal = () => {
@@ -132,16 +171,35 @@ export default function AdminCouponsPage() {
     setIsDeleteConfirmModalOpen(true)
   }
 
-  const handleDeleteCoupon = () => {
+  const handleDeleteCoupon = async () => {
     if (couponToDelete !== null) {
-      deleteCoupon(couponToDelete)
-      setCoupons(getCoupons())
-      setIsDeleteConfirmModalOpen(false)
-      setCouponToDelete(null)
-      toast({
-        title: "Coupon Deleted",
-        description: "The coupon has been successfully deleted.",
-      })
+      try {
+        const response = await fetch(`/api/admin/coupons/${couponToDelete}`, {
+          method: "DELETE",
+        })
+
+        if (response.ok) {
+          await loadCoupons()
+          setIsDeleteConfirmModalOpen(false)
+          setCouponToDelete(null)
+          toast({
+            title: "Coupon Deleted",
+            description: "The coupon has been successfully deleted.",
+          })
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to delete coupon",
+            variant: "destructive",
+          })
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete coupon",
+          variant: "destructive",
+        })
+      }
     }
   }
 
@@ -155,11 +213,11 @@ export default function AdminCouponsPage() {
 
   const getStatusBadge = (coupon: Coupon) => {
     const now = new Date()
-    const expiresAtDate = coupon.expiresAt ? new Date(coupon.expiresAt) : null
+    const expiresAtDate = coupon.expires_at ? new Date(coupon.expires_at) : null
     const isExpired = expiresAtDate && expiresAtDate < now
-    const isUsageLimitReached = coupon.usageLimit && coupon.usageCount >= coupon.usageLimit
+    const isUsageLimitReached = coupon.usage_limit && coupon.usage_count >= coupon.usage_limit
 
-    if (!coupon.isActive) {
+    if (!coupon.is_active) {
       return <Badge variant="secondary">Inactive</Badge>
     }
     if (isExpired) {
@@ -175,12 +233,26 @@ export default function AdminCouponsPage() {
     total: coupons.length,
     active: coupons.filter(
       (c) =>
-        c.isActive &&
-        (!c.expiresAt || new Date(c.expiresAt) > new Date()) &&
-        (!c.usageLimit || c.usageCount < c.usageLimit),
+        c.is_active &&
+        (!c.expires_at || new Date(c.expires_at) > new Date()) &&
+        (!c.usage_limit || c.usage_count < c.usage_limit),
     ).length,
-    expired: coupons.filter((c) => c.expiresAt && new Date(c.expiresAt) < new Date()).length,
-    totalUsage: coupons.reduce((sum, c) => sum + c.usageCount, 0),
+    expired: coupons.filter((c) => c.expires_at && new Date(c.expires_at) < new Date()).length,
+    totalUsage: coupons.reduce((sum, c) => sum + c.usage_count, 0),
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-background">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <AdminHeader />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-muted/50 p-6">
+            <div>Loading...</div>
+          </main>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -280,9 +352,9 @@ export default function AdminCouponsPage() {
               <CardContent>
                 <div className="space-y-4">
                   {filteredCoupons.map((coupon) => {
-                    const expiresAtDate = coupon.expiresAt ? new Date(coupon.expiresAt) : null
+                    const expiresAtDate = coupon.expires_at ? new Date(coupon.expires_at) : null
                     const isExpired = expiresAtDate && expiresAtDate < new Date()
-                    const isUsageLimitReached = coupon.usageLimit && coupon.usageCount >= coupon.usageLimit
+                    const isUsageLimitReached = coupon.usage_limit && coupon.usage_count >= coupon.usage_limit
 
                     return (
                       <div key={coupon.id} className="flex items-center space-x-4 p-4 border rounded-lg">
@@ -310,16 +382,16 @@ export default function AdminCouponsPage() {
                           <p className="text-sm text-muted-foreground mb-2">{coupon.description}</p>
                           <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                             <span>
-                              Expires: {coupon.expiresAt ? new Date(coupon.expiresAt).toLocaleDateString() : "Never"}
+                              Expires: {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : "Never"}
                             </span>
-                            {coupon.minOrderAmount !== undefined && (
-                              <span>Min: ${coupon.minOrderAmount.toFixed(2)}</span>
+                            {coupon.min_order_amount !== undefined && (
+                              <span>Min: ${coupon.min_order_amount.toFixed(2)}</span>
                             )}
-                            {coupon.maxDiscount !== undefined && <span>Max: ${coupon.maxDiscount.toFixed(2)}</span>}
-                            {coupon.usageLimit !== undefined && (
+                            {coupon.max_discount !== undefined && <span>Max: ${coupon.max_discount.toFixed(2)}</span>}
+                            {coupon.usage_limit !== undefined && (
                               <span>
-                                Used: {coupon.usageCount} / {coupon.usageLimit} (
-                                {((coupon.usageCount / coupon.usageLimit) * 100).toFixed(0)}%)
+                                Used: {coupon.usage_count} / {coupon.usage_limit} (
+                                {((coupon.usage_count / coupon.usage_limit) * 100).toFixed(0)}%)
                               </span>
                             )}
                           </div>
@@ -418,7 +490,7 @@ export default function AdminCouponsPage() {
                 name="minOrderAmount"
                 type="number"
                 step="0.01"
-                defaultValue={currentCoupon?.minOrderAmount || ""}
+                defaultValue={currentCoupon?.min_order_amount || ""}
                 className="col-span-3"
               />
             </div>
@@ -431,7 +503,7 @@ export default function AdminCouponsPage() {
                 name="maxDiscount"
                 type="number"
                 step="0.01"
-                defaultValue={currentCoupon?.maxDiscount || ""}
+                defaultValue={currentCoupon?.max_discount || ""}
                 className="col-span-3"
               />
             </div>
@@ -444,7 +516,7 @@ export default function AdminCouponsPage() {
                 name="usageLimit"
                 type="number"
                 step="1"
-                defaultValue={currentCoupon?.usageLimit || ""}
+                defaultValue={currentCoupon?.usage_limit || ""}
                 className="col-span-3"
               />
             </div>
@@ -457,7 +529,7 @@ export default function AdminCouponsPage() {
                 name="expiresAt"
                 type="date"
                 defaultValue={
-                  currentCoupon?.expiresAt ? new Date(currentCoupon.expiresAt).toISOString().split("T")[0] : ""
+                  currentCoupon?.expires_at ? new Date(currentCoupon.expires_at).toISOString().split("T")[0] : ""
                 }
                 className="col-span-3"
               />
@@ -469,7 +541,7 @@ export default function AdminCouponsPage() {
               <Checkbox
                 id="isActive"
                 name="isActive"
-                defaultChecked={currentCoupon?.isActive ?? true}
+                defaultChecked={currentCoupon?.is_active ?? true}
                 className="col-span-3"
               />
             </div>
