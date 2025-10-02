@@ -2,21 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  Package,
-  ShoppingCart,
-  Users,
-  BarChart,
-  Tag,
-  TicketPercent,
-  Bell,
-  Settings,
-  Home,
-  Building2,
-  Calendar,
-  TestTube,
-  Car,
-} from "lucide-react"
+import { Package, ShoppingCart, Users, ChartBar as BarChart, Tag, TicketPercent, Bell, Settings, Chrome as Home, Building2, Calendar, TestTube, Car } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export function AdminSidebar() {

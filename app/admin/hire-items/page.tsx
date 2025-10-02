@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
-import { Plus, Search, Edit, Trash2, Car, Ship, TrendingUp, Package } from "lucide-react"
+import { Plus, Search, CreditCard as Edit, Trash2, Car, Ship, TrendingUp, Package } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 
