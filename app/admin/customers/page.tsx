@@ -3,201 +3,172 @@
 import { useState, useEffect } from "react"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
-import { getCustomers, updateCustomer, saveCustomers, type Customer } from "@/lib/local-storage"
-import {
-  Search,
-  Eye,
-  UserCheck,
-  UserX,
-  Users,
-  DollarSign,
-  ShoppingCart,
-  UserPlus,
-  Shield,
-  Settings,
-} from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { UserManagementGuide } from "@/components/admin/user-management-guide"
+import { Eye, Edit, Shield, UserPlus, Search, Filter, Download, Users } from "lucide-react"
+import { toast } from "sonner"
 
-export default function AdminCustomersPage() {
+interface Customer {
+  id: string
+  email: string
+  full_name: string
+  phone?: string
+  address?: string
+  city?: string
+  country?: string
+  is_admin: boolean
+  role: string
+  created_at: string
+  updated_at: string
+  total_orders?: number
+  total_spent?: number
+}
+
+export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [roleFilter, setRoleFilter] = useState("all")
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [filterRole, setFilterRole] = useState("all")
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
 
   const [newCustomer, setNewCustomer] = useState({
-    name: "",
     email: "",
+    full_name: "",
     phone: "",
     address: "",
     city: "",
     country: "",
-    role: "user" as "user" | "admin",
+    role: "user"
   })
-
-  const { toast } = useToast()
 
   useEffect(() => {
-    loadCustomers()
+    fetchCustomers()
   }, [])
 
-  const loadCustomers = () => {
-    const customersData = getCustomers()
-    setCustomers(customersData)
+  const fetchCustomers = async () => {
+    try {
+      const response = await fetch("/api/admin/customers")
+      if (response.ok) {
+        const data = await response.json()
+        setCustomers(data)
+      }
+    } catch (error) {
+      toast.error("Failed to fetch customers")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const filteredCustomers = customers.filter((customer) => {
-    const matchesSearch =
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const toggleAdminRole = async (customerId: string, currentRole: string) => {
+    try {
+      const newRole = currentRole === "admin" ? "user" : "admin"
+      const response = await fetch(`/api/admin/customers/${customerId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: newRole,
+          is_admin: newRole === "admin"
+        })
+      })
 
-    const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "active" && customer.isActive) ||
-      (statusFilter === "inactive" && !customer.isActive)
+      if (response.ok) {
+        await fetchCustomers()
+        toast.success(`User role updated to ${newRole}`)
+      }
+    } catch (error) {
+      toast.error("Failed to update user role")
+    }
+  }
 
-    const matchesRole = roleFilter === "all" || customer.role === roleFilter
+  const addCustomer = async () => {
+    try {
+      const response = await fetch("/api/admin/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newCustomer,
+          is_admin: newCustomer.role === "admin"
+        })
+      })
 
-    return matchesSearch && matchesStatus && matchesRole
+      if (response.ok) {
+        await fetchCustomers()
+        setShowAddDialog(false)
+        setNewCustomer({
+          email: "",
+          full_name: "",
+          phone: "",
+          address: "",
+          city: "",
+          country: "",
+          role: "user"
+        })
+        toast.success("Customer added successfully")
+      }
+    } catch (error) {
+      toast.error("Failed to add customer")
+    }
+  }
+
+  const filteredCustomers = customers.filter(customer => {
+    const matchesSearch = customer.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesRole = filterRole === "all" || customer.role === filterRole
+    return matchesSearch && matchesRole
   })
 
-  const handleToggleStatus = async (customerId: string) => {
-    const customer = customers.find((c) => c.id === customerId)
-    if (!customer) return
+  const exportCustomers = () => {
+    const csvContent = [
+      ["Name", "Email", "Phone", "Role", "Total Orders", "Total Spent", "Created At"],
+      ...filteredCustomers.map(customer => [
+        customer.full_name || "",
+        customer.email || "",
+        customer.phone || "",
+        customer.role || "",
+        customer.total_orders || 0,
+        customer.total_spent || 0,
+        new Date(customer.created_at).toLocaleDateString()
+      ])
+    ].map(row => row.join(",")).join("\n")
 
-    const updatedCustomer = updateCustomer(customerId, { isActive: !customer.isActive })
-    if (updatedCustomer) {
-      setCustomers(customers.map((c) => (c.id === customerId ? updatedCustomer : c)))
-      toast({
-        title: "Customer Updated",
-        description: `Customer has been ${updatedCustomer.isActive ? "activated" : "deactivated"}`,
-      })
-    }
+    const blob = new Blob([csvContent], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "customers.csv"
+    a.click()
   }
 
-  const handleToggleRole = async (customerId: string) => {
-    const customer = customers.find((c) => c.id === customerId)
-    if (!customer) return
-
-    const newRole = customer.role === "admin" ? "user" : "admin"
-    const updatedCustomer = updateCustomer(customerId, { role: newRole })
-
-    if (updatedCustomer) {
-      setCustomers(customers.map((c) => (c.id === customerId ? updatedCustomer : c)))
-      toast({
-        title: "Role Updated",
-        description: `Customer role changed to ${newRole}`,
-      })
-    }
+  if (showGuide) {
+    return (
+      <div className="flex h-screen bg-background">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <AdminHeader />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-muted/50 p-6">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <Button onClick={() => setShowGuide(false)}>
+                  ← Back to Customers
+                </Button>
+              </div>
+              <UserManagementGuide />
+            </div>
+          </main>
+        </div>
+      </div>
+    )
   }
-
-  const handleCreateCustomer = () => {
-    if (!newCustomer.name || !newCustomer.email) {
-      toast({
-        title: "Missing Information",
-        description: "Name and email are required fields.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Check if email already exists
-    if (customers.some((c) => c.email === newCustomer.email)) {
-      toast({
-        title: "Email Already Exists",
-        description: "A customer with this email already exists.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const customer: Customer = {
-      id: Date.now().toString(),
-      ...newCustomer,
-      isActive: true,
-      totalOrders: 0,
-      totalSpent: 0,
-      createdAt: new Date().toISOString(),
-    }
-
-    const updatedCustomers = [...customers, customer]
-    setCustomers(updatedCustomers)
-    saveCustomers(updatedCustomers)
-
-    toast({
-      title: "Customer Created",
-      description: `${customer.name} has been added successfully.`,
-    })
-
-    // Reset form
-    setNewCustomer({
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-      city: "",
-      country: "",
-      role: "user",
-    })
-    setIsCreateDialogOpen(false)
-  }
-
-  const handleUpdateCustomer = () => {
-    if (!selectedCustomer) return
-
-    const updatedCustomer = updateCustomer(selectedCustomer.id, {
-      name: selectedCustomer.name,
-      email: selectedCustomer.email,
-      phone: selectedCustomer.phone,
-      address: selectedCustomer.address,
-      city: selectedCustomer.city,
-      country: selectedCustomer.country,
-      role: selectedCustomer.role,
-    })
-
-    if (updatedCustomer) {
-      setCustomers(customers.map((c) => (c.id === selectedCustomer.id ? updatedCustomer : c)))
-      toast({
-        title: "Customer Updated",
-        description: "Customer information has been updated successfully.",
-      })
-      setIsEditDialogOpen(false)
-    }
-  }
-
-  const openViewDialog = (customer: Customer) => {
-    setSelectedCustomer(customer)
-    setIsViewDialogOpen(true)
-  }
-
-  const openEditDialog = (customer: Customer) => {
-    setSelectedCustomer({ ...customer })
-    setIsEditDialogOpen(true)
-  }
-
-  // Calculate stats
-  const totalCustomers = customers.length
-  const activeCustomers = customers.filter((c) => c.isActive).length
-  const totalRevenue = customers.reduce((sum, customer) => sum + customer.totalSpent, 0)
-  const totalOrders = customers.reduce((sum, customer) => sum + customer.totalOrders, 0)
 
   return (
     <div className="flex h-screen bg-background">
@@ -209,188 +180,135 @@ export default function AdminCustomersPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold">Customers</h1>
-                <p className="text-muted-foreground">Manage your customers and user accounts</p>
+                <h1 className="text-3xl font-bold">Customer Management</h1>
+                <p className="text-muted-foreground">Manage your customers and their accounts</p>
               </div>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add Customer
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Customer</DialogTitle>
-                    <DialogDescription>Add a new customer to the system</DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name *</Label>
-                        <Input
-                          id="name"
-                          value={newCustomer.name}
-                          onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                          placeholder="Enter full name"
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowGuide(true)}>
+                  <Users className="h-4 w-4 mr-2" />
+                  User Guide
+                </Button>
+                <Button variant="outline" onClick={exportCustomers}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
+                <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Add Customer
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Customer</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="full_name">Full Name</Label>
+                          <Input
+                            id="full_name"
+                            value={newCustomer.full_name}
+                            onChange={(e) => setNewCustomer(prev => ({ ...prev, full_name: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={newCustomer.email}
+                            onChange={(e) => setNewCustomer(prev => ({ ...prev, email: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="phone">Phone</Label>
+                          <Input
+                            id="phone"
+                            value={newCustomer.phone}
+                            onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="role">Role</Label>
+                          <Select value={newCustomer.role} onValueChange={(value) => setNewCustomer(prev => ({ ...prev, role: value }))}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">User</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="address">Address</Label>
+                        <Textarea
+                          id="address"
+                          value={newCustomer.address}
+                          onChange={(e) => setNewCustomer(prev => ({ ...prev, address: e.target.value }))}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email *</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={newCustomer.email}
-                          onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                          placeholder="Enter email address"
-                        />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="city">City</Label>
+                          <Input
+                            id="city"
+                            value={newCustomer.city}
+                            onChange={(e) => setNewCustomer(prev => ({ ...prev, city: e.target.value }))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="country">Country</Label>
+                          <Input
+                            id="country"
+                            value={newCustomer.country}
+                            onChange={(e) => setNewCustomer(prev => ({ ...prev, country: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={addCustomer}>
+                          Add Customer
+                        </Button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input
-                          id="phone"
-                          value={newCustomer.phone}
-                          onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                          placeholder="Enter phone number"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
-                        <Select
-                          value={newCustomer.role}
-                          onValueChange={(value: "user" | "admin") => setNewCustomer({ ...newCustomer, role: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="user">User</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address</Label>
-                      <Input
-                        id="address"
-                        value={newCustomer.address}
-                        onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
-                        placeholder="Enter address"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city">City</Label>
-                        <Input
-                          id="city"
-                          value={newCustomer.city}
-                          onChange={(e) => setNewCustomer({ ...newCustomer, city: e.target.value })}
-                          placeholder="Enter city"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="country">Country</Label>
-                        <Input
-                          id="country"
-                          value={newCustomer.country}
-                          onChange={(e) => setNewCustomer({ ...newCustomer, country: e.target.value })}
-                          placeholder="Enter country"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={handleCreateCustomer}>Create Customer</Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Customers</p>
-                      <p className="text-2xl font-bold">{totalCustomers}</p>
-                    </div>
-                    <Users className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Active Customers</p>
-                      <p className="text-2xl font-bold">{activeCustomers}</p>
-                    </div>
-                    <div className="h-3 w-3 bg-green-500 rounded-full" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                      <p className="text-2xl font-bold">${totalRevenue.toFixed(2)}</p>
-                    </div>
-                    <DollarSign className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
-                      <p className="text-2xl font-bold">{totalOrders}</p>
-                    </div>
-                    <ShoppingCart className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
 
             {/* Filters */}
             <Card>
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search customers..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8"
-                    />
+              <CardContent className="p-4">
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search customers..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8"
+                      />
+                    </div>
                   </div>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full md:w-48">
-                      <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="w-full md:w-48">
+                  <Select value={filterRole} onValueChange={setFilterRole}>
+                    <SelectTrigger className="w-48">
+                      <Filter className="h-4 w-4 mr-2" />
                       <SelectValue placeholder="Filter by role" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="user">Users</SelectItem>
+                      <SelectItem value="admin">Admins</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -403,269 +321,136 @@ export default function AdminCustomersPage() {
                 <CardTitle>Customers ({filteredCustomers.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Orders</TableHead>
-                      <TableHead>Total Spent</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Joined</TableHead>
-                      <TableHead>Last Login</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCustomers.map((customer) => (
-                      <TableRow key={customer.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{customer.name}</div>
-                            <div className="text-sm text-muted-foreground">{customer.email}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={customer.role === "admin" ? "default" : "secondary"}>
-                            {customer.role === "admin" && <Shield className="h-3 w-3 mr-1" />}
-                            {customer.role.charAt(0).toUpperCase() + customer.role.slice(1)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{customer.totalOrders}</TableCell>
-                        <TableCell>${customer.totalSpent.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge variant={customer.isActive ? "default" : "destructive"}>
-                            {customer.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{new Date(customer.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          {customer.lastLogin ? new Date(customer.lastLogin).toLocaleDateString() : "Never"}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Button variant="ghost" size="sm" onClick={() => openViewDialog(customer)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => openEditDialog(customer)}>
-                              <Settings className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleToggleRole(customer.id)}
-                              className="text-blue-600 hover:text-blue-700"
-                            >
-                              <Shield className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleToggleStatus(customer.id)}
-                              className={
-                                customer.isActive
-                                  ? "text-red-600 hover:text-red-700"
-                                  : "text-green-600 hover:text-green-700"
-                              }
-                            >
-                              {customer.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                            </Button>
-                          </div>
-                        </TableCell>
+                {loading ? (
+                  <div className="text-center py-8">Loading customers...</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Orders</TableHead>
+                        <TableHead>Total Spent</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredCustomers.map((customer) => (
+                        <TableRow key={customer.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{customer.full_name || "N/A"}</div>
+                              <div className="text-sm text-muted-foreground">{customer.phone || "No phone"}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{customer.email}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={customer.role === "admin" ? "default" : "secondary"}>
+                                {customer.role}
+                              </Badge>
+                              {customer.is_admin && <Shield className="h-4 w-4 text-blue-600" />}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div>{customer.city || "N/A"}</div>
+                              <div className="text-muted-foreground">{customer.country || "N/A"}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{customer.total_orders || 0}</TableCell>
+                          <TableCell>${customer.total_spent || 0}</TableCell>
+                          <TableCell>{new Date(customer.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedCustomer(customer)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => toggleAdminRole(customer.id, customer.role)}
+                              >
+                                <Shield className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
+
+            {/* Customer Details Dialog */}
+            <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Customer Details</DialogTitle>
+                </DialogHeader>
+                {selectedCustomer && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Full Name</Label>
+                        <p className="text-sm">{selectedCustomer.full_name || "N/A"}</p>
+                      </div>
+                      <div>
+                        <Label>Email</Label>
+                        <p className="text-sm">{selectedCustomer.email}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Phone</Label>
+                        <p className="text-sm">{selectedCustomer.phone || "N/A"}</p>
+                      </div>
+                      <div>
+                        <Label>Role</Label>
+                        <Badge variant={selectedCustomer.role === "admin" ? "default" : "secondary"}>
+                          {selectedCustomer.role}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Address</Label>
+                      <p className="text-sm">{selectedCustomer.address || "N/A"}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>City</Label>
+                        <p className="text-sm">{selectedCustomer.city || "N/A"}</p>
+                      </div>
+                      <div>
+                        <Label>Country</Label>
+                        <p className="text-sm">{selectedCustomer.country || "N/A"}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Account Created</Label>
+                        <p className="text-sm">{new Date(selectedCustomer.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <div>
+                        <Label>Last Updated</Label>
+                        <p className="text-sm">{new Date(selectedCustomer.updated_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
         </main>
       </div>
-
-      {/* View Customer Dialog */}
-      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Customer Details</DialogTitle>
-            <DialogDescription>Complete customer information</DialogDescription>
-          </DialogHeader>
-          {selectedCustomer && (
-            <div className="space-y-6">
-              {/* Basic Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold mb-2">Personal Information</h4>
-                  <div className="space-y-1 text-sm">
-                    <p>
-                      <strong>Name:</strong> {selectedCustomer.name}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {selectedCustomer.email}
-                    </p>
-                    {selectedCustomer.phone && (
-                      <p>
-                        <strong>Phone:</strong> {selectedCustomer.phone}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Account Status</h4>
-                  <div className="space-y-2">
-                    <Badge variant={selectedCustomer.role === "admin" ? "default" : "secondary"}>
-                      {selectedCustomer.role === "admin" && <Shield className="h-3 w-3 mr-1" />}
-                      {selectedCustomer.role.charAt(0).toUpperCase() + selectedCustomer.role.slice(1)}
-                    </Badge>
-                    <Badge variant={selectedCustomer.isActive ? "default" : "destructive"}>
-                      {selectedCustomer.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Address */}
-              {(selectedCustomer.address || selectedCustomer.city || selectedCustomer.country) && (
-                <div>
-                  <h4 className="font-semibold mb-2">Address</h4>
-                  <div className="text-sm text-muted-foreground">
-                    {selectedCustomer.address && <p>{selectedCustomer.address}</p>}
-                    {selectedCustomer.city && <p>{selectedCustomer.city}</p>}
-                    {selectedCustomer.country && <p>{selectedCustomer.country}</p>}
-                  </div>
-                </div>
-              )}
-
-              {/* Order Statistics */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 border rounded">
-                  <p className="text-2xl font-bold">{selectedCustomer.totalOrders}</p>
-                  <p className="text-sm text-muted-foreground">Total Orders</p>
-                </div>
-                <div className="text-center p-4 border rounded">
-                  <p className="text-2xl font-bold">${selectedCustomer.totalSpent.toFixed(2)}</p>
-                  <p className="text-sm text-muted-foreground">Total Spent</p>
-                </div>
-                <div className="text-center p-4 border rounded">
-                  <p className="text-2xl font-bold">
-                    $
-                    {selectedCustomer.totalOrders > 0
-                      ? (selectedCustomer.totalSpent / selectedCustomer.totalOrders).toFixed(2)
-                      : "0.00"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Avg Order Value</p>
-                </div>
-              </div>
-
-              {/* Account Dates */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold mb-2">Member Since</h4>
-                  <p className="text-sm">{new Date(selectedCustomer.createdAt).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Last Login</h4>
-                  <p className="text-sm">
-                    {selectedCustomer.lastLogin
-                      ? new Date(selectedCustomer.lastLogin).toLocaleDateString()
-                      : "Never logged in"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Customer</DialogTitle>
-            <DialogDescription>Update customer information</DialogDescription>
-          </DialogHeader>
-          {selectedCustomer && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-name">Full Name</Label>
-                  <Input
-                    id="edit-name"
-                    value={selectedCustomer.name}
-                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-email">Email</Label>
-                  <Input
-                    id="edit-email"
-                    type="email"
-                    value={selectedCustomer.email}
-                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, email: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-phone">Phone</Label>
-                  <Input
-                    id="edit-phone"
-                    value={selectedCustomer.phone || ""}
-                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, phone: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-role">Role</Label>
-                  <Select
-                    value={selectedCustomer.role}
-                    onValueChange={(value: "user" | "admin") =>
-                      setSelectedCustomer({ ...selectedCustomer, role: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-address">Address</Label>
-                <Input
-                  id="edit-address"
-                  value={selectedCustomer.address || ""}
-                  onChange={(e) => setSelectedCustomer({ ...selectedCustomer, address: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-city">City</Label>
-                  <Input
-                    id="edit-city"
-                    value={selectedCustomer.city || ""}
-                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, city: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-country">Country</Label>
-                  <Input
-                    id="edit-country"
-                    value={selectedCustomer.country || ""}
-                    onChange={(e) => setSelectedCustomer({ ...selectedCustomer, country: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleUpdateCustomer}>Update Customer</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

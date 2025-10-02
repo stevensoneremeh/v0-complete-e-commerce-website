@@ -1,147 +1,137 @@
+
 "use client"
 
-import { Badge } from "@/components/ui/badge"
-
-import type React from "react"
-
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { PlusCircle, Edit, Trash } from "lucide-react"
-import {
-  type Category,
-  getCategories,
-  addCategory,
-  updateCategory,
-  deleteCategory,
-  getProducts,
-} from "@/lib/local-storage"
-import Image from "next/image"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Search, Tag, TrendingUp, Package } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import { Plus, Edit, Trash2, Tag, Eye } from "lucide-react"
+import { toast } from "sonner"
 
-export default function AdminCategoriesPage() {
+interface Category {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  image?: string
+  is_active: boolean
+  sort_order: number
+  product_count?: number
+  created_at: string
+}
+
+export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
-  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false)
-  const [currentCategory, setCurrentCategory] = useState<Category | null>(null)
-  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false)
-  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null)
-  const [searchTerm, setSearchTerm] = useState("")
-  const { toast } = useToast()
+  const [loading, setLoading] = useState(true)
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    image: "",
+    is_active: true,
+    sort_order: 0
+  })
 
   useEffect(() => {
-    loadData()
+    fetchCategories()
   }, [])
 
-  const loadData = () => {
-    const allCategories = getCategories()
-    const allProducts = getProducts()
-
-    // Update productCount for each category based on current products
-    const updatedCategories = allCategories.map((category) => ({
-      ...category,
-      productCount: allProducts.filter((product) => product.category === category.name).length,
-    }))
-
-    setCategories(updatedCategories)
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("/api/admin/categories")
+      if (response.ok) {
+        const data = await response.json()
+        setCategories(data)
+      }
+    } catch (error) {
+      toast.error("Failed to fetch categories")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const filteredCategories = categories.filter(
-    (category) =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
-
-  const handleAddEditCategory = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const name = formData.get("name") as string
-    const description = formData.get("description") as string
-    const image =
-      (formData.get("image") as string) || `/placeholder.svg?height=200&width=200&text=${encodeURIComponent(name)}`
-    const isActive = formData.get("isActive") === "on"
+    
+    try {
+      const slug = formData.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")
+      const categoryData = { ...formData, slug }
 
-    const categoryData: Omit<Category, "id" | "createdAt" | "productCount"> = {
-      name,
-      description,
-      image,
-      isActive,
-    }
+      const response = await fetch(
+        editingCategory ? `/api/admin/categories/${editingCategory.id}` : "/api/admin/categories",
+        {
+          method: editingCategory ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(categoryData)
+        }
+      )
 
-    if (currentCategory) {
-      const updated = updateCategory(currentCategory.id, categoryData)
-      if (updated) {
-        setCategories(getCategories())
-        toast({
-          title: "Category Updated",
-          description: `Category "${updated.name}" has been updated.`,
-        })
+      if (response.ok) {
+        await fetchCategories()
+        setShowAddDialog(false)
+        setEditingCategory(null)
+        setFormData({ name: "", description: "", image: "", is_active: true, sort_order: 0 })
+        toast.success(`Category ${editingCategory ? "updated" : "created"} successfully`)
       }
-    } else {
-      const added = addCategory({ ...categoryData, productCount: 0 }) // New categories start with 0 products
-      if (added) {
-        setCategories(getCategories())
-        toast({
-          title: "Category Added",
-          description: `Category "${added.name}" has been added.`,
+    } catch (error) {
+      toast.error("Failed to save category")
+    }
+  }
+
+  const handleEdit = (category: Category) => {
+    setFormData({
+      name: category.name,
+      description: category.description || "",
+      image: category.image || "",
+      is_active: category.is_active,
+      sort_order: category.sort_order
+    })
+    setEditingCategory(category)
+    setShowAddDialog(true)
+  }
+
+  const handleDelete = async (categoryId: string) => {
+    if (confirm("Are you sure you want to delete this category?")) {
+      try {
+        const response = await fetch(`/api/admin/categories/${categoryId}`, {
+          method: "DELETE"
         })
+
+        if (response.ok) {
+          await fetchCategories()
+          toast.success("Category deleted successfully")
+        }
+      } catch (error) {
+        toast.error("Failed to delete category")
       }
     }
-    setIsAddEditModalOpen(false)
-    setCurrentCategory(null)
-    loadData() // Reload data to update product counts
   }
 
-  const openAddModal = () => {
-    setCurrentCategory(null)
-    setIsAddEditModalOpen(true)
-  }
-
-  const openEditModal = (category: Category) => {
-    setCurrentCategory(category)
-    setIsAddEditModalOpen(true)
-  }
-
-  const openDeleteConfirmModal = (id: number) => {
-    const category = categories.find((c) => c.id === id)
-    if (category && category.productCount > 0) {
-      toast({
-        title: "Cannot Delete Category",
-        description: `Category "${category.name}" has ${category.productCount} products. Please reassign or delete products first.`,
-        variant: "destructive",
+  const toggleStatus = async (categoryId: string, currentStatus: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/categories/${categoryId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: !currentStatus })
       })
-      return
-    }
-    setCategoryToDelete(id)
-    setIsDeleteConfirmModalOpen(true)
-  }
 
-  const handleDeleteCategory = () => {
-    if (categoryToDelete !== null) {
-      deleteCategory(categoryToDelete)
-      setCategories(getCategories())
-      setIsDeleteConfirmModalOpen(false)
-      setCategoryToDelete(null)
-      toast({
-        title: "Category Deleted",
-        description: "The category has been successfully deleted.",
-      })
-      loadData() // Reload data to update product counts
+      if (response.ok) {
+        await fetchCategories()
+        toast.success("Category status updated")
+      }
+    } catch (error) {
+      toast.error("Failed to update category status")
     }
-  }
-
-  const stats = {
-    total: categories.length,
-    active: categories.filter((c) => c.isActive).length,
-    inactive: categories.filter((c) => !c.isActive).length,
-    totalProducts: categories.reduce((sum, c) => sum + c.productCount, 0),
   }
 
   return (
@@ -154,193 +144,186 @@ export default function AdminCategoriesPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold">Categories</h1>
-                <p className="text-muted-foreground">Manage your product categories</p>
+                <h1 className="text-3xl font-bold">Category Management</h1>
+                <p className="text-muted-foreground">Organize your products into categories</p>
               </div>
-              <Button onClick={openAddModal}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Category
-              </Button>
+              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => {
+                    setEditingCategory(null)
+                    setFormData({ name: "", description: "", image: "", is_active: true, sort_order: 0 })
+                  }}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Category
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingCategory ? "Edit Category" : "Add New Category"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="name">Category Name</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="Enter category name"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={formData.description}
+                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Enter category description"
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="image">Image URL</Label>
+                      <Input
+                        id="image"
+                        value={formData.image}
+                        onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                        placeholder="Enter image URL"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="sort_order">Sort Order</Label>
+                      <Input
+                        id="sort_order"
+                        type="number"
+                        value={formData.sort_order}
+                        onChange={(e) => setFormData(prev => ({ ...prev, sort_order: parseInt(e.target.value) }))}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="is_active"
+                        checked={formData.is_active}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
+                      />
+                      <Label htmlFor="is_active">Active</Label>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowAddDialog(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit">
+                        {editingCategory ? "Update" : "Create"} Category
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Categories</CardTitle>
-                  <Tag className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.total}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Inactive</CardTitle>
-                  <Tag className="h-4 w-4 text-red-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{stats.inactive}</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalProducts}</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Search */}
+            {/* Categories Table */}
             <Card>
-              <CardContent className="p-6">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search categories..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Tag className="h-5 w-5" />
+                  Categories ({categories.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-8">Loading categories...</div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Image</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Products</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Sort Order</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {categories.map((category) => (
+                        <TableRow key={category.id}>
+                          <TableCell>
+                            {category.image ? (
+                              <img
+                                src={category.image}
+                                alt={category.name}
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                                <Tag className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{category.name}</div>
+                              <div className="text-sm text-muted-foreground">{category.slug}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-xs truncate">
+                              {category.description || "No description"}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">
+                              {category.product_count || 0} products
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={category.is_active}
+                                onCheckedChange={() => toggleStatus(category.id, category.is_active)}
+                              />
+                              <Badge variant={category.is_active ? "default" : "secondary"}>
+                                {category.is_active ? "Active" : "Inactive"}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>{category.sort_order}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(category)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDelete(category.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
-
-            {/* Categories Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCategories.map((category) => (
-                <Card key={category.id}>
-                  <CardContent className="p-6">
-                    <div className="flex items-center space-x-4">
-                      <Image
-                        src={category.image || "/placeholder.svg"}
-                        alt={category.name}
-                        width={60}
-                        height={60}
-                        className="rounded-md object-cover"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h3 className="font-semibold">{category.name}</h3>
-                          <Badge variant={category.isActive ? "default" : "secondary"}>
-                            {category.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">{category.description}</p>
-                        <p className="text-sm font-medium">{category.productCount} products</p>
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2 mt-4">
-                      <Button variant="outline" size="sm" onClick={() => openEditModal(category)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openDeleteConfirmModal(category.id)}
-                        disabled={category.productCount > 0}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {filteredCategories.length === 0 && (
-                <div className="col-span-full text-center py-8">
-                  <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No categories found</h3>
-                  <p className="text-muted-foreground">Try adjusting your search</p>
-                </div>
-              )}
-            </div>
           </div>
         </main>
       </div>
-
-      {/* Add/Edit Category Modal */}
-      <Dialog open={isAddEditModalOpen} onOpenChange={setIsAddEditModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{currentCategory ? "Edit Category" : "Add Category"}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddEditCategory} className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input id="name" name="name" defaultValue={currentCategory?.name || ""} className="col-span-3" required />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                name="description"
-                defaultValue={currentCategory?.description || ""}
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="image" className="text-right">
-                Image URL
-              </Label>
-              <Input
-                id="image"
-                name="image"
-                defaultValue={currentCategory?.image || ""}
-                className="col-span-3"
-                placeholder="/placeholder.svg?height=200&width=200"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="isActive" className="text-right">
-                Active
-              </Label>
-              <Checkbox
-                id="isActive"
-                name="isActive"
-                defaultChecked={currentCategory?.isActive ?? true}
-                className="col-span-3"
-              />
-            </div>
-            <DialogFooter>
-              <Button type="submit">{currentCategory ? "Save Changes" : "Add Category"}</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Modal */}
-      <Dialog open={isDeleteConfirmModalOpen} onOpenChange={setIsDeleteConfirmModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">Are you sure you want to delete this category? This action cannot be undone.</div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteConfirmModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteCategory}>
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
