@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,80 +18,25 @@ import { format } from "date-fns"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 
-const carHireServices = [
-  {
-    id: 1,
-    name: "Luxury Sedan",
-    image: "/luxury-sedan-hire-premium-car-rental.jpg",
-    price: 150,
-    duration: "per day",
-    capacity: "4 passengers",
-    features: ["Professional Driver", "Air Conditioning", "Premium Interior", "GPS Navigation"],
-    rating: 4.9,
-    reviews: 127,
-  },
-  {
-    id: 2,
-    name: "Executive SUV",
-    image: "/executive-suv-hire-luxury-vehicle-rental.jpg",
-    price: 200,
-    duration: "per day",
-    capacity: "7 passengers",
-    features: ["Chauffeur Service", "Leather Seats", "Entertainment System", "Refreshments"],
-    rating: 4.8,
-    reviews: 89,
-  },
-  {
-    id: 3,
-    name: "Sports Car",
-    image: "/sports-car-hire-luxury-rental-premium.jpg",
-    price: 350,
-    duration: "per day",
-    capacity: "2 passengers",
-    features: ["Self Drive Option", "Premium Sound", "Performance Package", "Insurance Included"],
-    rating: 4.9,
-    reviews: 156,
-  },
-]
-
-const boatCruiseServices = [
-  {
-    id: 1,
-    name: "Sunset Cruise",
-    image: "/sunset-cruise-luxury-boat-hire-premium.jpg",
-    price: 120,
-    duration: "3 hours",
-    capacity: "12 passengers",
-    features: ["Dinner Included", "Live Music", "Open Bar", "Professional Crew"],
-    rating: 4.9,
-    reviews: 203,
-  },
-  {
-    id: 2,
-    name: "Private Yacht",
-    image: "/private-yacht-hire-luxury-boat-cruise.jpg",
-    price: 500,
-    duration: "6 hours",
-    capacity: "20 passengers",
-    features: ["Private Chef", "Water Sports", "Premium Amenities", "Dedicated Staff"],
-    rating: 5.0,
-    reviews: 78,
-  },
-  {
-    id: 3,
-    name: "Island Hopping",
-    image: "/island-hopping-cruise-luxury-boat-tour.jpg",
-    price: 180,
-    duration: "8 hours",
-    capacity: "15 passengers",
-    features: ["Multiple Stops", "Snorkeling Gear", "Lunch Included", "Tour Guide"],
-    rating: 4.8,
-    reviews: 134,
-  },
-]
+interface HireItem {
+  id: string
+  name: string
+  description: string
+  service_type: "car" | "boat"
+  price: number
+  duration: string
+  capacity: string
+  features: string[]
+  images: string[]
+  rating: number
+  review_count: number
+}
 
 export default function HirePage() {
-  const [selectedService, setSelectedService] = useState<any>(null)
+  const [carHireServices, setCarHireServices] = useState<HireItem[]>([])
+  const [boatCruiseServices, setBoatCruiseServices] = useState<HireItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedService, setSelectedService] = useState<HireItem | null>(null)
   const [serviceType, setServiceType] = useState<"car" | "boat" | null>(null)
   const [bookingDate, setBookingDate] = useState<Date>()
   const [bookingTime, setBookingTime] = useState("")
@@ -106,7 +51,37 @@ export default function HirePage() {
   const [showBookingForm, setShowBookingForm] = useState(false)
   const { toast } = useToast()
 
-  const handleServiceSelect = (service: any, type: "car" | "boat") => {
+  useEffect(() => {
+    fetchHireItems()
+  }, [])
+
+  const fetchHireItems = async () => {
+    try {
+      setLoading(true)
+      const [carsRes, boatsRes] = await Promise.all([
+        fetch("/api/hire-items?service_type=car"),
+        fetch("/api/hire-items?service_type=boat"),
+      ])
+
+      if (carsRes.ok && boatsRes.ok) {
+        const carsData = await carsRes.json()
+        const boatsData = await boatsRes.json()
+        setCarHireServices(carsData.items || [])
+        setBoatCruiseServices(boatsData.items || [])
+      }
+    } catch (error) {
+      console.error("Error fetching hire items:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load hire services",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleServiceSelect = (service: HireItem, type: "car" | "boat") => {
     setSelectedService(service)
     setServiceType(type)
     setShowBookingForm(true)
@@ -122,13 +97,11 @@ export default function HirePage() {
       return
     }
 
-    // Here you would integrate with your payment system (Paystack)
     toast({
       title: "Booking Confirmed!",
       description: `Your ${selectedService.name} booking has been confirmed for ${format(bookingDate, "PPP")} at ${bookingTime}.`,
     })
 
-    // Reset form
     setShowBookingForm(false)
     setSelectedService(null)
     setServiceType(null)
@@ -145,7 +118,6 @@ export default function HirePage() {
 
       <main className="section-padding">
         <div className="responsive-container">
-          {/* Hero Section */}
           <div className="text-center mb-16 fade-in">
             <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-full px-4 py-2 mb-6">
               <Car className="h-4 w-4 text-primary" />
@@ -160,7 +132,6 @@ export default function HirePage() {
 
           {!showBookingForm ? (
             <>
-              {/* Car Hire Services */}
               <section className="mb-20">
                 <div className="flex items-center gap-3 mb-8">
                   <Car className="h-6 w-6 text-primary" />
@@ -168,58 +139,67 @@ export default function HirePage() {
                 </div>
 
                 <div className="responsive-grid">
-                  {carHireServices.map((service) => (
-                    <Card
-                      key={service.id}
-                      className="luxury-card group cursor-pointer"
-                      onClick={() => handleServiceSelect(service, "car")}
-                    >
-                      <CardContent className="p-0">
-                        <div className="relative overflow-hidden">
-                          <Image
-                            src={service.image || "/placeholder.svg"}
-                            alt={service.name}
-                            width={400}
-                            height={250}
-                            className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-                            <div className="flex items-center gap-1">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              <span className="text-xs font-medium">{service.rating}</span>
+                  {loading ? (
+                    <div className="col-span-full text-center py-10">
+                      <p>Loading car hire services...</p>
+                    </div>
+                  ) : carHireServices.length === 0 ? (
+                    <div className="col-span-full text-center py-10">
+                      <p>No car hire services available at the moment.</p>
+                    </div>
+                  ) : (
+                    carHireServices.map((service) => (
+                      <Card
+                        key={service.id}
+                        className="luxury-card group cursor-pointer"
+                        onClick={() => handleServiceSelect(service, "car")}
+                      >
+                        <CardContent className="p-0">
+                          <div className="relative overflow-hidden">
+                            <Image
+                              src={service.images[0] || "/placeholder.svg"}
+                              alt={service.name}
+                              width={400}
+                              height={250}
+                              className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                <span className="text-xs font-medium">{service.rating}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="p-6">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="heading-3 group-hover:text-primary transition-colors">{service.name}</h3>
-                            <Badge variant="secondary">{service.capacity}</Badge>
+                          <div className="p-6">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="heading-3 group-hover:text-primary transition-colors">{service.name}</h3>
+                              <Badge variant="secondary">{service.capacity}</Badge>
+                            </div>
+
+                            <div className="flex items-center gap-2 mb-4">
+                              <span className="text-2xl font-bold text-primary">${service.price}</span>
+                              <span className="text-muted-foreground">/{service.duration}</span>
+                            </div>
+
+                            <div className="space-y-2 mb-4">
+                              {service.features.map((feature, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                  <span className="text-sm">{feature}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <Button className="w-full luxury-button">Book Now</Button>
                           </div>
-
-                          <div className="flex items-center gap-2 mb-4">
-                            <span className="text-2xl font-bold text-primary">${service.price}</span>
-                            <span className="text-muted-foreground">/{service.duration}</span>
-                          </div>
-
-                          <div className="space-y-2 mb-4">
-                            {service.features.map((feature, index) => (
-                              <div key={index} className="flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                <span className="text-sm">{feature}</span>
-                              </div>
-                            ))}
-                          </div>
-
-                          <Button className="w-full luxury-button">Book Now</Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
               </section>
 
-              {/* Boat Cruise Services */}
               <section>
                 <div className="flex items-center gap-3 mb-8">
                   <Ship className="h-6 w-6 text-primary" />
@@ -227,59 +207,68 @@ export default function HirePage() {
                 </div>
 
                 <div className="responsive-grid">
-                  {boatCruiseServices.map((service) => (
-                    <Card
-                      key={service.id}
-                      className="luxury-card group cursor-pointer"
-                      onClick={() => handleServiceSelect(service, "boat")}
-                    >
-                      <CardContent className="p-0">
-                        <div className="relative overflow-hidden">
-                          <Image
-                            src={service.image || "/placeholder.svg"}
-                            alt={service.name}
-                            width={400}
-                            height={250}
-                            className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                          <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-                            <div className="flex items-center gap-1">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                              <span className="text-xs font-medium">{service.rating}</span>
+                  {loading ? (
+                    <div className="col-span-full text-center py-10">
+                      <p>Loading boat cruise services...</p>
+                    </div>
+                  ) : boatCruiseServices.length === 0 ? (
+                    <div className="col-span-full text-center py-10">
+                      <p>No boat cruise services available at the moment.</p>
+                    </div>
+                  ) : (
+                    boatCruiseServices.map((service) => (
+                      <Card
+                        key={service.id}
+                        className="luxury-card group cursor-pointer"
+                        onClick={() => handleServiceSelect(service, "boat")}
+                      >
+                        <CardContent className="p-0">
+                          <div className="relative overflow-hidden">
+                            <Image
+                              src={service.images[0] || "/placeholder.svg"}
+                              alt={service.name}
+                              width={400}
+                              height={250}
+                              className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                                <span className="text-xs font-medium">{service.rating}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="p-6">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="heading-3 group-hover:text-primary transition-colors">{service.name}</h3>
-                            <Badge variant="secondary">{service.capacity}</Badge>
+                          <div className="p-6">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="heading-3 group-hover:text-primary transition-colors">{service.name}</h3>
+                              <Badge variant="secondary">{service.capacity}</Badge>
+                            </div>
+
+                            <div className="flex items-center gap-2 mb-4">
+                              <span className="text-2xl font-bold text-primary">${service.price}</span>
+                              <span className="text-muted-foreground">/{service.duration}</span>
+                            </div>
+
+                            <div className="space-y-2 mb-4">
+                              {service.features.map((feature, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                  <span className="text-sm">{feature}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <Button className="w-full luxury-button">Book Now</Button>
                           </div>
-
-                          <div className="flex items-center gap-2 mb-4">
-                            <span className="text-2xl font-bold text-primary">${service.price}</span>
-                            <span className="text-muted-foreground">/{service.duration}</span>
-                          </div>
-
-                          <div className="space-y-2 mb-4">
-                            {service.features.map((feature, index) => (
-                              <div key={index} className="flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                <span className="text-sm">{feature}</span>
-                              </div>
-                            ))}
-                          </div>
-
-                          <Button className="w-full luxury-button">Book Now</Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </div>
               </section>
             </>
           ) : (
-            /* Booking Form */
             <Card className="max-w-2xl mx-auto luxury-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3">

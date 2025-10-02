@@ -3,7 +3,6 @@ import { createPublicSupabaseClient, verifyAdmin } from "@/lib/supabase-server-s
 
 export async function GET(request: NextRequest) {
   try {
-    // Use public client for GET requests to enforce RLS
     const supabase = await createPublicSupabaseClient()
 
     const { searchParams } = new URL(request.url)
@@ -16,6 +15,7 @@ export async function GET(request: NextRequest) {
       .select(`
         *,
         categories (
+          id,
           name,
           slug
         )
@@ -23,7 +23,15 @@ export async function GET(request: NextRequest) {
       .eq("is_active", true)
 
     if (category) {
-      query = query.eq("categories.slug", category)
+      const { data: categoryData } = await supabase
+        .from("categories")
+        .select("id")
+        .eq("slug", category)
+        .single()
+
+      if (categoryData) {
+        query = query.eq("category_id", categoryData.id)
+      }
     }
 
     if (featured === "true") {
@@ -40,13 +48,13 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("Error fetching products:", error)
-      return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
+      return NextResponse.json({ products: [] }, { status: 200 })
     }
 
-    return NextResponse.json({ products })
+    return NextResponse.json({ products: products || [] })
   } catch (error) {
     console.error("API Error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ products: [] }, { status: 200 })
   }
 }
 

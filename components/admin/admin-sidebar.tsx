@@ -15,6 +15,7 @@ import {
   Building2,
   Calendar,
   TestTube,
+  Car,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -26,6 +27,7 @@ export function AdminSidebar() {
     { href: "/admin/products", icon: Package, label: "Products" },
     { href: "/admin/categories", icon: Tag, label: "Categories" },
     { href: "/admin/properties", icon: Building2, label: "Properties" },
+    { href: "/admin/hire-items", icon: Car, label: "Hire Items" },
     { href: "/admin/bookings", icon: Calendar, label: "Bookings" },
     { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
     { href: "/admin/customers", icon: Users, label: "Customers" },
