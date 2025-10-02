@@ -1,0 +1,21 @@
+qmrymrveonbosjurzxtj.supabase.co/rest/v1/orders?select=id%2Corder_number%2Cuser_id%2Cguest_id%2Cstatus%2Cpayment_status%2Cpayment_method%2Cpayment_reference%2Csubtotal%2Ctax_amount%2Cshipping_amount%2Ctotal_amount%2Ccurrency%2Cshipping_name%2Cshipping_email%2Cshipping_phone%2Cshipping_address%2Cshipping_city%2Cshipping_country%2Cshipping_postal_code%2Cbilling_name%2Cbilling_email%2Cbilling_phone%2Cbilling_address%2Cbilling_city%2Cbilling_country%2Cbilling_postal_code%2Ctracking_number%2Cnotes%2Ccreated_at%2Cupdated_at%2Cshipped_at%2Cdelivered_at&user_id=eq.19a32b48-9895-4bb4-b1e5-63106420fb33&order=created_at.desc:1  Failed to load resource: the server responded with a status of 400 ()
+5575-198cbbe3041565a9.js:1 Error fetching user orders: Object
+push.83802.window.console.error @ 5575-198cbbe3041565a9.js:1
+/api/admin/customers:1  Failed to load resource: the server responded with a status of 404 ()
+/api/admin/orders:1  Failed to load resource: the server responded with a status of 404 ()
+/api/admin/bookings:1  Failed to load resource: the server responded with a status of 404 ()
+vendor-B2w3_AxV.js:1 Datadog Browser SDK: No storage available for session. We will not send any data.
+init @ vendor-B2w3_AxV.js:1
+image:1  Failed to load resource: the server responded with a status of 400 ()
+650-cfd105f8a2c0b424.js:1 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ 650-cfd105f8a2c0b424.js:1
+/api/categories:1  Failed to load resource: the server responded with a status of 401 ()
+5575-198cbbe3041565a9.js:1 Error saving category: Error: Failed to save category
+    at $ (page-0095e33d0f6ef6e0.js:1:6183)
+push.83802.window.console.error @ 5575-198cbbe3041565a9.js:1
+650-cfd105f8a2c0b424.js:1 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+(anonymous) @ 650-cfd105f8a2c0b424.js:1
+/api/categories:1  Failed to load resource: the server responded with a status of 401 ()
+5575-198cbbe3041565a9.js:1 Error saving category: Error: Failed to save category
+    at $ (page-0095e33d0f6ef6e0.js:1:6183)
+push.83802.window.console.error @ 5575-198cbbe3041565a9.js:1
