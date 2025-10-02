@@ -11,18 +11,23 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Mail, Bell, CheckCircle, XCircle, Info, AlertTriangle, Trash } from "lucide-react"
-import {
-  type Notification,
-  getNotifications,
-  addNotification,
-  markNotificationAsRead,
-  saveNotifications,
-} from "@/lib/local-storage"
 import { useToast } from "@/hooks/use-toast"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Search } from "lucide-react"
+
+interface Notification {
+  id: string
+  user_id?: string
+  title: string
+  message: string
+  type: "info" | "success" | "warning" | "error"
+  is_read: boolean
+  link?: string
+  created_at: string
+  updated_at: string
+}
 
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -35,14 +40,35 @@ export default function AdminNotificationsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [typeFilter, setTypeFilter] = useState("all")
   const [readStatusFilter, setReadStatusFilter] = useState("all")
+  const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
 
   useEffect(() => {
     loadNotifications()
   }, [])
 
-  const loadNotifications = () => {
-    setNotifications(getNotifications())
+  const loadNotifications = async () => {
+    try {
+      const response = await fetch("/api/admin/notifications")
+      if (response.ok) {
+        const data = await response.json()
+        setNotifications(data)
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch notifications",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load notifications",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const filteredNotifications = notifications.filter((notification) => {
@@ -52,42 +78,106 @@ export default function AdminNotificationsPage() {
     const matchesType = typeFilter === "all" || notification.type === typeFilter
     const matchesReadStatus =
       readStatusFilter === "all" ||
-      (readStatusFilter === "read" && notification.isRead) ||
-      (readStatusFilter === "unread" && !notification.isRead)
+      (readStatusFilter === "read" && notification.is_read) ||
+      (readStatusFilter === "unread" && !notification.is_read)
 
     return matchesSearch && matchesType && matchesReadStatus
   })
 
-  const handleSendNotification = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSendNotification = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const newNotification = addNotification(notificationToSend)
-    setNotifications((prev) => [newNotification, ...prev]) // Add to the beginning
-    setIsSendNotificationModalOpen(false)
-    setNotificationToSend({ title: "", message: "", type: "info" })
-    toast({
-      title: "Notification Sent",
-      description: `Notification "${newNotification.title}" has been sent.`,
-    })
-  }
-
-  const handleMarkAsRead = (id: string) => {
-    markNotificationAsRead(id)
-    loadNotifications()
-    toast({
-      title: "Notification Marked as Read",
-      description: "The notification has been updated.",
-    })
-  }
-
-  const handleDeleteNotification = (id: string) => {
-    if (confirm("Are you sure you want to delete this notification?")) {
-      const updatedNotifications = notifications.filter((n) => n.id !== id)
-      saveNotifications(updatedNotifications)
-      setNotifications(updatedNotifications)
-      toast({
-        title: "Notification Deleted",
-        description: "The notification has been successfully deleted.",
+    
+    try {
+      const response = await fetch("/api/admin/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...notificationToSend,
+          user_id: null,
+        }),
       })
+
+      if (response.ok) {
+        await loadNotifications()
+        setIsSendNotificationModalOpen(false)
+        setNotificationToSend({ title: "", message: "", type: "info" })
+        toast({
+          title: "Notification Sent",
+          description: `Notification "${notificationToSend.title}" has been sent.`,
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to send notification",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send notification",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/notifications/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_read: true }),
+      })
+
+      if (response.ok) {
+        await loadNotifications()
+        toast({
+          title: "Notification Marked as Read",
+          description: "The notification has been updated.",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update notification",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update notification",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteNotification = async (id: string) => {
+    if (confirm("Are you sure you want to delete this notification?")) {
+      try {
+        const response = await fetch(`/api/admin/notifications/${id}`, {
+          method: "DELETE",
+        })
+
+        if (response.ok) {
+          await loadNotifications()
+          toast({
+            title: "Notification Deleted",
+            description: "The notification has been successfully deleted.",
+          })
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to delete notification",
+            variant: "destructive",
+          })
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete notification",
+          variant: "destructive",
+        })
+      }
     }
   }
 
@@ -108,10 +198,24 @@ export default function AdminNotificationsPage() {
 
   const stats = {
     total: notifications.length,
-    unread: notifications.filter((n) => !n.isRead).length,
+    unread: notifications.filter((n) => !n.is_read).length,
     info: notifications.filter((n) => n.type === "info").length,
     warning: notifications.filter((n) => n.type === "warning").length,
     error: notifications.filter((n) => n.type === "error").length,
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-background">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <AdminHeader />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-muted/50 p-6">
+            <div>Loading...</div>
+          </main>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -235,18 +339,18 @@ export default function AdminNotificationsPage() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
                           <h3 className="font-semibold">{notification.title}</h3>
-                          <Badge variant={notification.isRead ? "secondary" : "default"}>
-                            {notification.isRead ? "Read" : "Unread"}
+                          <Badge variant={notification.is_read ? "secondary" : "default"}>
+                            {notification.is_read ? "Read" : "Unread"}
                           </Badge>
                           <Badge variant="outline">{notification.type}</Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{notification.message}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(notification.createdAt).toLocaleString()}
+                          {new Date(notification.created_at).toLocaleString()}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2 flex-shrink-0">
-                        {!notification.isRead && (
+                        {!notification.is_read && (
                           <Button variant="outline" size="sm" onClick={() => handleMarkAsRead(notification.id)}>
                             <CheckCircle className="h-4 w-4" />
                             <span className="sr-only">Mark as Read</span>
