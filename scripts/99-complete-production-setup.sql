@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS public.products (
 -- Create orders table
 CREATE TABLE IF NOT EXISTS public.orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id),
+  customer_id UUID REFERENCES auth.users(id),
   guest_email TEXT,
   guest_name TEXT,
   guest_phone TEXT,
@@ -81,24 +81,24 @@ CREATE TABLE IF NOT EXISTS public.order_items (
 -- Create cart_items table
 CREATE TABLE IF NOT EXISTS public.cart_items (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id),
+  customer_id UUID REFERENCES auth.users(id),
   guest_id TEXT,
   product_id UUID REFERENCES products(id),
   quantity INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, product_id),
+  UNIQUE(customer_id, product_id),
   UNIQUE(guest_id, product_id)
 );
 
 -- Create wishlist_items table
 CREATE TABLE IF NOT EXISTS public.wishlist_items (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id),
+  customer_id UUID REFERENCES auth.users(id),
   guest_id TEXT,
   product_id UUID REFERENCES products(id),
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, product_id),
+  UNIQUE(customer_id, product_id),
   UNIQUE(guest_id, product_id)
 );
 
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS public.wishlist_items (
 CREATE TABLE IF NOT EXISTS public.product_reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   product_id UUID REFERENCES products(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES auth.users(id),
+  customer_id UUID REFERENCES auth.users(id),
   rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
   comment TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS public.real_estate_properties (
 CREATE TABLE IF NOT EXISTS public.real_estate_bookings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   property_id UUID REFERENCES real_estate_properties(id),
-  user_id UUID REFERENCES auth.users(id),
+  customer_id UUID REFERENCES auth.users(id),
   guest_name TEXT,
   guest_email TEXT,
   guest_phone TEXT,
@@ -225,7 +225,7 @@ CREATE POLICY "properties_admin_all" ON public.real_estate_properties FOR ALL US
 
 -- User-specific policies
 CREATE POLICY "orders_user_select" ON public.orders FOR SELECT USING (
-  auth.uid() = user_id OR 
+  auth.uid() = customer_id OR 
   EXISTS (
     SELECT 1 FROM auth.users 
     WHERE auth.users.id = auth.uid() 
@@ -234,7 +234,7 @@ CREATE POLICY "orders_user_select" ON public.orders FOR SELECT USING (
 );
 
 CREATE POLICY "orders_user_insert" ON public.orders FOR INSERT WITH CHECK (
-  auth.uid() = user_id OR user_id IS NULL
+  auth.uid() = customer_id OR customer_id IS NULL
 );
 
 CREATE POLICY "orders_admin_all" ON public.orders FOR ALL USING (
@@ -246,7 +246,7 @@ CREATE POLICY "orders_admin_all" ON public.orders FOR ALL USING (
 );
 
 CREATE POLICY "cart_items_user_all" ON public.cart_items FOR ALL USING (
-  auth.uid() = user_id OR user_id IS NULL OR
+  auth.uid() = customer_id OR customer_id IS NULL OR
   EXISTS (
     SELECT 1 FROM auth.users 
     WHERE auth.users.id = auth.uid() 
@@ -255,7 +255,7 @@ CREATE POLICY "cart_items_user_all" ON public.cart_items FOR ALL USING (
 );
 
 CREATE POLICY "wishlist_items_user_all" ON public.wishlist_items FOR ALL USING (
-  auth.uid() = user_id OR user_id IS NULL OR
+  auth.uid() = customer_id OR customer_id IS NULL OR
   EXISTS (
     SELECT 1 FROM auth.users 
     WHERE auth.users.id = auth.uid() 
@@ -264,7 +264,7 @@ CREATE POLICY "wishlist_items_user_all" ON public.wishlist_items FOR ALL USING (
 );
 
 CREATE POLICY "bookings_user_select" ON public.real_estate_bookings FOR SELECT USING (
-  auth.uid() = user_id OR 
+  auth.uid() = customer_id OR 
   EXISTS (
     SELECT 1 FROM auth.users 
     WHERE auth.users.id = auth.uid() 
@@ -273,7 +273,7 @@ CREATE POLICY "bookings_user_select" ON public.real_estate_bookings FOR SELECT U
 );
 
 CREATE POLICY "bookings_user_insert" ON public.real_estate_bookings FOR INSERT WITH CHECK (
-  auth.uid() = user_id OR user_id IS NULL
+  auth.uid() = customer_id OR customer_id IS NULL
 );
 
 CREATE POLICY "bookings_admin_all" ON public.real_estate_bookings FOR ALL USING (
@@ -288,7 +288,7 @@ CREATE POLICY "bookings_admin_all" ON public.real_estate_bookings FOR ALL USING 
 CREATE POLICY "order_items_user_select" ON public.order_items FOR SELECT USING (
   EXISTS (
     SELECT 1 FROM public.orders 
-    WHERE id = order_id AND (user_id = auth.uid() OR 
+    WHERE id = order_id AND (customer_id = auth.uid() OR 
       EXISTS (
         SELECT 1 FROM auth.users 
         WHERE auth.users.id = auth.uid() 
@@ -301,14 +301,14 @@ CREATE POLICY "order_items_user_select" ON public.order_items FOR SELECT USING (
 CREATE POLICY "order_items_user_insert" ON public.order_items FOR INSERT WITH CHECK (
   EXISTS (
     SELECT 1 FROM public.orders 
-    WHERE id = order_id AND user_id = auth.uid()
+    WHERE id = order_id AND customer_id = auth.uid()
   )
 );
 
 -- Reviews policies
 CREATE POLICY "reviews_public_select" ON public.product_reviews FOR SELECT USING (true);
-CREATE POLICY "reviews_user_insert" ON public.product_reviews FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "reviews_user_update" ON public.product_reviews FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "reviews_user_insert" ON public.product_reviews FOR INSERT WITH CHECK (auth.uid() = customer_id);
+CREATE POLICY "reviews_user_update" ON public.product_reviews FOR UPDATE USING (auth.uid() = customer_id);
 CREATE POLICY "reviews_admin_all" ON public.product_reviews FOR ALL USING (
   EXISTS (
     SELECT 1 FROM auth.users 
