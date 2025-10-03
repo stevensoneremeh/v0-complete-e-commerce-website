@@ -1,31 +1,4 @@
 {
-  "name": "abl-natasha-enterprises",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Premium luxury e-commerce platform for ABL Natasha Enterprises",
-  "keywords": [
-    "luxury",
-    "e-commerce",
-    "real-estate",
-    "premium",
-    "nextjs"
-  ],
-  "author": "ABL Natasha Enterprises",
-  "scripts": {
-    "build": "next build",
-    "build:analyze": "ANALYZE=true next build",
-    "dev": "next dev",
-    "lint": "next lint --fix",
-    "lint:check": "next lint",
-    "start": "next start",
-    "type-check": "tsc --noEmit"
-  },
-  "overrides": {
-    "vaul": {
-      "react": "^19.0.0",
-      "react-dom": "^19.0.0"
-    }
-  },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -90,6 +63,33 @@
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
+  },
+  "name": "abl-natasha-enterprises",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Premium luxury e-commerce platform for ABL Natasha Enterprises",
+  "keywords": [
+    "luxury",
+    "e-commerce",
+    "real-estate",
+    "premium",
+    "nextjs"
+  ],
+  "author": "ABL Natasha Enterprises",
+  "scripts": {
+    "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
+    "dev": "next dev",
+    "lint": "next lint --fix",
+    "lint:check": "next lint",
+    "start": "next start",
+    "type-check": "tsc --noEmit"
+  },
+  "overrides": {
+    "vaul": {
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0"
+    }
   },
   "engines": {
     "node": ">=18.17.0",
