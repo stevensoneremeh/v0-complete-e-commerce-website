@@ -240,6 +240,6 @@ GRANT ALL ON real_estate_properties TO anon;
 GRANT ALL ON real_estate_bookings TO anon;
 
 -- Fix any existing data inconsistencies by updating inventory_quantity to stock_quantity
-UPDATE products SET stock_quantity = inventory_quantity WHERE stock_quantity IS NULL AND inventory_quantity IS NOT NULL;
+
 
 SELECT 'Database schema fixes completed! Missing tables created and admin access configured.' AS status;
