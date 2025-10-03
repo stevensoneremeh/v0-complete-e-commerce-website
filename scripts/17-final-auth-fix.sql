@@ -1,4 +1,3 @@
-
 -- Final fix for authentication system
 -- This addresses the 500 error on signup
 

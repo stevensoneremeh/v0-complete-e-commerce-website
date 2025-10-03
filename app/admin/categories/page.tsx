@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Badge } from "@/components/ui/badge"
@@ -10,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { PlusCircle, Edit, Trash, Upload, Image as ImageIcon } from "lucide-react"
+import { PlusCircle, Edit, Trash } from "lucide-react"
 import Image from "next/image"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
@@ -39,7 +38,6 @@ export default function AdminCategoriesPage() {
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -51,13 +49,13 @@ export default function AdminCategoriesPage() {
       setLoading(true)
       const [categoriesRes, productsRes] = await Promise.all([
         fetch("/api/admin/categories"),
-        fetch("/api/admin/products")
+        fetch("/api/admin/products"),
       ])
 
       if (categoriesRes.ok) {
         const categoriesData = await categoriesRes.json()
         let productsData = []
-        
+
         if (productsRes.ok) {
           const productResult = await productsRes.json()
           productsData = productResult.products || productResult || []
@@ -83,28 +81,6 @@ export default function AdminCategoriesPage() {
     }
   }
 
-  const handleFileUpload = async (file: File): Promise<string> => {
-    if (!file) return ""
-    
-    setUploading(true)
-    try {
-      // For production, implement proper file upload to storage bucket
-      // For now, we'll use a placeholder URL
-      const fileName = `category-${Date.now()}-${file.name}`
-      
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Return a placeholder URL - in production, this would be the actual uploaded file URL
-      return `/uploads/categories/${fileName}`
-    } catch (error) {
-      console.error("Upload error:", error)
-      throw new Error("Failed to upload image")
-    } finally {
-      setUploading(false)
-    }
-  }
-
   const filteredCategories = categories.filter(
     (category) =>
       category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -116,36 +92,20 @@ export default function AdminCategoriesPage() {
     const formData = new FormData(e.currentTarget)
     const name = formData.get("name") as string
     const description = formData.get("description") as string
-    const imageFile = formData.get("imageFile") as File
     const imageUrl = formData.get("image_url") as string
     const is_active = formData.get("isActive") === "on"
-
-    let finalImageUrl = imageUrl || currentCategory?.image_url || ""
-
-    // Handle file upload if a new file is selected
-    if (imageFile && imageFile.size > 0) {
-      try {
-        finalImageUrl = await handleFileUpload(imageFile)
-      } catch (error) {
-        toast({
-          title: "Upload Failed",
-          description: "Failed to upload image. Using URL instead.",
-          variant: "destructive",
-        })
-      }
-    }
 
     const categoryData = {
       name,
       description,
-      image_url: finalImageUrl || `/placeholder.svg?height=200&width=200&text=${encodeURIComponent(name)}`,
+      image_url: imageUrl || `/placeholder.svg?height=200&width=200&text=${encodeURIComponent(name)}`,
       is_active,
-      sort_order: categories.length,
+      sort_order: currentCategory?.sort_order ?? categories.length,
     }
 
     try {
       const method = currentCategory ? "PUT" : "POST"
-      const url = currentCategory ? `/api/categories/${currentCategory.id}` : "/api/categories"
+      const url = currentCategory ? `/api/admin/categories/${currentCategory.id}` : "/api/admin/categories"
 
       const response = await fetch(url, {
         method,
@@ -161,20 +121,20 @@ export default function AdminCategoriesPage() {
           title: currentCategory ? "Category Updated" : "Category Added",
           description: `Category "${name}" has been ${currentCategory ? "updated" : "added"}.`,
         })
+        setIsAddEditModalOpen(false)
+        setCurrentCategory(null)
       } else {
-        throw new Error("Failed to save category")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to save category")
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving category:", error)
       toast({
         title: "Error",
-        description: "Failed to save category. Please try again.",
+        description: `Failed to save category: ${error.message}`,
         variant: "destructive",
       })
     }
-    
-    setIsAddEditModalOpen(false)
-    setCurrentCategory(null)
   }
 
   const openAddModal = () => {
@@ -204,7 +164,7 @@ export default function AdminCategoriesPage() {
   const handleDeleteCategory = async () => {
     if (categoryToDelete !== null) {
       try {
-        const response = await fetch(`/api/categories/${categoryToDelete}`, {
+        const response = await fetch(`/api/admin/categories/${categoryToDelete}`, {
           method: "DELETE",
         })
 
@@ -215,17 +175,18 @@ export default function AdminCategoriesPage() {
             description: "The category has been successfully deleted.",
           })
         } else {
-          throw new Error("Failed to delete category")
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || "Failed to delete category")
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error deleting category:", error)
         toast({
           title: "Error",
-          description: "Failed to delete category. Please try again.",
+          description: error.message || "Failed to delete category. Please try again.",
           variant: "destructive",
         })
       }
-      
+
       setIsDeleteConfirmModalOpen(false)
       setCategoryToDelete(null)
     }
@@ -238,6 +199,25 @@ export default function AdminCategoriesPage() {
     totalProducts: categories.reduce((sum, c) => sum + (c.productCount || 0), 0),
   }
 
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-background">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <AdminHeader />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-muted/50 p-6">
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
+                <p className="text-muted-foreground">Loading categories...</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-background">
       <AdminSidebar />
@@ -248,8 +228,8 @@ export default function AdminCategoriesPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold">Categories Management</h1>
-                <p className="text-muted-foreground">Manage your product categories with image uploads</p>
+                <h1 className="text-3xl font-bold">Categories</h1>
+                <p className="text-muted-foreground">Manage your product categories</p>
               </div>
               <Button onClick={openAddModal}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Category
@@ -374,13 +354,7 @@ export default function AdminCategoriesPage() {
               <Label htmlFor="name" className="text-right">
                 Name *
               </Label>
-              <Input 
-                id="name" 
-                name="name" 
-                defaultValue={currentCategory?.name || ""} 
-                className="col-span-3" 
-                required 
-              />
+              <Input id="name" name="name" defaultValue={currentCategory?.name || ""} className="col-span-3" required />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="description" className="text-right">
@@ -395,23 +369,16 @@ export default function AdminCategoriesPage() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="imageFile" className="text-right">
-                Upload Image
+              <Label htmlFor="image_url" className="text-right">
+                Image URL
               </Label>
-              <div className="col-span-3">
-                <Input
-                  id="imageFile"
-                  name="imageFile"
-                  type="file"
-                  accept="image/*,video/*"
-                  className="mb-2"
-                />
-                <Input
-                  name="image_url"
-                  defaultValue={currentCategory?.image_url || ""}
-                  placeholder="Or enter image URL"
-                />
-              </div>
+              <Input
+                id="image_url"
+                name="image_url"
+                defaultValue={currentCategory?.image_url || ""}
+                placeholder="Enter image URL"
+                className="col-span-3"
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="isActive" className="text-right">
@@ -425,9 +392,7 @@ export default function AdminCategoriesPage() {
               />
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={uploading}>
-                {uploading ? "Uploading..." : currentCategory ? "Save Changes" : "Add Category"}
-              </Button>
+              <Button type="submit">{currentCategory ? "Save Changes" : "Add Category"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

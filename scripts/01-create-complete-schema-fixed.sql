@@ -1,4 +1,3 @@
-
 -- Enable necessary extensions in extensions schema
 CREATE SCHEMA IF NOT EXISTS extensions;
 

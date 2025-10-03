@@ -1,4 +1,3 @@
-
 -- Complete Production Fix for ABL Natasha Enterprises
 -- This script will fix all database issues and make the admin fully functional
 

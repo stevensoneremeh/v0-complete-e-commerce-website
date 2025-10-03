@@ -1,4 +1,3 @@
-
 -- Complete Production Setup for ABL Natasha Enterprises
 -- This script sets up all necessary tables, policies, and admin account
 

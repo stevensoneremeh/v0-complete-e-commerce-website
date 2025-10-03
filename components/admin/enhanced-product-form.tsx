@@ -12,8 +12,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, X } from "lucide-react"
+import { Plus, X, ImageIcon } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import Image from "next/image"
 
 interface ProductFormProps {
   product?: any
@@ -66,11 +67,11 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
 
     onSubmit({
       ...formData,
-      price: Number.parseFloat(formData.price),
-      compare_at_price: formData.compare_at_price ? Number.parseFloat(formData.compare_at_price) : null,
-      stock_quantity: Number.parseInt(formData.stock_quantity),
-      low_stock_threshold: Number.parseInt(formData.low_stock_threshold),
-      weight: formData.weight ? Number.parseFloat(formData.weight) : null,
+      price: Number.parseFloat(formData.price.toString()),
+      compare_at_price: formData.compare_at_price ? Number.parseFloat(formData.compare_at_price.toString()) : null,
+      stock_quantity: Number.parseInt(formData.stock_quantity.toString()),
+      low_stock_threshold: Number.parseInt(formData.low_stock_threshold.toString()),
+      weight: formData.weight ? Number.parseFloat(formData.weight.toString()) : null,
     })
   }
 
@@ -306,7 +307,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                   <Checkbox
                     id="is_featured"
                     checked={formData.is_featured}
-                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_featured: checked }))}
+                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_featured: !!checked }))}
                   />
                   <Label htmlFor="is_featured">Featured Product</Label>
                 </div>
@@ -314,7 +315,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                   <Checkbox
                     id="is_active"
                     checked={formData.is_active}
-                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_active: checked }))}
+                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_active: !!checked }))}
                   />
                   <Label htmlFor="is_active">Active</Label>
                 </div>
@@ -330,7 +331,17 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
-                <Input placeholder="Image URL" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} />
+                <Input
+                  placeholder="Image URL"
+                  value={newImageUrl}
+                  onChange={(e) => setNewImageUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      addImage()
+                    }
+                  }}
+                />
                 <Button type="button" onClick={addImage}>
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -338,22 +349,30 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
               <div className="grid grid-cols-3 gap-4">
                 {formData.images.map((image: string, index: number) => (
                   <div key={index} className="relative group">
-                    <img
+                    <Image
                       src={image || "/placeholder.svg"}
                       alt={`Product ${index + 1}`}
+                      width={200}
+                      height={200}
                       className="w-full h-24 object-cover rounded border"
                     />
                     <Button
                       type="button"
                       variant="destructive"
                       size="sm"
-                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"
+                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => removeImage(index)}
                     >
                       <X className="h-3 w-3" />
                     </Button>
                   </div>
                 ))}
+                {formData.images.length === 0 && (
+                  <div className="col-span-3 flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-lg">
+                    <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">No images added yet</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -364,7 +383,17 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
-                <Input placeholder="Add feature" value={newFeature} onChange={(e) => setNewFeature(e.target.value)} />
+                <Input
+                  placeholder="Add feature"
+                  value={newFeature}
+                  onChange={(e) => setNewFeature(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      addFeature()
+                    }
+                  }}
+                />
                 <Button type="button" onClick={addFeature}>
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -376,6 +405,9 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                     <X className="h-3 w-3 cursor-pointer" onClick={() => removeFeature(index)} />
                   </Badge>
                 ))}
+                {formData.features.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No features added yet</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -390,8 +422,20 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                   placeholder="Specification name"
                   value={newSpecKey}
                   onChange={(e) => setNewSpecKey(e.target.value)}
+                  className="flex-1"
                 />
-                <Input placeholder="Value" value={newSpecValue} onChange={(e) => setNewSpecValue(e.target.value)} />
+                <Input
+                  placeholder="Value"
+                  value={newSpecValue}
+                  onChange={(e) => setNewSpecValue(e.target.value)}
+                  className="flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      addSpecification()
+                    }
+                  }}
+                />
                 <Button type="button" onClick={addSpecification}>
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -407,6 +451,9 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                     </Button>
                   </div>
                 ))}
+                {Object.keys(formData.specifications).length === 0 && (
+                  <p className="text-sm text-muted-foreground">No specifications added yet</p>
+                )}
               </div>
             </CardContent>
           </Card>

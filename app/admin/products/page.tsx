@@ -1,23 +1,19 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { PlusCircle, Edit, Trash } from "lucide-react"
+import { Trash } from "lucide-react"
 import Image from "next/image"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminHeader } from "@/components/admin/admin-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Search, Package, TrendingUp, AlertTriangle } from "lucide-react"
+import { Search, Package, TrendingUp, AlertTriangle, PlusCircle, Edit } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { EnhancedProductForm } from "@/components/admin/enhanced-product-form"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface Product {
   id: string
@@ -79,13 +75,13 @@ export default function AdminProductsPage() {
       setLoading(true)
       const [productsRes, categoriesRes] = await Promise.all([
         fetch("/api/admin/products"),
-        fetch("/api/admin/categories") // Use admin endpoint to get all categories
+        fetch("/api/admin/categories"),
       ])
 
       if (productsRes.ok && categoriesRes.ok) {
         const productsData = await productsRes.json()
         const categoriesData = await categoriesRes.json()
-        
+
         setProducts(productsData.products || productsData || [])
         setCategories(categoriesData || [])
       } else {
@@ -121,55 +117,7 @@ export default function AdminProductsPage() {
     return matchesSearch && matchesCategory && matchesStatus
   })
 
-  const handleAddEditProduct = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-
-    const productData = {
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      short_description: formData.get("short_description") as string,
-      price: Number.parseFloat(formData.get("price") as string),
-      compare_at_price: formData.get("compare_at_price")
-        ? Number.parseFloat(formData.get("compare_at_price") as string)
-        : null,
-      category_id: formData.get("category_id") as string,
-      sku: formData.get("sku") as string,
-      stock_quantity: Number.parseInt(formData.get("stock_quantity") as string),
-      low_stock_threshold: Number.parseInt(formData.get("low_stock_threshold") as string) || 5,
-      weight: formData.get("weight") ? Number.parseFloat(formData.get("weight") as string) : null,
-      dimensions: (formData.get("dimensions") as string) || null,
-      images: (formData.get("images") as string)
-        .split(",")
-        .map((img) => img.trim())
-        .filter(Boolean),
-      features: (formData.get("features") as string)
-        .split(",")
-        .map((f) => f.trim())
-        .filter(Boolean),
-      specifications: {},
-      is_featured: formData.get("is_featured") === "on",
-      is_active: formData.get("is_active") === "on",
-      status: (formData.get("status") as string) || "active",
-      meta_title: (formData.get("meta_title") as string) || null,
-      meta_description: (formData.get("meta_description") as string) || null,
-    }
-
-    // Parse specifications
-    const specificationsInput = formData.get("specifications") as string
-    try {
-      if (specificationsInput) {
-        productData.specifications = JSON.parse(specificationsInput)
-      }
-    } catch (error) {
-      toast({
-        title: "Input Error",
-        description: "Specifications must be valid JSON.",
-        variant: "destructive",
-      })
-      return
-    }
-
+  const handleSaveProduct = async (productData: any) => {
     try {
       const method = currentProduct ? "PUT" : "POST"
       const url = currentProduct ? `/api/admin/products/${currentProduct.id}` : "/api/admin/products"
@@ -194,7 +142,7 @@ export default function AdminProductsPage() {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || "Failed to save product")
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving product:", error)
       toast({
         title: "Error",
@@ -449,241 +397,20 @@ export default function AdminProductsPage() {
         </main>
       </div>
 
-      {/* Add/Edit Product Modal */}
       <Dialog open={isAddEditModalOpen} onOpenChange={setIsAddEditModalOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{currentProduct ? "Edit Product" : "Add Product"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleAddEditProduct} className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input id="name" name="name" defaultValue={currentProduct?.name || ""} className="col-span-3" required />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="sku" className="text-right">
-                SKU
-              </Label>
-              <Input id="sku" name="sku" defaultValue={currentProduct?.sku || ""} className="col-span-3" required />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                name="description"
-                defaultValue={currentProduct?.description || ""}
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="short_description" className="text-right">
-                Short Description
-              </Label>
-              <Textarea
-                id="short_description"
-                name="short_description"
-                defaultValue={currentProduct?.short_description || ""}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="price" className="text-right">
-                Price
-              </Label>
-              <Input
-                id="price"
-                name="price"
-                type="number"
-                step="0.01"
-                defaultValue={currentProduct?.price || ""}
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="compare_at_price" className="text-right">
-                Compare Price
-              </Label>
-              <Input
-                id="compare_at_price"
-                name="compare_at_price"
-                type="number"
-                step="0.01"
-                defaultValue={currentProduct?.compare_at_price || ""}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category_id" className="text-right">
-                Category
-              </Label>
-              <Select name="category_id" defaultValue={currentProduct?.category_id || ""} required>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="images" className="text-right">
-                Image URLs (comma-separated)
-              </Label>
-              <Input
-                id="images"
-                name="images"
-                defaultValue={currentProduct?.images.join(", ") || ""}
-                className="col-span-3"
-                placeholder="/placeholder.svg?height=300&width=300, /image2.jpg"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="stock_quantity" className="text-right">
-                Stock Quantity
-              </Label>
-              <Input
-                id="stock_quantity"
-                name="stock_quantity"
-                type="number"
-                defaultValue={currentProduct?.stock_quantity || 0}
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="low_stock_threshold" className="text-right">
-                Low Stock Threshold
-              </Label>
-              <Input
-                id="low_stock_threshold"
-                name="low_stock_threshold"
-                type="number"
-                defaultValue={currentProduct?.low_stock_threshold || 5}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="weight" className="text-right">
-                Weight (kg)
-              </Label>
-              <Input
-                id="weight"
-                name="weight"
-                type="number"
-                step="0.01"
-                defaultValue={currentProduct?.weight || ""}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="dimensions" className="text-right">
-                Dimensions
-              </Label>
-              <Input
-                id="dimensions"
-                name="dimensions"
-                defaultValue={currentProduct?.dimensions || ""}
-                className="col-span-3"
-                placeholder="L x W x H"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="features" className="text-right">
-                Features (comma-separated)
-              </Label>
-              <Input
-                id="features"
-                name="features"
-                defaultValue={currentProduct?.features.join(", ") || ""}
-                className="col-span-3"
-                placeholder="Feature 1, Feature 2"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="specifications" className="text-right">
-                Specifications (JSON format)
-              </Label>
-              <Textarea
-                id="specifications"
-                name="specifications"
-                defaultValue={currentProduct?.specifications ? JSON.stringify(currentProduct.specifications) : ""}
-                className="col-span-3"
-                placeholder='{"Weight": "1kg", "Color": "Black"}'
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Status
-              </Label>
-              <Select name="status" defaultValue={currentProduct?.status || "active"}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="meta_title" className="text-right">
-                Meta Title
-              </Label>
-              <Input
-                id="meta_title"
-                name="meta_title"
-                defaultValue={currentProduct?.meta_title || ""}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="meta_description" className="text-right">
-                Meta Description
-              </Label>
-              <Textarea
-                id="meta_description"
-                name="meta_description"
-                defaultValue={currentProduct?.meta_description || ""}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="is_featured" className="text-right">
-                Featured
-              </Label>
-              <Checkbox
-                id="is_featured"
-                name="is_featured"
-                defaultChecked={currentProduct?.is_featured ?? false}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="is_active" className="text-right">
-                Active
-              </Label>
-              <Checkbox
-                id="is_active"
-                name="is_active"
-                defaultChecked={currentProduct?.is_active ?? true}
-                className="col-span-3"
-              />
-            </div>
-            <DialogFooter>
-              <Button type="submit">{currentProduct ? "Save Changes" : "Add Product"}</Button>
-            </DialogFooter>
-          </form>
+          <EnhancedProductForm
+            product={currentProduct}
+            categories={categories}
+            onSubmit={handleSaveProduct}
+            onCancel={() => {
+              setIsAddEditModalOpen(false)
+              setCurrentProduct(null)
+            }}
+          />
         </DialogContent>
       </Dialog>
 

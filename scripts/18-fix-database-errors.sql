@@ -1,4 +1,3 @@
-
 -- Fix database schema and RLS policy issues
 -- This addresses the 403/400 errors in the console
 

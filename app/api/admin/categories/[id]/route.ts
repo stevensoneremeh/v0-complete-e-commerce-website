@@ -6,37 +6,29 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params
     const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // Server Component
-            }
-          },
+    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
         },
-      }
-    )
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          } catch {
+            // Server Component
+          }
+        },
+      },
+    })
 
-    const { data: category, error } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("id", id)
-      .single()
+    const { data: category, error } = await supabase.from("categories").select("*").eq("id", id).single()
 
     if (error) {
       console.error("Error fetching category:", error)
       return NextResponse.json({ error: "Category not found" }, { status: 404 })
     }
 
-    return NextResponse.json(category)
+    return NextResponse.json({ category })
   } catch (error) {
     console.error("API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -47,40 +39,37 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params
     const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // Server Component
-            }
-          },
+    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
         },
-      }
-    )
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          } catch {
+            // Server Component
+          }
+        },
+      },
+    })
 
     const updates = await request.json()
-    
-    // Generate slug from name if not provided
-    if (updates.name && !updates.slug) {
+
+    // Generate slug from name if name is being updated
+    if (updates.name) {
       updates.slug = updates.name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)/g, "")
     }
-    
-    updates.updated_at = new Date().toISOString()
 
     const { data: category, error } = await supabase
       .from("categories")
-      .update(updates)
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", id)
       .select()
       .single()
@@ -90,7 +79,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Failed to update category" }, { status: 500 })
     }
 
-    return NextResponse.json(category)
+    return NextResponse.json({ category })
   } catch (error) {
     console.error("API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -101,41 +90,33 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const { id } = await params
     const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // Server Component
-            }
-          },
+    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
         },
-      }
-    )
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+          } catch {
+            // Server Component
+          }
+        },
+      },
+    })
 
     // Check if category has products
-    const { data: products, error: productsError } = await supabase
-      .from("products")
-      .select("id")
-      .eq("category_id", id)
-      .limit(1)
+    const { data: products, error: productsError } = await supabase.from("products").select("id").eq("category_id", id)
 
     if (productsError) {
       console.error("Error checking products:", productsError)
-      return NextResponse.json({ error: "Failed to check category usage" }, { status: 500 })
+      return NextResponse.json({ error: "Failed to check category products" }, { status: 500 })
     }
 
     if (products && products.length > 0) {
       return NextResponse.json(
-        { error: "Cannot delete category with existing products" },
-        { status: 400 }
+        { error: `Cannot delete category with ${products.length} products. Please reassign or delete products first.` },
+        { status: 400 },
       )
     }
 

@@ -1,4 +1,3 @@
-
 -- Complete Production Database Schema for ABL Natasha Enterprises
 -- This script creates all necessary tables, RLS policies, and admin setup
 

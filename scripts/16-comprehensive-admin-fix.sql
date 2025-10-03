@@ -1,4 +1,3 @@
-
 -- Comprehensive fix for admin authentication and RLS policies
 -- This script will fix all authentication issues once and for all
 

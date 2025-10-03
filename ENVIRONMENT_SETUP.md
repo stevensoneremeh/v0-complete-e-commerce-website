@@ -1,11 +1,10 @@
-
 # Environment Setup Guide for ABL Natasha Enterprises
 
 ## Required Environment Variables
 
 Create a `.env.local` file in your project root with the following variables:
 
-```env
+\`\`\`env
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -16,14 +15,14 @@ PAYSTACK_SECRET_KEY=your_paystack_secret_key
 
 # Application Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
+\`\`\`
 
 ## Setup Steps
 
 1. **Database Setup**: Run the complete production schema script in your Supabase SQL editor:
-   ```sql
+   \`\`\`sql
    -- Run scripts/complete-production-schema.sql
-   ```
+   \`\`\`
 
 2. **Admin Account**: 
    - Sign up with email: `talktostevenson@gmail.com`
