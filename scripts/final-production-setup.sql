@@ -312,7 +312,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 -- Orders policies
-CREATE POLICY "orders_customer_access" ON orders FOR SELECT USING (customer_id = auth.uid() OR is_admin());
+
 CREATE POLICY "orders_customer_insert" ON orders FOR INSERT WITH CHECK (customer_id = auth.uid() OR customer_id IS NULL);
 CREATE POLICY "orders_admin_all" ON orders FOR ALL USING (is_admin());
 
