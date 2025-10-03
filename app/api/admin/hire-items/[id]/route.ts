@@ -1,23 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/supabase-server-secure"
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse> {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
     const supabase = await verifyAdmin()
     if (!supabase) {
       return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = params
 
-    const { data: item, error } = await supabase
-      .from("hire_items")
-      .select("*")
-      .eq("id", id)
-      .single()
+    const { data: item, error } = await supabase.from("hire_items").select("*").eq("id", id).single()
 
     if (error) {
       console.error("Error fetching hire item:", error)
@@ -31,17 +24,14 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse> {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
     const supabase = await verifyAdmin()
     if (!supabase) {
       return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = params
     const itemData = await request.json()
 
     delete itemData.id
@@ -55,12 +45,7 @@ export async function PUT(
         .replace(/[^a-z0-9-]/g, "")
     }
 
-    const { data: item, error } = await supabase
-      .from("hire_items")
-      .update(itemData)
-      .eq("id", id)
-      .select()
-      .single()
+    const { data: item, error } = await supabase.from("hire_items").update(itemData).eq("id", id).select().single()
 
     if (error) {
       console.error("Error updating hire item:", error)
@@ -74,25 +59,17 @@ export async function PUT(
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse> {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
     const supabase = await verifyAdmin()
     if (!supabase) {
       return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = params
     const updates = await request.json()
 
-    const { data: item, error } = await supabase
-      .from("hire_items")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single()
+    const { data: item, error } = await supabase.from("hire_items").update(updates).eq("id", id).select().single()
 
     if (error) {
       console.error("Error updating hire item:", error)
@@ -106,22 +83,16 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-): Promise<NextResponse> {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> {
   try {
     const supabase = await verifyAdmin()
     if (!supabase) {
       return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 })
     }
 
-    const { id } = await params
+    const { id } = params
 
-    const { error } = await supabase
-      .from("hire_items")
-      .delete()
-      .eq("id", id)
+    const { error } = await supabase.from("hire_items").delete().eq("id", id)
 
     if (error) {
       console.error("Error deleting hire item:", error)

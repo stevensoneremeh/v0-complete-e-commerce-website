@@ -1,29 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
-import { verifyAdmin } from "../auth/middleware"
+import { verifyAdmin } from "@/lib/supabase-server-secure"
 
 export async function GET(request: NextRequest) {
-  // Check admin access
-  const adminCheck = await verifyAdmin(request)
-  if (adminCheck) return adminCheck
-
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-          }
-        },
-      },
-    })
+    const supabase = await verifyAdmin()
+    if (!supabase) {
+      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 })
+    }
 
     // Fetch all real users from profiles table
     const { data: profiles, error: profilesError } = await supabase
@@ -63,7 +46,7 @@ export async function GET(request: NextRequest) {
           createdAt: profile.created_at,
           lastLogin: profile.last_sign_in_at,
         }
-      })
+      }),
     )
 
     return NextResponse.json({ customers: customersWithStats })
@@ -74,26 +57,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // Check admin access
-  const adminCheck = await verifyAdmin(request)
-  if (adminCheck) return adminCheck
-
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-          }
-        },
-      },
-    })
+    const supabase = await verifyAdmin()
+    if (!supabase) {
+      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 })
+    }
 
     const customerData = await request.json()
 
@@ -132,13 +100,13 @@ export async function POST(request: NextRequest) {
       console.error("Error updating profile:", profileError)
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       customer: {
         id: authData.user.id,
         email: authData.user.email,
         name: customerData.name,
         role: customerData.role || "customer",
-      }
+      },
     })
   } catch (error) {
     console.error("Error in customer creation:", error)

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createAdminSupabaseClient, verifyAdmin } from "@/lib/supabase-server-secure"
+import { verifyAdmin } from "@/lib/supabase-server-secure"
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -51,11 +51,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .replace(/[^a-z0-9-]/g, "")
     }
 
-    const { data: item, error } = await supabase
-      .from("hire_items")
-      .insert([itemData])
-      .select()
-      .single()
+    const { data: item, error } = await supabase.from("hire_items").insert([itemData]).select().single()
 
     if (error) {
       console.error("Error creating hire item:", error)

@@ -79,16 +79,18 @@ export default function AdminBookingsPage() {
         .from("real_estate_bookings")
         .select(`
           *,
-          listings_real_estate (title, property_type, location)
+          properties (title, property_type, city, state)
         `)
         .order("created_at", { ascending: false })
 
       if (data && !error) {
         const bookingsWithDetails = data.map((booking) => ({
           ...booking,
-          property_title: booking.listings_real_estate?.title || "Property",
-          property_type: booking.listings_real_estate?.property_type || "Unknown",
-          property_location: booking.listings_real_estate?.location || "Location not specified",
+          property_title: booking.properties?.title || "Property",
+          property_type: booking.properties?.property_type || "Unknown",
+          property_location: booking.properties
+            ? `${booking.properties.city || ""}, ${booking.properties.state || ""}`.trim()
+            : "Location not specified",
         }))
         setBookings(bookingsWithDetails)
       } else {
