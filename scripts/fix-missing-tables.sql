@@ -239,7 +239,5 @@ GRANT ALL ON real_estate_bookings TO authenticated;
 GRANT ALL ON real_estate_properties TO anon;
 GRANT ALL ON real_estate_bookings TO anon;
 
--- Fix any existing data inconsistencies by updating inventory_quantity to stock_quantity
-
 
 SELECT 'Database schema fixes completed! Missing tables created and admin access configured.' AS status;
