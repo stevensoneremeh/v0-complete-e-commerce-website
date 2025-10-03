@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS public.products (
 CREATE TABLE IF NOT EXISTS public.orders (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   order_number TEXT NOT NULL UNIQUE,
-  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  customer_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   guest_id UUID,
   guest_email TEXT,
   guest_name TEXT,
@@ -115,15 +115,15 @@ CREATE TABLE IF NOT EXISTS public.order_items (
 -- Create cart_items table
 CREATE TABLE IF NOT EXISTS public.cart_items (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  customer_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   guest_id TEXT,
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   quantity INTEGER NOT NULL DEFAULT 1,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(user_id, product_id),
+  UNIQUE(customer_id, product_id),
   UNIQUE(guest_id, product_id),
-  CHECK (user_id IS NOT NULL OR guest_id IS NOT NULL)
+  CHECK (customer_id IS NOT NULL OR guest_id IS NOT NULL)
 );
 
 -- Create real_estate_properties table
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS public.real_estate_bookings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   booking_reference TEXT NOT NULL UNIQUE,
   property_id UUID NOT NULL REFERENCES real_estate_properties(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  customer_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   guest_name TEXT NOT NULL,
   guest_email TEXT NOT NULL,
   guest_phone TEXT,
@@ -211,7 +211,7 @@ CREATE TABLE IF NOT EXISTS public.hire_bookings (
   booking_reference TEXT NOT NULL UNIQUE,
   service_type TEXT NOT NULL DEFAULT 'car',
   service_name TEXT NOT NULL,
-  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  customer_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   customer_name TEXT NOT NULL,
   customer_email TEXT NOT NULL,
   customer_phone TEXT,
@@ -251,7 +251,7 @@ CREATE INDEX IF NOT EXISTS idx_products_is_featured ON products(is_featured);
 CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 
-CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
 CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number);
@@ -259,7 +259,7 @@ CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number);
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(product_id);
 
-CREATE INDEX IF NOT EXISTS idx_cart_items_user_id ON cart_items(user_id);
+CREATE INDEX IF NOT EXISTS idx_cart_items_customer_id ON cart_items(customer_id);
 CREATE INDEX IF NOT EXISTS idx_cart_items_product_id ON cart_items(product_id);
 
 CREATE INDEX IF NOT EXISTS idx_real_estate_properties_type ON real_estate_properties(type);
@@ -267,10 +267,10 @@ CREATE INDEX IF NOT EXISTS idx_real_estate_properties_city ON real_estate_proper
 CREATE INDEX IF NOT EXISTS idx_real_estate_properties_is_available ON real_estate_properties(is_available);
 
 CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_property_id ON real_estate_bookings(property_id);
-CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_user_id ON real_estate_bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_customer_id ON real_estate_bookings(customer_id);
 CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_status ON real_estate_bookings(status);
 
-CREATE INDEX IF NOT EXISTS idx_hire_bookings_user_id ON hire_bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_hire_bookings_customer_id ON hire_bookings(customer_id);
 CREATE INDEX IF NOT EXISTS idx_hire_bookings_service_type ON hire_bookings(service_type);
 CREATE INDEX IF NOT EXISTS idx_hire_bookings_status ON hire_bookings(status);
 
@@ -312,26 +312,26 @@ CREATE POLICY "products_public_read" ON products FOR SELECT USING (is_active = t
 CREATE POLICY "products_admin_all" ON products FOR ALL USING (is_admin());
 
 -- Orders policies
-CREATE POLICY "orders_customer_access" ON orders FOR SELECT USING (user_id = auth.uid() OR is_admin());
-CREATE POLICY "orders_customer_insert" ON orders FOR INSERT WITH CHECK (user_id = auth.uid() OR user_id IS NULL);
+CREATE POLICY "orders_customer_access" ON orders FOR SELECT USING (customer_id = auth.uid() OR is_admin());
+CREATE POLICY "orders_customer_insert" ON orders FOR INSERT WITH CHECK (customer_id = auth.uid() OR customer_id IS NULL);
 CREATE POLICY "orders_admin_all" ON orders FOR ALL USING (is_admin());
 
 -- Order items policies
 CREATE POLICY "order_items_customer_access" ON order_items FOR SELECT USING (
-    EXISTS (SELECT 1 FROM orders WHERE orders.id = order_id AND orders.user_id = auth.uid()) OR is_admin()
+    EXISTS (SELECT 1 FROM orders WHERE orders.id = order_id AND orders.customer_id = auth.uid()) OR is_admin()
 );
 CREATE POLICY "order_items_admin_all" ON order_items FOR ALL USING (is_admin());
 
 -- Cart policies
-CREATE POLICY "cart_items_customer_access" ON cart_items FOR ALL USING (user_id = auth.uid() OR is_admin());
+CREATE POLICY "cart_items_customer_access" ON cart_items FOR ALL USING (customer_id = auth.uid() OR is_admin());
 
 -- Properties policies
 CREATE POLICY "properties_public_read" ON real_estate_properties FOR SELECT USING (is_available = true);
 CREATE POLICY "properties_admin_all" ON real_estate_properties FOR ALL USING (is_admin());
 
 -- Bookings policies
-CREATE POLICY "real_estate_bookings_customer_access" ON real_estate_bookings FOR ALL USING (user_id = auth.uid() OR is_admin());
-CREATE POLICY "hire_bookings_customer_access" ON hire_bookings FOR ALL USING (user_id = auth.uid() OR is_admin());
+CREATE POLICY "real_estate_bookings_customer_access" ON real_estate_bookings FOR ALL USING (customer_id = auth.uid() OR is_admin());
+CREATE POLICY "hire_bookings_customer_access" ON hire_bookings FOR ALL USING (customer_id = auth.uid() OR is_admin());
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
