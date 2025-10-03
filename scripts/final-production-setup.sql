@@ -307,7 +307,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE POLICY "categories_admin_all" ON categories FOR ALL USING (is_admin());
 
-CREATE POLICY "products_public_read" ON products FOR SELECT USING (is_active = true);
+
 CREATE POLICY "products_admin_all" ON products FOR ALL USING (is_admin());
 
 -- Orders policies
