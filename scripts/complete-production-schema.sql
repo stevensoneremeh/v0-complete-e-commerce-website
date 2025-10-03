@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS orders (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     order_number TEXT NOT NULL UNIQUE,
-    user_id UUID REFERENCES auth.users(id),
+    customer_id UUID REFERENCES auth.users(id),
     customer_id UUID REFERENCES profiles(id),
     guest_id UUID,
     guest_email TEXT,
@@ -128,13 +128,13 @@ CREATE TABLE IF NOT EXISTS order_items (
 -- Create cart_items table
 CREATE TABLE IF NOT EXISTS cart_items (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id),
+    customer_id UUID REFERENCES auth.users(id),
     guest_id TEXT,
     product_id UUID REFERENCES products(id),
     quantity INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id, product_id),
+    UNIQUE(customer_id, product_id),
     UNIQUE(guest_id, product_id)
 );
 
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS real_estate_bookings (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     booking_reference TEXT NOT NULL UNIQUE,
     property_id UUID REFERENCES real_estate_properties(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    customer_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     guest_name TEXT NOT NULL,
     guest_email TEXT NOT NULL,
     guest_phone TEXT,
@@ -224,7 +224,7 @@ CREATE TABLE IF NOT EXISTS hire_bookings (
     booking_reference TEXT NOT NULL UNIQUE,
     service_type TEXT NOT NULL DEFAULT 'car',
     service_name TEXT NOT NULL,
-    user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    customer_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
     customer_name TEXT NOT NULL,
     customer_email TEXT NOT NULL,
     customer_phone TEXT,
@@ -316,31 +316,31 @@ CREATE POLICY "hire_bookings_admin" ON hire_bookings FOR ALL USING (is_admin());
 
 -- User-specific policies
 CREATE POLICY "orders_user" ON orders FOR SELECT USING (
-  user_id = auth.uid() OR customer_id = auth.uid() OR is_admin()
+  customer_id = auth.uid() OR customer_id = auth.uid() OR is_admin()
 );
 
 CREATE POLICY "orders_insert" ON orders FOR INSERT WITH CHECK (
-  user_id = auth.uid() OR user_id IS NULL
+  customer_id = auth.uid() OR customer_id IS NULL
 );
 
 CREATE POLICY "cart_items_user" ON cart_items FOR ALL USING (
-  user_id = auth.uid() OR user_id IS NULL OR is_admin()
+  customer_id = auth.uid() OR customer_id IS NULL OR is_admin()
 );
 
 CREATE POLICY "bookings_user_select" ON real_estate_bookings FOR SELECT USING (
-  user_id = auth.uid() OR is_admin()
+  customer_id = auth.uid() OR is_admin()
 );
 
 CREATE POLICY "bookings_user_insert" ON real_estate_bookings FOR INSERT WITH CHECK (
-  user_id = auth.uid() OR user_id IS NULL
+  customer_id = auth.uid() OR customer_id IS NULL
 );
 
 CREATE POLICY "hire_bookings_user_select" ON hire_bookings FOR SELECT USING (
-  user_id = auth.uid() OR is_admin()
+  customer_id = auth.uid() OR is_admin()
 );
 
 CREATE POLICY "hire_bookings_user_insert" ON hire_bookings FOR INSERT WITH CHECK (
-  user_id = auth.uid() OR user_id IS NULL
+  customer_id = auth.uid() OR customer_id IS NULL
 );
 
 -- Order items policies
@@ -348,7 +348,7 @@ CREATE POLICY "order_items_select" ON order_items FOR SELECT USING (
   EXISTS (
     SELECT 1 FROM orders 
     WHERE orders.id = order_id 
-    AND (orders.user_id = auth.uid() OR orders.customer_id = auth.uid())
+    AND (orders.customer_id = auth.uid() OR orders.customer_id = auth.uid())
   ) OR is_admin()
 );
 
@@ -356,7 +356,7 @@ CREATE POLICY "order_items_insert" ON order_items FOR INSERT WITH CHECK (
   EXISTS (
     SELECT 1 FROM orders 
     WHERE orders.id = order_id 
-    AND orders.user_id = auth.uid()
+    AND orders.customer_id = auth.uid()
   ) OR is_admin()
 );
 
@@ -366,20 +366,20 @@ CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
 CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
 CREATE INDEX IF NOT EXISTS idx_products_is_featured ON products(is_featured);
-CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(product_id);
-CREATE INDEX IF NOT EXISTS idx_cart_items_user_id ON cart_items(user_id);
+CREATE INDEX IF NOT EXISTS idx_cart_items_customer_id ON cart_items(customer_id);
 CREATE INDEX IF NOT EXISTS idx_cart_items_product_id ON cart_items(product_id);
 CREATE INDEX IF NOT EXISTS idx_real_estate_properties_type ON real_estate_properties(type);
 CREATE INDEX IF NOT EXISTS idx_real_estate_properties_city ON real_estate_properties(city);
 CREATE INDEX IF NOT EXISTS idx_real_estate_properties_available ON real_estate_properties(is_available);
 CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_property_id ON real_estate_bookings(property_id);
-CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_user_id ON real_estate_bookings(user_id);
-CREATE INDEX IF NOT EXISTS idx_hire_bookings_user_id ON hire_bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_customer_id ON real_estate_bookings(customer_id);
+CREATE INDEX IF NOT EXISTS idx_hire_bookings_customer_id ON hire_bookings(customer_id);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -450,17 +450,17 @@ CREATE TRIGGER on_auth_user_created
 -- Create admin profile if auth user exists
 DO $$
 DECLARE
-    admin_user_id UUID;
+    admin_customer_id UUID;
 BEGIN
-  SELECT id INTO admin_user_id 
+  SELECT id INTO admin_customer_id 
   FROM auth.users 
   WHERE email = 'talktostevenson@gmail.com' 
   LIMIT 1;
   
-  IF admin_user_id IS NOT NULL THEN
+  IF admin_customer_id IS NOT NULL THEN
     INSERT INTO profiles (id, email, full_name, is_admin, role, created_at, updated_at)
     VALUES (
-      admin_user_id,
+      admin_customer_id,
       'talktostevenson@gmail.com',
       'Admin User',
       true,
