@@ -309,7 +309,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 
-CREATE POLICY "products_admin_all" ON products FOR ALL USING (is_admin());
+
 
 -- Orders policies
 CREATE POLICY "orders_customer_access" ON orders FOR SELECT USING (customer_id = auth.uid() OR is_admin());
