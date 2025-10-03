@@ -314,7 +314,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Orders policies
 
 
-CREATE POLICY "orders_admin_all" ON orders FOR ALL USING (is_admin());
+
 
 -- Order items policies
 CREATE POLICY "order_items_customer_access" ON order_items FOR SELECT USING (
