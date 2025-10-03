@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS real_estate_bookings (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   booking_reference TEXT NOT NULL UNIQUE,
   property_id UUID REFERENCES real_estate_properties(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  customer_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
   guest_name TEXT NOT NULL,
   guest_email TEXT NOT NULL,
   guest_phone TEXT,
@@ -146,7 +146,7 @@ CREATE POLICY "Properties admin access" ON real_estate_properties
 DROP POLICY IF EXISTS "Bookings customer access" ON real_estate_bookings;
 CREATE POLICY "Bookings customer access" ON real_estate_bookings 
     FOR ALL TO authenticated 
-    USING (user_id = auth.uid());
+    USING (customer_id = auth.uid());
 
 DROP POLICY IF EXISTS "Bookings admin access" ON real_estate_bookings;
 CREATE POLICY "Bookings admin access" ON real_estate_bookings 
@@ -212,7 +212,7 @@ CREATE INDEX IF NOT EXISTS idx_real_estate_properties_product_id ON real_estate_
 CREATE INDEX IF NOT EXISTS idx_real_estate_properties_owner ON real_estate_properties(owner_id);
 
 CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_property ON real_estate_bookings(property_id);
-CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_user ON real_estate_bookings(user_id);
+CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_user ON real_estate_bookings(customer_id);
 CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_dates ON real_estate_bookings(check_in_date, check_out_date);
 CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_status ON real_estate_bookings(status);
 CREATE INDEX IF NOT EXISTS idx_real_estate_bookings_reference ON real_estate_bookings(booking_reference);
