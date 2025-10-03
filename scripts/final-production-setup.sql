@@ -304,7 +304,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
 -- Public read policies for categories and products
-CREATE POLICY "categories_public_read" ON categories FOR SELECT USING (is_active = true);
+
 CREATE POLICY "categories_admin_all" ON categories FOR ALL USING (is_admin());
 
 CREATE POLICY "products_public_read" ON products FOR SELECT USING (is_active = true);
