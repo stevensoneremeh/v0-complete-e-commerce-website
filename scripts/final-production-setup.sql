@@ -301,7 +301,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Profiles policies
 
-CREATE POLICY "profiles_insert_own" ON profiles FOR INSERT WITH CHECK (id = auth.uid());
+
 
 -- Public read policies for categories and products
 CREATE POLICY "categories_public_read" ON categories FOR SELECT USING (is_active = true);
