@@ -300,7 +300,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Create RLS policies
 
 -- Profiles policies
-CREATE POLICY "profiles_update_own" ON profiles FOR UPDATE USING (id = auth.uid() OR is_admin());
+
 CREATE POLICY "profiles_insert_own" ON profiles FOR INSERT WITH CHECK (id = auth.uid());
 
 -- Public read policies for categories and products
