@@ -1,0 +1,82 @@
+Goal: Build a full admin dashboard connected to Supabase that can manage categories, products, properties, orders, bookings, carts, wishlists, and user profiles. Admins should be able to perform all CRUD operations; regular users should only access their own data per RLS.
+
+Required Supabase Setup (Backend)
+
+Auth:
+Use Supabase Auth for sign-up / sign-in. JWTs will be used for user identity.
+Ensure users sign up via the app to create auth.users rows (the DB trigger creates profiles).
+RLS:
+Row-Level Security is enabled for all main tables. Admin-detection uses the DB helper function is_admin_user() which checks public.profiles.is_admin or profiles.role.
+The helper function is not executable by clients — front-end cannot call it directly; it’s used inside policies.
+Profiles:
+profiles table exists with is_admin and role columns. To grant admin rights, set profiles.is_admin = true (by a super_admin).
+Edge Functions / Server actions:
+Use Supabase Edge Functions for server-only tasks like processing payments, exporting CSVs, or admin-only batch jobs. Edge Functions can use the SERVICE_ROLE key securely.
+Frontend Requirements for Admin Dashboard
+
+Authentication:
+Use Supabase client (supabase-js) to sign in users. Check current user via supabase.auth.getUser() and read jwt claims if needed.
+After sign-in, call a protected backend endpoint (Edge Function) to confirm the user is an admin (recommended) or read a small /profiles endpoint to check is_admin (note: profiles row access is RLS-protected — the user can read their own profile; to check admin status, read /profiles?id=auth.user().id).
+Admin Features:
+Categories: List, Create, Update, Delete.
+Products: List (public), Create, Update, Delete, Upload images to Supabase Storage (buckets), manage specifications JSON.
+Properties: List (public), Create, Update, Delete.
+Orders: List all orders (admins), view order details and order_items, update status/payment_status, issue refunds (via Edge Function).
+Bookings: List all bookings, change status, manage payments.
+Users: View profiles, set is_admin or role (this action should be restricted to super_admins).
+Reviews: Moderate (delete or hide) reviews.
+Inventory: Update product stock_quantity and in_stock flags.
+Exports: Export orders/bookings as CSV via Edge Function (use service role).
+Activity/Logs: Show recent admin actions (implement audit table, see note below).
+UI Behaviors:
+Provide role-based UI: only show admin pages if current user’s profile.is_admin is true.
+Use optimistic UI for minor edits; for critical admin actions (delete, role change), require confirmation modals.
+Use paginated endpoints for large lists; use server-side filtering/sorting (via supabase queries).
+API & Edge Function Endpoints (recommended)
+
+/admin/check — returns whether current user is admin (Edge Function verifying profiles.is_admin). Use service_role or DB call inside function.
+/admin/export-orders?from=...&to=... — returns CSV, executed with Edge Function using SERVICE_ROLE_KEY.
+/admin/create-product — admin-only product creation (Edge Function to handle image uploads and DB inserts).
+/payments/webhook — handle payment provider webhooks (Edge Function).
+/admin/bulk-update-stock — accept CSV and update stock quantities (Edge Function, background job).
+/admin/audit-log — server-only endpoint to append or read admin actions (store in an audit_logs table).
+Storage and Images
+
+Use Supabase Storage buckets (public or private). For admin uploads:
+Upload images via signed uploads (Edge Function can generate signed URLs if needed) or via supabase-js client directly if the bucket policy allows.
+Store image paths in products.images array and image_url field for primary image.
+Ensure CORS and security settings on storage for uploads.
+Permissions & Safety
+
+Never embed SERVICE_ROLE_KEY in client code. Use Edge Functions or server to perform any action requiring service role.
+Critical changes to roles or is_admin should only be possible by super_admin accounts. Implement an audit trail (audit_logs table) recording actor_id, action, target_table, target_id, timestamp.
+Audit log table suggestion (create via SQL)
+
+audit_logs(id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), actor_id UUID, action TEXT, table_name TEXT, record_id UUID, details JSONB, created_at TIMESTAMPTZ DEFAULT NOW())
+Front-end Implementation Hints (V0.app specifics)
+
+For V0.app, create the following pages:
+/admin/login — sign-in page (Supabase Auth)
+/admin/dashboard — overview (counts: products, orders, bookings, users)
+/admin/products — CRUD product UI with image uploads
+/admin/categories — CRUD
+/admin/properties — CRUD
+/admin/orders — list, filter by status, view details, update status
+/admin/bookings — list, manage
+/admin/users — list profiles, set roles
+/admin/reviews — moderate reviews
+/admin/settings — manage site-wide settings (stored in a settings table)
+Use the Supabase REST or RPC endpoints where appropriate; for admin-only operations, call Edge Functions that run with service role.
+Other required backend pieces
+
+Payment integration (Stripe, Paystack): use Edge Functions for webhook handling and creating payment intents; store payment references in orders/payment_reference.
+Email notifications: use Edge Function to send transactional emails (using an external SMTP or transactional API).
+Background jobs: use Edge Function + EdgeRuntime.waitUntil for long-running tasks.
+Audit logs table for admin actions.
+Deliverables for front-end team
+
+Supabase project URL and anon/public key.
+A list of admin emails (profiles.is_admin = true).
+API endpoints (Edge Function URLs) and instructions for using SERVICE_ROLE via Edge Functions.
+Storage bucket names for product and property images.
+A short test plan: create category, create product, upload image, create order as user, confirm admin can view/change order.
