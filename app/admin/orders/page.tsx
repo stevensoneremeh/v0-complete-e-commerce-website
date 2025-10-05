@@ -101,6 +101,8 @@ export default function OrdersPage() {
     }
   }
 
+  const [selectedOrders, setSelectedOrders] = useState<string[]>([])
+
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.order_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,6 +110,38 @@ export default function OrdersPage() {
     const matchesStatus = filterStatus === "all" || order.status === filterStatus
     return matchesSearch && matchesStatus
   })
+
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    if (selectedOrders.length === 0) return
+    
+    try {
+      await Promise.all(
+        selectedOrders.map(orderId => 
+          updateOrderStatus(orderId, newStatus)
+        )
+      )
+      setSelectedOrders([])
+      toast.success(`Updated ${selectedOrders.length} orders to ${newStatus}`)
+    } catch (error) {
+      toast.error("Failed to update orders")
+    }
+  }
+
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrders(prev => 
+      prev.includes(orderId) 
+        ? prev.filter(id => id !== orderId)
+        : [...prev, orderId]
+    )
+  }
+
+  const toggleAllOrders = () => {
+    if (selectedOrders.length === filteredOrders.length) {
+      setSelectedOrders([])
+    } else {
+      setSelectedOrders(filteredOrders.map(o => o.id))
+    }
+  }
 
   const exportOrders = () => {
     const csvContent = [

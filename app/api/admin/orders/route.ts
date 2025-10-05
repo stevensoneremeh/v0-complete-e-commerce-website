@@ -53,10 +53,11 @@ export async function GET(request: NextRequest) {
           order_id,
           product_id,
           quantity,
-          price,
+          unit_price,
+          total_price,
+          product_name,
           products (
             name,
-            price,
             images
           )
         )
@@ -72,11 +73,13 @@ export async function GET(request: NextRequest) {
     // Format orders with customer info
     const formattedOrders = orders.map(order => ({
       ...order,
-      customer_name: order.profiles?.full_name,
-      customer_email: order.profiles?.email || order.customer_email,
+      customer_name: order.shipping_name,
+      customer_email: order.shipping_email,
+      total: order.total_amount,
       order_items: order.order_items?.map((item: any) => ({
         ...item,
-        product_name: item.products?.name || item.product_name
+        product_name: item.products?.name || item.product_name,
+        price: item.unit_price
       }))
     }))
 
