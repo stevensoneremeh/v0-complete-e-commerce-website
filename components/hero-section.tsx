@@ -1,137 +1,148 @@
+
 "use client"
 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
-import { Sparkles, Shield, Clock, Building2, Play, Pause, ArrowRight } from "lucide-react"
+import { Sparkles, Shield, Clock, Building2, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 
+const HERO_VIDEOS = [
+  {
+    url: "https://ebtaejra5dml5xmn.public.blob.vercel-storage.com/4a8e454f-7892-4718-964c-1af2410438b2.mov",
+    poster: "/luxury-living-room.jpeg",
+  },
+  {
+    url: "https://ebtaejra5dml5xmn.public.blob.vercel-storage.com/b51bdeca-23b8-4ac2-abf1-6778424283ba.mov",
+    poster: "/luxury-living-room.jpeg",
+  },
+  {
+    url: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/64bb5c83-2bb1-4c22-8f9f-642334f46cac-d87osryg91ycSMO0JRVMoOSmYnhH4e.mp4",
+    poster: "/luxury-living-room.jpeg",
+  },
+]
+
 export function HeroSection() {
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false)
-  const [hasError, setHasError] = useState(false)
+  const [currentIndex, setCurrentIndex] = useState(0)
   const [isClient, setIsClient] = useState(false)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const [touchStart, setTouchStart] = useState(0)
+  const [touchEnd, setTouchEnd] = useState(0)
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
 
   useEffect(() => {
     setIsClient(true)
   }, [])
 
   useEffect(() => {
-    const video = videoRef.current
-    if (video) {
-      const handleLoadedData = () => {
-        setIsVideoLoaded(true)
-        setHasError(false)
-
-        const playPromise = video.play()
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true)
-            })
-            .catch(() => {
-              setIsPlaying(false)
-            })
-        }
-      }
-
-      const handlePlay = () => {
-        setIsPlaying(true)
-      }
-
-      const handlePause = () => {
-        setIsPlaying(false)
-      }
-
+    const currentVideo = videoRefs.current[currentIndex]
+    if (currentVideo) {
       const handleEnded = () => {
-        setIsPlaying(false)
+        setCurrentIndex((prev) => (prev + 1) % HERO_VIDEOS.length)
       }
 
-      const handleError = () => {
-        setHasError(true)
-        setIsVideoLoaded(false)
-        setIsPlaying(false)
+      currentVideo.addEventListener("ended", handleEnded)
+      
+      const playPromise = currentVideo.play()
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Silently handle autoplay restrictions
+        })
       }
-
-      const handleCanPlay = () => {
-        setIsVideoLoaded(true)
-      }
-
-      video.addEventListener("loadeddata", handleLoadedData)
-      video.addEventListener("canplay", handleCanPlay)
-      video.addEventListener("play", handlePlay)
-      video.addEventListener("pause", handlePause)
-      video.addEventListener("ended", handleEnded)
-      video.addEventListener("error", handleError)
-
-      video.load()
 
       return () => {
-        video.removeEventListener("loadeddata", handleLoadedData)
-        video.removeEventListener("canplay", handleCanPlay)
-        video.removeEventListener("play", handlePlay)
-        video.removeEventListener("pause", handlePause)
-        video.removeEventListener("ended", handleEnded)
-        video.removeEventListener("error", handleError)
+        currentVideo.removeEventListener("ended", handleEnded)
       }
     }
-  }, [])
+  }, [currentIndex])
 
-  const toggleVideo = () => {
-    if (videoRef.current && isVideoLoaded && !hasError) {
-      if (isPlaying) {
-        videoRef.current.pause()
-      } else {
-        const playPromise = videoRef.current.play()
-        if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            setHasError(true)
-          })
-        }
-      }
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 + HERO_VIDEOS.length) % HERO_VIDEOS.length)
+  }
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % HERO_VIDEOS.length)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX)
+  }
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 75) {
+      goToNext()
+    }
+    if (touchStart - touchEnd < -75) {
+      goToPrevious()
     }
   }
 
   return (
     <section className="relative overflow-hidden min-h-[90vh] flex items-center luxury-gradient-subtle">
-      <div className="absolute inset-0 z-0">
-        <video
-          ref={videoRef}
-          muted
-          loop
-          playsInline
-          preload="auto"
-          className="w-full h-full object-cover"
-          poster="/luxury-living-room.jpeg"
-        >
-          <source
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/64bb5c83-2bb1-4c22-8f9f-642334f46cac-d87osryg91ycSMO0JRVMoOSmYnhH4e.mp4"
-            type="video/mp4"
-          />
-          <source src="/luxury-apartment-video.webm" type="video/webm" />
-          Your browser does not support the video tag.
-        </video>
+      <div 
+        className="absolute inset-0 z-0"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {HERO_VIDEOS.map((video, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === currentIndex ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <video
+              ref={(el) => {
+                videoRefs.current[index] = el
+              }}
+              muted
+              playsInline
+              preload={index === 0 ? "auto" : "metadata"}
+              className="w-full h-full object-cover"
+              poster={video.poster}
+            >
+              <source src={video.url} type="video/mp4" />
+              <source src={video.url} type="video/quicktime" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        ))}
         <div className="absolute inset-0 bg-gradient-to-br from-background/90 via-background/60 to-background/80"></div>
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-accent/20"></div>
       </div>
 
       <button
-        onClick={toggleVideo}
-        disabled={!isVideoLoaded || hasError}
-        className="absolute top-6 right-6 z-20 glass-effect hover:bg-white/20 rounded-full p-3 elegant-hover disabled:opacity-50 disabled:cursor-not-allowed"
-        aria-label={isPlaying ? "Pause video" : "Play video"}
+        onClick={goToPrevious}
+        className="absolute left-6 top-1/2 -translate-y-1/2 z-20 glass-effect hover:bg-white/20 rounded-full p-3 elegant-hover"
+        aria-label="Previous video"
       >
-        {hasError ? (
-          <div className="h-5 w-5 text-destructive">⚠</div>
-        ) : !isVideoLoaded ? (
-          <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-        ) : isPlaying ? (
-          <Pause className="h-5 w-5 text-foreground" />
-        ) : (
-          <Play className="h-5 w-5 text-foreground fill-current" />
-        )}
+        <ChevronLeft className="h-6 w-6 text-foreground" />
       </button>
+
+      <button
+        onClick={goToNext}
+        className="absolute right-6 top-1/2 -translate-y-1/2 z-20 glass-effect hover:bg-white/20 rounded-full p-3 elegant-hover"
+        aria-label="Next video"
+      >
+        <ChevronRight className="h-6 w-6 text-foreground" />
+      </button>
+
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        {HERO_VIDEOS.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentIndex(index)}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              index === currentIndex ? "bg-primary w-8" : "bg-white/50"
+            }`}
+            aria-label={`Go to video ${index + 1}`}
+          />
+        ))}
+      </div>
 
       <div className="responsive-container section-padding relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-16 items-center">
@@ -213,7 +224,7 @@ export function HeroSection() {
           <div className="relative scale-in">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-3xl scale-110"></div>
             <div className="relative luxury-card p-8 rounded-3xl premium-shadow">
-              <div className="relative group cursor-pointer" onClick={toggleVideo}>
+              <div className="relative group cursor-pointer">
                 <Image
                   src="/luxury-living-room.jpeg"
                   alt="Luxury Living Room - ABL Natasha Enterprises"
@@ -223,32 +234,12 @@ export function HeroSection() {
                   priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl group-hover:from-black/10 transition-all duration-300"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="glass-effect rounded-full p-6 group-hover:scale-110 elegant-hover border border-white/30">
-                    {hasError ? (
-                      <div className="h-8 w-8 text-destructive flex items-center justify-center">⚠</div>
-                    ) : !isVideoLoaded ? (
-                      <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                    ) : isPlaying ? (
-                      <Pause className="h-8 w-8 text-foreground" />
-                    ) : (
-                      <Play className="h-8 w-8 text-foreground fill-current" />
-                    )}
-                  </div>
-                </div>
-                {!isPlaying && isVideoLoaded && !hasError && (
-                  <div className="absolute bottom-6 left-6 right-6 text-center">
-                    <div className="glass-effect rounded-lg px-4 py-2 text-foreground text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      Click to play video
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div className="mt-6 text-center">
                 <h3 className="heading-3 mb-3">Experience ABL Natasha</h3>
                 <p className="text-muted-foreground body-small">
-                  {hasError ? "Video unavailable" : "Premium lifestyle and luxury living redefined"}
+                  Premium lifestyle and luxury living redefined
                 </p>
               </div>
 
