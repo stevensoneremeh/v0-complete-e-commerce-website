@@ -56,8 +56,13 @@ export default function ProductsPage() {
       if (response.ok) {
         const data = await response.json()
         setProducts(data.products || [])
+      } else {
+        const errorData = await response.json()
+        console.error("Failed to fetch products:", errorData)
+        toast.error("Failed to fetch products")
       }
     } catch (error) {
+      console.error("Failed to fetch products:", error)
       toast.error("Failed to fetch products")
     } finally {
       setLoading(false)
@@ -71,13 +76,15 @@ export default function ProductsPage() {
         const data = await response.json()
         // Handle both array and object responses
         const categoriesData = Array.isArray(data) ? data : (data.categories || [])
-        // Filter to only active categories for product assignment
-        setCategories(categoriesData.filter((cat: Category) => cat.is_active))
+        // Set all categories, including inactive ones for admin
+        setCategories(categoriesData)
       } else {
         console.error(`Failed to fetch categories: ${response.status}`)
+        toast.error("Failed to fetch categories")
       }
     } catch (error) {
       console.error("Failed to fetch categories:", error)
+      toast.error("Failed to fetch categories")
     }
   }
 

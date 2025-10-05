@@ -17,6 +17,7 @@ import { CalendarIcon, Car, Ship, Star, CheckCircle } from "lucide-react"
 import { format } from "date-fns"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
+import Link from "next/link"
 
 const carHireServices = [
   {
@@ -211,7 +212,14 @@ export default function HirePage() {
                             ))}
                           </div>
 
-                          <Button className="w-full luxury-button">Book Now</Button>
+                          <div className="flex gap-2">
+                            <Button className="flex-1 luxury-button" onClick={() => handleServiceSelect(service, "car")}>
+                              Book Now
+                            </Button>
+                            <Button variant="outline" className="flex-1" asChild>
+                              <Link href={`/hire/${service.id}`}>View Details</Link>
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -270,7 +278,14 @@ export default function HirePage() {
                             ))}
                           </div>
 
-                          <Button className="w-full luxury-button">Book Now</Button>
+                          <div className="flex gap-2">
+                            <Button className="flex-1 luxury-button" onClick={() => handleServiceSelect(service, "boat")}>
+                              Book Now
+                            </Button>
+                            <Button variant="outline" className="flex-1" asChild>
+                              <Link href={`/hire/${service.id}`}>View Details</Link>
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>

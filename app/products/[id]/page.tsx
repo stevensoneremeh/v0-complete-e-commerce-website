@@ -12,8 +12,8 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { id } = await params
   const supabase = await createClient()
 
-  // Fetch product from database
-  const { data: product, error } = await supabase
+  // Fetch product from database - try by ID first, then by slug
+  let { data: product, error } = await supabase
     .from("products")
     .select(`
       *,
@@ -26,7 +26,25 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     .eq("is_active", true)
     .single()
 
+  // If not found by ID, try by slug
   if (error || !product) {
+    const { data: productBySlug } = await supabase
+      .from("products")
+      .select(`
+        *,
+        categories (
+          name,
+          slug
+        )
+      `)
+      .eq("slug", id)
+      .eq("is_active", true)
+      .single()
+    
+    product = productBySlug
+  }
+
+  if (!product) {
     notFound()
   }
 
