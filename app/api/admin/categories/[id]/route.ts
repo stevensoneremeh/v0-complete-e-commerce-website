@@ -1,41 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const updates = await request.json()
 
-    const { data: category, error } = await supabase
+    const { data: category, error: dbError } = await supabase
       .from("categories")
       .update(updates)
       .eq("id", id)
       .select()
       .single()
 
-    if (error) {
-      console.error("Error updating category:", error)
+    if (dbError) {
+      console.error("Error updating category:", dbError)
       return NextResponse.json({ error: "Failed to update category" }, { status: 500 })
     }
 
@@ -49,37 +31,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const updates = await request.json()
 
-    const { data: category, error } = await supabase
+    const { data: category, error: dbError } = await supabase
       .from("categories")
       .update(updates)
       .eq("id", id)
       .select()
       .single()
 
-    if (error) {
-      console.error("Error updating category:", error)
+    if (dbError) {
+      console.error("Error updating category:", dbError)
       return NextResponse.json({ error: "Failed to update category" }, { status: 500 })
     }
 
@@ -93,33 +58,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
-    const { error } = await supabase
+    const { error: dbError } = await supabase
       .from("categories")
       .delete()
       .eq("id", id)
 
-    if (error) {
-      console.error("Error deleting category:", error)
+    if (dbError) {
+      console.error("Error deleting category:", dbError)
       return NextResponse.json({ error: "Failed to delete category" }, { status: 500 })
     }
 

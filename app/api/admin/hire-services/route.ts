@@ -1,57 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
-
-    // Check if user is admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single()
-
-    if (profileError || !profile?.is_admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     // Get hire services
-    const { data: services, error } = await supabase
+    const { data: services, error: dbError } = await supabase
       .from("hire_services")
       .select("*")
       .order("service_type", { ascending: true })
       .order("sort_order", { ascending: true })
 
-    if (error) {
-      console.error("Error fetching hire services:", error)
+    if (dbError) {
+      console.error("Error fetching hire services:", dbError)
       return NextResponse.json({ error: "Failed to fetch services" }, { status: 500 })
     }
 
@@ -64,49 +27,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
-
-    // Check if user is admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single()
-
-    if (profileError || !profile?.is_admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const body = await request.json()
 
     // Create new hire service
-    const { data: service, error } = await supabase
+    const { data: service, error: dbError } = await supabase
       .from("hire_services")
       .insert([
         {
@@ -118,8 +45,8 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (error) {
-      console.error("Error creating hire service:", error)
+    if (dbError) {
+      console.error("Error creating hire service:", dbError)
       return NextResponse.json({ error: "Failed to create service" }, { status: 500 })
     }
 

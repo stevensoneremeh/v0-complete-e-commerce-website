@@ -1,31 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     // Get all profiles with order statistics
-    const { data: profiles, error } = await supabase
+    const { data: profiles, error: dbError } = await supabase
       .from("profiles")
       .select(`
         *,
@@ -34,8 +16,8 @@ export async function GET(request: NextRequest) {
       `)
       .order("created_at", { ascending: false })
 
-    if (error) {
-      console.error("Error fetching customers:", error)
+    if (dbError) {
+      console.error("Error fetching customers:", dbError)
       return NextResponse.json({ error: "Failed to fetch customers" }, { status: 500 })
     }
 
@@ -55,42 +37,25 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const customerData = await request.json()
 
     // Create user in auth
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+    const { data: authUser, error: createUserError } = await supabase.auth.admin.createUser({
       email: customerData.email,
       password: "TempPassword123!", // User should change this
       email_confirm: true
     })
 
-    if (authError) {
-      console.error("Error creating auth user:", authError)
+    if (createUserError) {
+      console.error("Error creating auth user:", createUserError)
       return NextResponse.json({ error: "Failed to create user account" }, { status: 500 })
     }
 
     // Create profile
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: dbError } = await supabase
       .from("profiles")
       .insert([{
         id: authUser.user.id,
@@ -106,8 +71,8 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (profileError) {
-      console.error("Error creating profile:", profileError)
+    if (dbError) {
+      console.error("Error creating profile:", dbError)
       return NextResponse.json({ error: "Failed to create profile" }, { status: 500 })
     }
 
