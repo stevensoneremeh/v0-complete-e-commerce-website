@@ -1,39 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {}
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const couponData = await request.json()
 
-    const { data: coupon, error } = await supabase
+    const { data: coupon, error: dbError } = await supabase
       .from("coupons")
       .update(couponData)
       .eq("id", id)
       .select()
       .single()
 
-    if (error) {
-      console.error("Error updating coupon:", error)
+    if (dbError) {
+      console.error("Error updating coupon:", dbError)
       return NextResponse.json({ error: "Failed to update coupon" }, { status: 500 })
     }
 
@@ -47,28 +31,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {}
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
-    const { error } = await supabase.from("coupons").delete().eq("id", id)
+    const { error: dbError } = await supabase.from("coupons").delete().eq("id", id)
 
-    if (error) {
-      console.error("Error deleting coupon:", error)
+    if (dbError) {
+      console.error("Error deleting coupon:", dbError)
       return NextResponse.json({ error: "Failed to delete coupon" }, { status: 500 })
     }
 
@@ -82,35 +51,20 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {}
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const updateData = await request.json()
 
-    const { data: coupon, error } = await supabase
+    const { data: coupon, error: dbError } = await supabase
       .from("coupons")
       .update(updateData)
       .eq("id", id)
       .select()
       .single()
 
-    if (error) {
-      console.error("Error updating coupon:", error)
+    if (dbError) {
+      console.error("Error updating coupon:", dbError)
       return NextResponse.json({ error: "Failed to update coupon" }, { status: 500 })
     }
 

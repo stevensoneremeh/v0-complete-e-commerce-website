@@ -1,30 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {}
-        },
-      },
-    })
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const body = await request.json()
 
-    const { data, error } = await supabase.from("product_reviews").update(body).eq("id", id).select().single()
+    const { data, error: dbError } = await supabase.from("product_reviews").update(body).eq("id", id).select().single()
 
-    if (error) {
-      console.error("Error updating review:", error)
+    if (dbError) {
+      console.error("Error updating review:", dbError)
       return NextResponse.json({ error: "Failed to update review" }, { status: 500 })
     }
 
@@ -38,24 +26,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {}
-        },
-      },
-    })
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
-    const { error } = await supabase.from("product_reviews").delete().eq("id", id)
+    const { error: dbError } = await supabase.from("product_reviews").delete().eq("id", id)
 
-    if (error) {
-      console.error("Error deleting review:", error)
+    if (dbError) {
+      console.error("Error deleting review:", dbError)
       return NextResponse.json({ error: "Failed to delete review" }, { status: 500 })
     }
 

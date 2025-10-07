@@ -1,34 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function GET() {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {}
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
-    const { data: notifications, error } = await supabase
+    const { data: notifications, error: dbError } = await supabase
       .from("notifications")
       .select("*")
       .order("created_at", { ascending: false })
 
-    if (error) {
-      console.error("Error fetching notifications:", error)
+    if (dbError) {
+      console.error("Error fetching notifications:", dbError)
       return NextResponse.json({ error: "Failed to fetch notifications" }, { status: 500 })
     }
 
@@ -41,34 +25,19 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {}
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const notificationData = await request.json()
 
-    const { data: notification, error } = await supabase
+    const { data: notification, error: dbError } = await supabase
       .from("notifications")
       .insert([notificationData])
       .select()
       .single()
 
-    if (error) {
-      console.error("Error creating notification:", error)
+    if (dbError) {
+      console.error("Error creating notification:", dbError)
       return NextResponse.json({ error: "Failed to create notification" }, { status: 500 })
     }
 

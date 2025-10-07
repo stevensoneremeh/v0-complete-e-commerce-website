@@ -1,27 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    const cookieStore = await cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {}
-        },
-      },
-    })
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const body = await request.json()
 
-    const { data, error } = await supabase
+    const { data, error: dbError } = await supabase
       .from("real_estate_bookings")
       .update({
         ...body,
@@ -31,8 +19,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       .select()
       .single()
 
-    if (error) {
-      console.error("Error updating real estate booking:", error)
+    if (dbError) {
+      console.error("Error updating real estate booking:", dbError)
       return NextResponse.json({ error: "Failed to update booking" }, { status: 500 })
     }
 
