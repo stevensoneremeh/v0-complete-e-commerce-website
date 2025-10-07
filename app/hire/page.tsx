@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,80 +18,25 @@ import { format } from "date-fns"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 
-const carHireServices = [
-  {
-    id: 1,
-    name: "Luxury Sedan",
-    image: "/luxury-sedan-hire-premium-car-rental.jpg",
-    price: 150,
-    duration: "per day",
-    capacity: "4 passengers",
-    features: ["Professional Driver", "Air Conditioning", "Premium Interior", "GPS Navigation"],
-    rating: 4.9,
-    reviews: 127,
-  },
-  {
-    id: 2,
-    name: "Executive SUV",
-    image: "/executive-suv-hire-luxury-vehicle-rental.jpg",
-    price: 200,
-    duration: "per day",
-    capacity: "7 passengers",
-    features: ["Chauffeur Service", "Leather Seats", "Entertainment System", "Refreshments"],
-    rating: 4.8,
-    reviews: 89,
-  },
-  {
-    id: 3,
-    name: "Sports Car",
-    image: "/sports-car-hire-luxury-rental-premium.jpg",
-    price: 350,
-    duration: "per day",
-    capacity: "2 passengers",
-    features: ["Self Drive Option", "Premium Sound", "Performance Package", "Insurance Included"],
-    rating: 4.9,
-    reviews: 156,
-  },
-]
-
-const boatCruiseServices = [
-  {
-    id: 1,
-    name: "Sunset Cruise",
-    image: "/sunset-cruise-luxury-boat-hire-premium.jpg",
-    price: 120,
-    duration: "3 hours",
-    capacity: "12 passengers",
-    features: ["Dinner Included", "Live Music", "Open Bar", "Professional Crew"],
-    rating: 4.9,
-    reviews: 203,
-  },
-  {
-    id: 2,
-    name: "Private Yacht",
-    image: "/private-yacht-hire-luxury-boat-cruise.jpg",
-    price: 500,
-    duration: "6 hours",
-    capacity: "20 passengers",
-    features: ["Private Chef", "Water Sports", "Premium Amenities", "Dedicated Staff"],
-    rating: 5.0,
-    reviews: 78,
-  },
-  {
-    id: 3,
-    name: "Island Hopping",
-    image: "/island-hopping-cruise-luxury-boat-tour.jpg",
-    price: 180,
-    duration: "8 hours",
-    capacity: "15 passengers",
-    features: ["Multiple Stops", "Snorkeling Gear", "Lunch Included", "Tour Guide"],
-    rating: 4.8,
-    reviews: 134,
-  },
-]
+interface HireService {
+  id: string
+  name: string
+  service_type: "car" | "boat"
+  description?: string
+  image_url: string
+  price: number
+  duration: string
+  capacity: string
+  features: string[]
+  rating: number
+  reviews_count: number
+}
 
 export default function HirePage() {
-  const [selectedService, setSelectedService] = useState<any>(null)
+  const [carHireServices, setCarHireServices] = useState<HireService[]>([])
+  const [boatCruiseServices, setBoatCruiseServices] = useState<HireService[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedService, setSelectedService] = useState<HireService | null>(null)
   const [serviceType, setServiceType] = useState<"car" | "boat" | null>(null)
   const [bookingDate, setBookingDate] = useState<Date>()
   const [bookingTime, setBookingTime] = useState("")
@@ -106,7 +51,27 @@ export default function HirePage() {
   const [showBookingForm, setShowBookingForm] = useState(false)
   const { toast } = useToast()
 
-  const handleServiceSelect = (service: any, type: "car" | "boat") => {
+  useEffect(() => {
+    fetchServices()
+  }, [])
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch("/api/hire-services")
+      if (response.ok) {
+        const data = await response.json()
+        const allServices = data.services || []
+        setCarHireServices(allServices.filter((s: HireService) => s.service_type === "car"))
+        setBoatCruiseServices(allServices.filter((s: HireService) => s.service_type === "boat"))
+      }
+    } catch (error) {
+      console.error("Failed to fetch hire services:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleServiceSelect = (service: HireService, type: "car" | "boat") => {
     setSelectedService(service)
     setServiceType(type)
     setShowBookingForm(true)
@@ -177,7 +142,7 @@ export default function HirePage() {
                       <CardContent className="p-0">
                         <div className="relative overflow-hidden">
                           <Image
-                            src={service.image || "/placeholder.svg"}
+                            src={service.image_url || "/placeholder.svg"}
                             alt={service.name}
                             width={400}
                             height={250}
@@ -236,7 +201,7 @@ export default function HirePage() {
                       <CardContent className="p-0">
                         <div className="relative overflow-hidden">
                           <Image
-                            src={service.image || "/placeholder.svg"}
+                            src={service.image_url || "/placeholder.svg"}
                             alt={service.name}
                             width={400}
                             height={250}
