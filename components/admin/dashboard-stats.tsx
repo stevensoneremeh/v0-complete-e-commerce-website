@@ -60,7 +60,7 @@ export function DashboardStats() {
     )
   }
 
-  const getChangeIndicator = (change) => {
+  const getChangeIndicator = (change: number) => {
     if (change > 0) return <TrendingUp className="h-4 w-4 text-green-600" />
     if (change < 0) return <TrendingDown className="h-4 w-4 text-red-600" />
     return null // No indicator if change is 0
