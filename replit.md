@@ -87,6 +87,18 @@ Package manager: pnpm (not npm)
 
 ## Recent Changes
 
+### 2025-10-07: Hire Services Management System Added
+- **Database Table Created**: hire_services table with full support for car hire and boat cruise services
+- **Admin Management Page**: `/admin/hire-services` - Complete CRUD interface for managing services
+- **Security**: RLS policies implemented with admin-only write access
+- **API Routes**: 
+  - Admin routes: GET, POST, PUT, DELETE for hire services management
+  - Public route: GET for fetching active services on hire page
+- **Dynamic Hire Page**: Updated `/hire` page to fetch services from database instead of hardcoded data
+- **TypeScript Fix**: Fixed Category interface in products page to include is_active property
+- **Security**: All admin routes use anon key with RLS policies for proper access control
+- **Status**: ✅ Complete - Admin can now add, edit, and delete hire services; changes reflect immediately on user-facing hire page
+
 ### 2025-10-04: Production-Ready Replit Setup Completed
 - **Full Environment Configuration**: Supabase credentials configured in .env.local
 - **Database Setup**: All 13 tables verified and ready (profiles, categories, products, orders, order_items, cart_items, wishlist_items, product_reviews, real_estate_properties, real_estate_bookings, coupons, notifications, hire_bookings)
@@ -123,6 +135,7 @@ Package manager: pnpm (not npm)
 - **Coupons**: Full CRUD with Supabase (NEW - migrated from localStorage)
 - **Notifications**: Full CRUD with Supabase (NEW - migrated from localStorage)
 - **Analytics**: Real-time analytics from Supabase (NEW - migrated from localStorage)
+- **Hire Services**: Full CRUD with Supabase (NEW - car hire & boat cruises management)
 
 ### Authentication & Security
 - **Middleware Protection**: All /admin routes protected by middleware checking is_admin flag
