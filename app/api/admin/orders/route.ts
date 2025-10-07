@@ -1,28 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-            } catch {
-              // The `setAll` method was called from a Server Component.
-            }
-          },
-        },
-      },
-    )
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     let query = supabase.from("orders").select(`
         id,
@@ -63,10 +45,10 @@ export async function GET(request: NextRequest) {
         )
       `)
 
-    const { data: orders, error } = await query.order("created_at", { ascending: false })
+    const { data: orders, error: dbError } = await query.order("created_at", { ascending: false })
 
-    if (error) {
-      console.error("Error fetching orders:", error)
+    if (dbError) {
+      console.error("Error fetching orders:", dbError)
       return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 })
     }
 
