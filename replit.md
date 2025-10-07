@@ -7,6 +7,7 @@ ABL Natasha Enterprises is a luxury e-commerce platform that combines online sho
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Package manager: pnpm (not npm)
 
 ## System Architecture
 
