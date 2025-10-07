@@ -22,21 +22,17 @@ args = "Frontend Server"
 name = "Frontend Server"
 author = "agent"
 
-[workflows.workflow.metadata]
-outputType = "webview"
-
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm run dev --port=5000 --hostname=0.0.0.0"
+args = "npm run dev -- --port=5000 --hostname=0.0.0.0"
 waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 41523
-externalPort = 3002
 
 [[ports]]
 localPort = 41841
