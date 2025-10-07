@@ -1,4 +1,4 @@
-modules = ["nodejs-18", "web"]
+modules = ["web", "nodejs-20"]
 [agent]
 expertMode = true
 integrations = ["javascript_supabase:1.0.0"]
@@ -33,6 +33,10 @@ waitForPort = 5000
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 37847
+externalPort = 3002
 
 [[ports]]
 localPort = 41841
