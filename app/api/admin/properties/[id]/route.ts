@@ -1,19 +1,9 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-      },
-    },
-  })
+  const { supabase, error: authError } = await verifyAdmin()
+  if (authError) return authError
 
   try {
     const { id: propertyId } = await context.params
@@ -62,22 +52,13 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 }
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-      },
-    },
-  })
+  const { supabase, error: authError } = await verifyAdmin()
+  if (authError) return authError
 
   try {
     const { id: propertyId } = await context.params
 
-    const { data: property, error } = await supabase
+    const { data: property, error: dbError } = await supabase
       .from("real_estate_properties")
       .select(`
         *,
@@ -93,7 +74,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       .eq("id", propertyId)
       .single()
 
-    if (error) throw error
+    if (dbError) throw dbError
 
     return NextResponse.json(property)
   } catch (error) {
@@ -103,17 +84,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 }
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-      },
-    },
-  })
+  const { supabase, error: authError } = await verifyAdmin()
+  if (authError) return authError
 
   try {
     const { id: propertyId } = await context.params

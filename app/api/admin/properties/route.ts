@@ -1,22 +1,12 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET() {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-      },
-    },
-  })
+  const { supabase, error: authError } = await verifyAdmin()
+  if (authError) return authError
 
   try {
-    const { data: properties, error } = await supabase
+    const { data: properties, error: dbError } = await supabase
       .from("real_estate_properties")
       .select(`
         *,
@@ -31,7 +21,7 @@ export async function GET() {
       `)
       .order("created_at", { ascending: false })
 
-    if (error) throw error
+    if (dbError) throw dbError
 
     return NextResponse.json(properties)
   } catch (error) {
@@ -40,17 +30,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-      },
-    },
-  })
+  const { supabase, error: authError } = await verifyAdmin()
+  if (authError) return authError
 
   try {
     const propertyData = await request.json()
@@ -91,17 +72,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const cookieStore = await cookies()
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-      },
-    },
-  })
+  const { supabase, error: authError } = await verifyAdmin()
+  if (authError) return authError
 
   try {
     const propertyData = await request.json()

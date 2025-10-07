@@ -1,24 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-          }
-        },
-      },
-    })
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const { searchParams } = new URL(request.url)
     const category = searchParams.get("category")
@@ -52,10 +38,10 @@ export async function GET(request: NextRequest) {
 
     query = query.order("created_at", { ascending: false })
 
-    const { data: products, error } = await query
+    const { data: products, error: dbError } = await query
 
-    if (error) {
-      console.error("Error fetching products:", error)
+    if (dbError) {
+      console.error("Error fetching products:", dbError)
       return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 })
     }
 
@@ -68,21 +54,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-          }
-        },
-      },
-    })
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
 
     const productData = await request.json()
 
@@ -97,10 +70,10 @@ export async function POST(request: NextRequest) {
       productData.sku = `PRD-${Date.now()}`
     }
 
-    const { data: product, error } = await supabase.from("products").insert([productData]).select().single()
+    const { data: product, error: dbError } = await supabase.from("products").insert([productData]).select().single()
 
-    if (error) {
-      console.error("Error creating product:", error)
+    if (dbError) {
+      console.error("Error creating product:", dbError)
       return NextResponse.json({ error: "Failed to create product" }, { status: 500 })
     }
 
