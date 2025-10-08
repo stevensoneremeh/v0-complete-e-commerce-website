@@ -76,6 +76,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
+      // Auto-grant admin access to designated admin email
+      const ADMIN_EMAIL = "talktostevenson@gmail.com"
+      if (supabaseUser.email === ADMIN_EMAIL && !profile?.is_admin) {
+        // Update the profile to grant admin access
+        await supabase
+          .from("profiles")
+          .update({ is_admin: true, role: "admin" })
+          .eq("id", supabaseUser.id)
+        
+        // Refetch the updated profile
+        const { data: updatedProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", supabaseUser.id)
+          .single()
+        
+        const userData: User = {
+          id: supabaseUser.id,
+          name: updatedProfile?.full_name || supabaseUser.user_metadata?.full_name || "User",
+          email: supabaseUser.email || "",
+          role: "admin",
+          avatar: supabaseUser.user_metadata?.avatar_url,
+        }
+        
+        setUser(userData)
+        return
+      }
+
       const userData: User = {
         id: supabaseUser.id,
         name: profile?.full_name || supabaseUser.user_metadata?.full_name || "User",
@@ -143,13 +171,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Create profile record
       if (data.user) {
+        // Auto-grant admin access to designated admin email
+        const ADMIN_EMAIL = "talktostevenson@gmail.com"
+        const isAdmin = data.user.email === ADMIN_EMAIL
+
         const { error: profileError } = await supabase.from("profiles").insert([
           {
             id: data.user.id,
             email: data.user.email,
             full_name: name,
-            is_admin: false,
-            role: "user",
+            is_admin: isAdmin,
+            role: isAdmin ? "admin" : "user",
           },
         ])
 
