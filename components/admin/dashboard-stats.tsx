@@ -66,7 +66,7 @@ export function DashboardStats() {
     return null // No indicator if change is 0
   }
 
-  const formatChange = (change) => {
+  const formatChange = (change: number) => {
     if (change === 0) return "No change"
     return `${change > 0 ? "+" : ""}${change}%`
   }
