@@ -168,6 +168,7 @@ export default function AuthPage() {
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       className="h-11 bg-background/50 border-border/50 focus:border-primary/50"
+                      autoComplete="email"
                       required
                     />
                   </div>
@@ -184,6 +185,7 @@ export default function AuthPage() {
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
                         className="h-11 bg-background/50 border-border/50 focus:border-primary/50 pr-10"
+                        autoComplete="current-password"
                         required
                       />
                       <Button
@@ -235,6 +237,7 @@ export default function AuthPage() {
                       value={signupName}
                       onChange={(e) => setSignupName(e.target.value)}
                       className="h-11 bg-background/50 border-border/50 focus:border-primary/50"
+                      autoComplete="name"
                       required
                     />
                   </div>
@@ -250,6 +253,7 @@ export default function AuthPage() {
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
                       className="h-11 bg-background/50 border-border/50 focus:border-primary/50"
+                      autoComplete="email"
                       required
                     />
                   </div>
@@ -266,6 +270,7 @@ export default function AuthPage() {
                         value={signupPassword}
                         onChange={(e) => setSignupPassword(e.target.value)}
                         className="h-11 bg-background/50 border-border/50 focus:border-primary/50 pr-10"
+                        autoComplete="new-password"
                         required
                       />
                       <Button
@@ -292,6 +297,7 @@ export default function AuthPage() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="h-11 bg-background/50 border-border/50 focus:border-primary/50 pr-10"
+                        autoComplete="new-password"
                         required
                       />
                       <Button
