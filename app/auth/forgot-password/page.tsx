@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, Home, Mail } from "lucide-react"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from "@/lib/supabase/client"
 import Image from "next/image"
 
 export default function ForgotPasswordPage() {
@@ -28,10 +28,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true)
 
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
+      const supabase = createClient()
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
@@ -39,10 +36,10 @@ export default function ForgotPasswordPage() {
 
       if (error) throw error
 
-      setSuccess("Password reset link sent! Please check your email.")
+      setSuccess("Password reset link has been sent to your email!")
       setEmail("")
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to send reset email"
+      const errorMessage = err instanceof Error ? err.message : "Failed to send reset link"
       setError(errorMessage)
     } finally {
       setIsLoading(false)

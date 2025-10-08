@@ -1,0 +1,73 @@
+[Intervention] Images loaded lazily and replaced with placeholders. Load events are deferred. See https://go.microsoft.com/fwlink/?linkid=2048113
+8132-b6be17e4445fb380.js:21   GET https://qmrymrveonbosjurzxtj.supabase.co/rest/v1/profiles?select=*&id=eq.19a32b48-9895-4bb4-b1e5-63106420fb33 500 (Internal Server Error)
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+a @ 8132-b6be17e4445fb380.js:21
+Promise.then
+l @ 8132-b6be17e4445fb380.js:21
+a @ 8132-b6be17e4445fb380.js:21
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+then @ 8132-b6be17e4445fb380.js:1
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+5575-2cd5dbe3d8035fda.js:1  Error fetching profile: {code: '42P17', details: null, hint: null, message: 'infinite recursion detected in policy for relation "profiles"'}
+overrideMethod @ hook.js:608
+window.console.error @ 5575-2cd5dbe3d8035fda.js:1
+m @ 2224-6f139a18700b1bfd.js:1
+await in m
+(anonymous) @ 2224-6f139a18700b1bfd.js:1
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+_notifyAllSubscribers @ 8132-b6be17e4445fb380.js:21
+signInWithPassword @ 8132-b6be17e4445fb380.js:21
+await in signInWithPassword
+f @ 2224-6f139a18700b1bfd.js:1
+V @ page-8d52ca3ba751968d.js:1
+iG @ 1acdb12c-7a0efabd14b5cf50.js:1
+(anonymous) @ 1acdb12c-7a0efabd14b5cf50.js:1
+nS @ 1acdb12c-7a0efabd14b5cf50.js:1
+i4 @ 1acdb12c-7a0efabd14b5cf50.js:1
+ce @ 1acdb12c-7a0efabd14b5cf50.js:1
+s9 @ 1acdb12c-7a0efabd14b5cf50.js:1
+8132-b6be17e4445fb380.js:21   GET https://qmrymrveonbosjurzxtj.supabase.co/rest/v1/profiles?select=*&id=eq.19a32b48-9895-4bb4-b1e5-63106420fb33 500 (Internal Server Error)
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+a @ 8132-b6be17e4445fb380.js:21
+Promise.then
+l @ 8132-b6be17e4445fb380.js:21
+a @ 8132-b6be17e4445fb380.js:21
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+then @ 8132-b6be17e4445fb380.js:1
+5575-2cd5dbe3d8035fda.js:1  Error fetching profile: {code: '42P17', details: null, hint: null, message: 'infinite recursion detected in policy for relation "profiles"'}code: "42P17"details: nullhint: nullmessage: "infinite recursion detected in policy for relation \"profiles\""[[Prototype]]: Object
+overrideMethod @ hook.js:608
+window.console.error @ 5575-2cd5dbe3d8035fda.js:1
+m @ 2224-6f139a18700b1bfd.js:1
+await in m
+f @ 2224-6f139a18700b1bfd.js:1
+await in f
+V @ page-8d52ca3ba751968d.js:1
+iG @ 1acdb12c-7a0efabd14b5cf50.js:1
+(anonymous) @ 1acdb12c-7a0efabd14b5cf50.js:1
+nS @ 1acdb12c-7a0efabd14b5cf50.js:1
+i4 @ 1acdb12c-7a0efabd14b5cf50.js:1
+ce @ 1acdb12c-7a0efabd14b5cf50.js:1
+s9 @ 1acdb12c-7a0efabd14b5cf50.js:1
+5575-2cd5dbe3d8035fda.js:1 [Violation] 'message' handler took 330ms
+[Violation] Forced reflow while executing JavaScript took 232ms
+8132-b6be17e4445fb380.js:21   GET https://qmrymrveonbosjurzxtj.supabase.co/rest/v1/products?select=*%2Ccategories%28name%2Cslug%29&is_featured=eq.true&is_active=eq.true&limit=5 500 (Internal Server Error)
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+a @ 8132-b6be17e4445fb380.js:21
+Promise.then
+l @ 8132-b6be17e4445fb380.js:21
+a @ 8132-b6be17e4445fb380.js:21
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+(anonymous) @ 8132-b6be17e4445fb380.js:21
+then @ 8132-b6be17e4445fb380.js:1
+1acdb12c-7a0efabd14b5cf50.js:1 [Violation] 'pause' handler took 365ms
+1acdb12c-7a0efabd14b5cf50.js:1 [Violation] 'pause' handler took 732ms
+1acdb12c-7a0efabd14b5cf50.js:1 [Violation] 'pause' handler took 713ms
