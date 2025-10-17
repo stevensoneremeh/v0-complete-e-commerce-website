@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { CheckCircle, Clock, AlertCircle, CreditCard, Package, Truck, Home } from "lucide-react"
 
 interface PaymentStatusTrackerProps {
@@ -128,13 +127,14 @@ export function PaymentStatusTracker({
           )}
         </div>
 
-        {/* Progress Bar */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Progress</span>
             <span>{config.progress}%</span>
           </div>
-          <Progress value={config.progress} className="h-2" />
+          <div className="relative h-2 w-full overflow-hidden rounded-full bg-primary/20">
+            <div className="h-full bg-primary transition-all" style={{ width: `${config.progress}%` }} />
+          </div>
         </div>
 
         {/* Order Steps (only show if payment is successful) */}
