@@ -9,10 +9,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
-import { AdminHeader } from "@/components/admin/admin-header"
-import { Store, Bell } from "lucide-react"
+import { Store, Bell, Lock, Palette, Truck, Globe } from "lucide-react"
 
 interface StoreSettings {
   storeName: string
@@ -22,6 +21,16 @@ interface StoreSettings {
   enableEmailNotifications: boolean
   enableSmsNotifications: boolean
   lowStockThreshold: number
+  taxRate: number
+  shippingCost: number
+  freeShippingThreshold: number
+  enableGuestCheckout: boolean
+  enableProductReviews: boolean
+  maintenanceMode: boolean
+  siteTitle: string
+  siteDescription: string
+  contactPhone: string
+  businessHours: string
 }
 
 const defaultSettings: StoreSettings = {
@@ -32,10 +41,21 @@ const defaultSettings: StoreSettings = {
   enableEmailNotifications: true,
   enableSmsNotifications: false,
   lowStockThreshold: 10,
+  taxRate: 0,
+  shippingCost: 0,
+  freeShippingThreshold: 100,
+  enableGuestCheckout: true,
+  enableProductReviews: true,
+  maintenanceMode: false,
+  siteTitle: "My E-commerce Store",
+  siteDescription: "Welcome to our online store",
+  contactPhone: "+1 (555) 000-0000",
+  businessHours: "Mon-Fri: 9AM-5PM EST",
 }
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<StoreSettings>(defaultSettings)
+  const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -47,88 +67,105 @@ export default function AdminSettingsPage() {
     }
   }, [])
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (typeof window !== "undefined") {
-      localStorage.setItem("admin_settings", JSON.stringify(settings))
+    setIsSaving(true)
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("admin_settings", JSON.stringify(settings))
+        toast({
+          title: "Settings Saved",
+          description: "Your store settings have been updated successfully.",
+        })
+      }
+    } catch (error) {
       toast({
-        title: "Settings Saved",
-        description: "Your store settings have been updated.",
+        title: "Error",
+        description: "Failed to save settings. Please try again.",
+        variant: "destructive",
       })
+    } finally {
+      setIsSaving(false)
     }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value, type, checked } = e.target as HTMLInputElement
+    const { id, value, type } = e.target as HTMLInputElement
     setSettings((prevSettings) => ({
       ...prevSettings,
-      [id]: type === "checkbox" ? checked : value,
+      [id]: type === "number" ? Number(value) : value,
     }))
   }
 
-  const handleNumberChange = (id: keyof StoreSettings, value: string) => {
+  const handleToggle = (id: keyof StoreSettings) => {
     setSettings((prevSettings) => ({
       ...prevSettings,
-      [id]: Number(value),
+      [id]: !prevSettings[id as keyof typeof prevSettings],
     }))
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <AdminHeader />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-muted/50 p-6">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold">Settings</h1>
-                <p className="text-muted-foreground">Manage your store's general and notification settings</p>
-              </div>
-              <Button type="submit" form="settings-form">
-                Save Settings
-              </Button>
-            </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Settings</h1>
+          <p className="text-muted-foreground">Manage your store configuration and preferences</p>
+        </div>
+        <Button onClick={handleSaveSettings} disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save All Settings"}
+        </Button>
+      </div>
 
-            <form id="settings-form" onSubmit={handleSaveSettings} className="space-y-6">
-              {/* General Settings */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Store className="h-5 w-5" /> General Store Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="storeName">Store Name</Label>
-                      <Input
-                        id="storeName"
-                        value={settings.storeName}
-                        onChange={handleChange}
-                        placeholder="Your Store Name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="storeEmail">Store Email</Label>
-                      <Input
-                        id="storeEmail"
-                        type="email"
-                        value={settings.storeEmail}
-                        onChange={handleChange}
-                        placeholder="contact@yourstore.com"
-                      />
-                    </div>
+      <form onSubmit={handleSaveSettings} className="space-y-6">
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="shipping">Shipping</TabsTrigger>
+            <TabsTrigger value="features">Features</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+          </TabsList>
+
+          {/* General Settings */}
+          <TabsContent value="general" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Store className="h-5 w-5" />
+                  Store Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="storeName">Store Name</Label>
+                    <Input
+                      id="storeName"
+                      value={settings.storeName}
+                      onChange={handleChange}
+                      placeholder="Your Store Name"
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="storeAddress">Store Address</Label>
-                    <Textarea
-                      id="storeAddress"
-                      value={settings.storeAddress}
+                    <Label htmlFor="storeEmail">Store Email</Label>
+                    <Input
+                      id="storeEmail"
+                      type="email"
+                      value={settings.storeEmail}
                       onChange={handleChange}
-                      placeholder="123 Main St, City, State, Zip, Country"
-                      rows={3}
+                      placeholder="contact@yourstore.com"
+                    />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone">Contact Phone</Label>
+                    <Input
+                      id="contactPhone"
+                      value={settings.contactPhone}
+                      onChange={handleChange}
+                      placeholder="+1 (555) 000-0000"
                     />
                   </div>
                   <div className="space-y-2">
@@ -140,52 +177,219 @@ export default function AdminSettingsPage() {
                       placeholder="e.g., USD, EUR, GBP"
                     />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="storeAddress">Store Address</Label>
+                  <Textarea
+                    id="storeAddress"
+                    value={settings.storeAddress}
+                    onChange={handleChange}
+                    placeholder="123 Main St, City, State, Zip, Country"
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="businessHours">Business Hours</Label>
+                  <Input
+                    id="businessHours"
+                    value={settings.businessHours}
+                    onChange={handleChange}
+                    placeholder="Mon-Fri: 9AM-5PM EST"
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Notification Settings */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" /> Notification Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="enableEmailNotifications">Enable Email Notifications</Label>
-                    <Switch
-                      id="enableEmailNotifications"
-                      checked={settings.enableEmailNotifications}
-                      onCheckedChange={(checked) => setSettings({ ...settings, enableEmailNotifications: checked })}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="enableSmsNotifications">Enable SMS Notifications</Label>
-                    <Switch
-                      id="enableSmsNotifications"
-                      checked={settings.enableSmsNotifications}
-                      onCheckedChange={(checked) => setSettings({ ...settings, enableSmsNotifications: checked })}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  Website Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="siteTitle">Site Title</Label>
+                  <Input
+                    id="siteTitle"
+                    value={settings.siteTitle}
+                    onChange={handleChange}
+                    placeholder="My E-commerce Store"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="siteDescription">Site Description</Label>
+                  <Textarea
+                    id="siteDescription"
+                    value={settings.siteDescription}
+                    onChange={handleChange}
+                    placeholder="Welcome to our online store"
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Shipping Settings */}
+          <TabsContent value="shipping" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Truck className="h-5 w-5" />
+                  Shipping Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="shippingCost">Standard Shipping Cost ($)</Label>
+                    <Input
+                      id="shippingCost"
+                      type="number"
+                      step="0.01"
+                      value={settings.shippingCost}
+                      onChange={handleChange}
+                      placeholder="0.00"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
+                    <Label htmlFor="freeShippingThreshold">Free Shipping Threshold ($)</Label>
                     <Input
-                      id="lowStockThreshold"
+                      id="freeShippingThreshold"
                       type="number"
-                      value={settings.lowStockThreshold}
-                      onChange={(e) => handleNumberChange("lowStockThreshold", e.target.value)}
-                      placeholder="e.g., 10"
+                      step="0.01"
+                      value={settings.freeShippingThreshold}
+                      onChange={handleChange}
+                      placeholder="100.00"
                     />
-                    <p className="text-sm text-muted-foreground">
-                      Receive alerts when product stock falls below this number.
-                    </p>
+                    <p className="text-sm text-muted-foreground">Orders above this amount qualify for free shipping</p>
                   </div>
-                </CardContent>
-              </Card>
-            </form>
-          </div>
-        </main>
-      </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="taxRate">Tax Rate (%)</Label>
+                  <Input
+                    id="taxRate"
+                    type="number"
+                    step="0.01"
+                    value={settings.taxRate}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Features Settings */}
+          <TabsContent value="features" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Feature Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <Label className="font-medium">Guest Checkout</Label>
+                    <p className="text-sm text-muted-foreground">Allow customers to checkout without an account</p>
+                  </div>
+                  <Switch
+                    checked={settings.enableGuestCheckout}
+                    onCheckedChange={() => handleToggle("enableGuestCheckout")}
+                  />
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <Label className="font-medium">Product Reviews</Label>
+                    <p className="text-sm text-muted-foreground">Allow customers to leave product reviews</p>
+                  </div>
+                  <Switch
+                    checked={settings.enableProductReviews}
+                    onCheckedChange={() => handleToggle("enableProductReviews")}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Notification Settings */}
+          <TabsContent value="notifications" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Notification Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <Label className="font-medium">Email Notifications</Label>
+                    <p className="text-sm text-muted-foreground">Receive email alerts for orders and updates</p>
+                  </div>
+                  <Switch
+                    checked={settings.enableEmailNotifications}
+                    onCheckedChange={() => handleToggle("enableEmailNotifications")}
+                  />
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <Label className="font-medium">SMS Notifications</Label>
+                    <p className="text-sm text-muted-foreground">Receive SMS alerts for critical events</p>
+                  </div>
+                  <Switch
+                    checked={settings.enableSmsNotifications}
+                    onCheckedChange={() => handleToggle("enableSmsNotifications")}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lowStockThreshold">Low Stock Alert Threshold</Label>
+                  <Input
+                    id="lowStockThreshold"
+                    type="number"
+                    value={settings.lowStockThreshold}
+                    onChange={handleChange}
+                    placeholder="10"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Receive alerts when product stock falls below this number
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Security Settings */}
+          <TabsContent value="security" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Security & Maintenance
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <Label className="font-medium">Maintenance Mode</Label>
+                    <p className="text-sm text-muted-foreground">Temporarily disable store access for maintenance</p>
+                  </div>
+                  <Switch checked={settings.maintenanceMode} onCheckedChange={() => handleToggle("maintenanceMode")} />
+                </div>
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-900">
+                    When maintenance mode is enabled, only administrators can access the store. Customers will see a
+                    maintenance message.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </form>
     </div>
   )
 }
