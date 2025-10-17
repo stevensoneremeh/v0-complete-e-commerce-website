@@ -69,38 +69,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
-      const { data: profile, error } = await supabase.from("profiles").select("*").eq("id", supabaseUser.id).single()
-
-      if (error && error.code !== "PGRST116") {
-        console.error("Error fetching profile:", error)
-        return
-      }
+      const ADMIN_EMAIL = "talktostevenson@gmail.com"
+      
+      // Check if profile exists
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", supabaseUser.id)
+        .single()
 
       // Auto-grant admin access to designated admin email
-      const ADMIN_EMAIL = "talktostevenson@gmail.com"
-      if (supabaseUser.email === ADMIN_EMAIL && !profile?.is_admin) {
-        // Update the profile to grant admin access
-        await supabase
-          .from("profiles")
-          .update({ is_admin: true, role: "admin" })
-          .eq("id", supabaseUser.id)
-        
-        // Refetch the updated profile
-        const { data: updatedProfile } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", supabaseUser.id)
-          .single()
+      if (supabaseUser.email === ADMIN_EMAIL) {
+        if (!profile || !profile.is_admin) {
+          // Upsert profile with admin privileges
+          await supabase
+            .from("profiles")
+            .upsert({
+              id: supabaseUser.id,
+              email: supabaseUser.email,
+              full_name: profile?.full_name || supabaseUser.user_metadata?.full_name || "Admin User",
+              is_admin: true,
+              role: "admin",
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'id'
+            })
+        }
         
         const userData: User = {
           id: supabaseUser.id,
-          name: updatedProfile?.full_name || supabaseUser.user_metadata?.full_name || "User",
+          name: profile?.full_name || supabaseUser.user_metadata?.full_name || "Admin User",
           email: supabaseUser.email || "",
           role: "admin",
           avatar: supabaseUser.user_metadata?.avatar_url,
         }
         
         setUser(userData)
+        return
+      }
+
+      // For non-admin users
+      if (profileError && profileError.code !== "PGRST116") {
+        console.error("Error fetching profile:", profileError)
         return
       }
 

@@ -7,7 +7,7 @@ integrations = ["javascript_supabase:1.0.0"]
 channel = "stable-25_05"
 
 [workflows]
-runButton = "Project"
+runButton = "Dev Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -29,6 +29,19 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow]]
+name = "Dev Server"
+author = 48434080
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm install"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pnpm run dev -- --port=5000 --hostname=0.0.0.0"
 
 [[ports]]
 localPort = 5000
@@ -52,5 +65,5 @@ externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["pnpm", "start"]
-build = ["pnpm", "build"]
+run = ["sh", "-c", "pnpm start"]
+build = ["sh", "-c", "pnpm install && pnpm run build"]
