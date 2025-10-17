@@ -22,6 +22,9 @@ const dmSans = DM_Sans({
   fallback: ["system-ui", "arial"],
 })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://ablnatasha.vercel.app"
+const validSiteUrl = siteUrl.startsWith("http") ? siteUrl : `https://${siteUrl}`
+
 export const metadata: Metadata = {
   title: "ABL Natasha Enterprises - Luxury Shopping & Premium Stays",
   description:
@@ -32,13 +35,13 @@ export const metadata: Metadata = {
   creator: "ABL Natasha Enterprises",
   publisher: "ABL Natasha Enterprises",
   generator: "Next.js",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app"),
+  metadataBase: new URL(validSiteUrl),
   openGraph: {
     title: "ABL Natasha Enterprises - Luxury Shopping & Premium Stays",
     description: "Premium e-commerce platform and luxury apartment rentals by ABL Natasha Enterprises",
     type: "website",
     locale: "en_US",
-    url: process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app",
+    url: validSiteUrl,
     siteName: "ABL Natasha Enterprises",
     images: [
       {
@@ -68,7 +71,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app",
+    canonical: validSiteUrl,
   },
   category: "E-commerce",
   classification: "Business",
@@ -106,8 +109,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "ABL Natasha Enterprises",
-              url: process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app",
-              logo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app"}/abl-natasha-logo.png`,
+              url: validSiteUrl,
+              logo: `${validSiteUrl}/abl-natasha-logo.png`,
               description: "Premium e-commerce platform and luxury apartment rentals",
               contactPoint: {
                 "@type": "ContactPoint",
@@ -134,12 +137,12 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "ABL Natasha Enterprises",
-              url: process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app",
+              url: validSiteUrl,
               potentialAction: {
                 "@type": "SearchAction",
                 target: {
                   "@type": "EntryPoint",
-                  urlTemplate: `${process.env.NEXT_PUBLIC_SITE_URL || "https://ablnatasha.vercel.app"}/products?search={search_term_string}`,
+                  urlTemplate: `${validSiteUrl}/products?search={search_term_string}`,
                 },
                 "query-input": "required name=search_term_string",
               },
