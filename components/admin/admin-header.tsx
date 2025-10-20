@@ -27,62 +27,57 @@ export function AdminHeader() {
       setUnreadNotificationsCount(notifications.filter((n) => !n.isRead).length)
     }
 
-    updateNotificationCount() // Initial load
-
-    // Listen for storage changes to update count in real-time
+    updateNotificationCount()
     window.addEventListener("storage", updateNotificationCount)
     return () => window.removeEventListener("storage", updateNotificationCount)
   }, [])
 
   const getPageTitle = () => {
-    switch (pathname) {
-      case "/admin":
-        return "Dashboard"
-      case "/admin/products":
-        return "Products"
-      case "/admin/categories":
-        return "Categories"
-      case "/admin/orders":
-        return "Orders"
-      case "/admin/customers":
-        return "Customers"
-      case "/admin/coupons":
-        return "Coupons"
-      case "/admin/notifications":
-        return "Notifications"
-      case "/admin/settings":
-        return "Settings"
-      case "/admin/analytics":
-        return "Analytics"
-      default:
-        return "Admin Panel"
+    const titleMap: Record<string, string> = {
+      "/admin": "Dashboard",
+      "/admin/products": "Products",
+      "/admin/categories": "Categories",
+      "/admin/orders": "Orders",
+      "/admin/customers": "Customers",
+      "/admin/coupons": "Coupons",
+      "/admin/notifications": "Notifications",
+      "/admin/settings": "Settings",
+      "/admin/analytics": "Analytics",
+      "/admin/properties": "Properties",
+      "/admin/bookings": "Bookings",
+      "/admin/hire-bookings": "Hire Services",
+      "/admin/real-estate": "Real Estate",
+      "/admin/reviews": "Reviews",
     }
+    return titleMap[pathname] || "Admin Panel"
   }
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-background px-6">
-      <h1 className="text-xl font-semibold">{getPageTitle()}</h1>
+    <header className="flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur px-6 sticky top-0 z-40">
+      <div className="flex items-center gap-4">
+        <h1 className="text-xl font-semibold">{getPageTitle()}</h1>
+      </div>
+
       <div className="flex items-center space-x-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/admin/notifications">
-            <div className="relative">
-              <Bell className="h-5 w-5" />
-              {unreadNotificationsCount > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs"
-                >
-                  {unreadNotificationsCount}
-                </Badge>
-              )}
-            </div>
+          <Link href="/admin/notifications" className="relative">
+            <Bell className="h-5 w-5" />
+            {unreadNotificationsCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-xs"
+              >
+                {unreadNotificationsCount}
+              </Badge>
+            )}
           </Link>
         </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder-user.jpg" alt="User Avatar" />
+                <AvatarImage src="/placeholder-user.jpg" alt="Admin" />
                 <AvatarFallback>AD</AvatarFallback>
               </Avatar>
             </Button>
@@ -91,7 +86,7 @@ export function AdminHeader() {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">Admin User</p>
-                <p className="text-xs leading-none text-muted-foreground">talktostevenson@gmail.com</p>
+                <p className="text-xs leading-none text-muted-foreground">admin@ablnatasha.com</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -102,7 +97,7 @@ export function AdminHeader() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link href="/auth">Log out</Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
