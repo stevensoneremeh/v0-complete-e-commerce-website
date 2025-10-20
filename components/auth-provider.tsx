@@ -27,11 +27,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const supabase = createClient()
+  let supabase: ReturnType<typeof createClient> | null = null
+  try {
+    supabase = createClient()
+  } catch (error) {
+    console.error("[v0] Failed to create Supabase client:", error)
+  }
 
   useEffect(() => {
     const getSession = async () => {
       try {
+        if (!supabase) {
+          setIsLoading(false)
+          return
+        }
+
         const {
           data: { session },
         } = await supabase.auth.getSession()
@@ -45,13 +55,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error("Error getting session:", error)
         // Clear any invalid session
-        await supabase.auth.signOut()
+        if (supabase) {
+          try {
+            await supabase.auth.signOut()
+          } catch (e) {
+            // Ignore errors when signing out
+          }
+        }
       } finally {
         setIsLoading(false)
       }
     }
 
     getSession()
+
+    if (!supabase) {
+      setIsLoading(false)
+      return
+    }
 
     const {
       data: { subscription },
@@ -69,8 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
+      if (!supabase) return
+
       const ADMIN_EMAIL = "talktostevenson@gmail.com"
-      
+
       // Check if profile exists
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
@@ -82,20 +105,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (supabaseUser.email === ADMIN_EMAIL) {
         if (!profile || !profile.is_admin) {
           // Upsert profile with admin privileges
-          await supabase
-            .from("profiles")
-            .upsert({
+          await supabase.from("profiles").upsert(
+            {
               id: supabaseUser.id,
               email: supabaseUser.email,
               full_name: profile?.full_name || supabaseUser.user_metadata?.full_name || "Admin User",
               is_admin: true,
               role: "admin",
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'id'
-            })
+              updated_at: new Date().toISOString(),
+            },
+            {
+              onConflict: "id",
+            },
+          )
         }
-        
+
         const userData: User = {
           id: supabaseUser.id,
           name: profile?.full_name || supabaseUser.user_metadata?.full_name || "Admin User",
@@ -103,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: "admin",
           avatar: supabaseUser.user_metadata?.avatar_url,
         }
-        
+
         setUser(userData)
         return
       }
@@ -131,6 +155,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
+      if (!supabase) {
+        throw new Error("Supabase client not available")
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -153,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      if (!supabase) return
       await supabase.auth.signOut()
       setUser(null)
     } catch (error) {
@@ -163,6 +192,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true)
     try {
+      if (!supabase) {
+        throw new Error("Supabase client not available")
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
