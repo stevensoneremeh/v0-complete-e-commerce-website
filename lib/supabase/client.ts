@@ -13,6 +13,85 @@ export function createClient() {
   return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
+function createQueryBuilder() {
+  return {
+    eq: function () {
+      return this
+    },
+    neq: function () {
+      return this
+    },
+    gt: function () {
+      return this
+    },
+    gte: function () {
+      return this
+    },
+    lt: function () {
+      return this
+    },
+    lte: function () {
+      return this
+    },
+    like: function () {
+      return this
+    },
+    ilike: function () {
+      return this
+    },
+    is: function () {
+      return this
+    },
+    in: function () {
+      return this
+    },
+    contains: function () {
+      return this
+    },
+    containedBy: function () {
+      return this
+    },
+    rangeLt: function () {
+      return this
+    },
+    rangeGte: function () {
+      return this
+    },
+    rangeLte: function () {
+      return this
+    },
+    rangeAdjacent: function () {
+      return this
+    },
+    overlaps: function () {
+      return this
+    },
+    textSearch: function () {
+      return this
+    },
+    match: function () {
+      return this
+    },
+    not: function () {
+      return this
+    },
+    or: function () {
+      return this
+    },
+    limit: function () {
+      return this
+    },
+    offset: function () {
+      return this
+    },
+    range: function () {
+      return this
+    },
+    single: async () => ({ data: null, error: null }),
+    maybeSingle: async () => ({ data: null, error: null }),
+  }
+}
+
 function createMockClient() {
   return {
     auth: {
@@ -23,7 +102,7 @@ function createMockClient() {
       onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
     },
     from: () => ({
-      select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }) }) }),
+      select: () => createQueryBuilder(),
       insert: async () => ({ error: null }),
       update: async () => ({ error: null }),
       delete: async () => ({ error: null }),
