@@ -9,8 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EnhancedProductForm } from "@/components/admin/enhanced-product-form"
-import { Plus, Edit, Trash2, Package, Search, Filter } from "lucide-react"
+import { Plus, Edit, Trash2, Package, Search, Filter, Eye } from "lucide-react"
 import { toast } from "sonner"
+import { Link } from "react-router-dom"
 
 interface Product {
   id: string
@@ -276,6 +277,11 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
+                        <Link href={`/admin/products/${product.id}`}>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <Button variant="outline" size="sm" onClick={() => handleEdit(product)}>
                           <Edit className="h-4 w-4" />
                         </Button>

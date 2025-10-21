@@ -9,8 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PropertyForm } from "@/components/admin/property-form"
-import { Plus, Edit, Trash2, Building2, Search, Filter, MapPin } from "lucide-react"
+import { Plus, Edit, Trash2, Building2, Search, Filter, MapPin, Eye } from "lucide-react"
 import { toast } from "sonner"
+import { Link } from "react-router-dom"
 
 interface Property {
   id: string
@@ -246,6 +247,11 @@ export default function PropertiesPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
+                        <Link href={`/admin/properties/${property.id}`}>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <Button variant="outline" size="sm" onClick={() => handleEdit(property)}>
                           <Edit className="h-4 w-4" />
                         </Button>
