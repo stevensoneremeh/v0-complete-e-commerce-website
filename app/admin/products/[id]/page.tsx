@@ -34,6 +34,9 @@ interface Category {
   id: string
   name: string
   slug: string
+  is_active: boolean
+  description?: string
+  image_url?: string
 }
 
 export default function ProductDetailPage() {

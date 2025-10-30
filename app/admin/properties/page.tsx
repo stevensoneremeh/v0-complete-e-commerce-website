@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PropertyForm } from "@/components/admin/property-form"
 import { Plus, Edit, Trash2, Building2, Search, Filter, MapPin, Eye } from "lucide-react"
 import { toast } from "sonner"
-import { Link } from "react-router-dom"
+import Link from "next/link"
 
 interface Property {
   id: string
@@ -100,33 +100,11 @@ export default function PropertiesPage() {
     }
   }
 
-  const updatePropertyStatus = async (propertyId: string, newStatus: string) => {
-    try {
-      const response = await fetch(`/api/admin/properties/${propertyId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_active: newStatus === "active" }),
-      })
-
-      if (response.ok) {
-        await fetchProperties()
-        toast.success(`Property status updated to ${newStatus}`)
-      }
-    } catch (error) {
-      toast.error("Failed to update property status")
-    }
-  }
-
-  const getStatusColor = (isActive: boolean) => {
-    return isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-  }
-
   const filteredProperties = properties.filter((property) => {
     const matchesSearch =
-      property.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.location?.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus =
-      filterStatus === "all" || (filterStatus === "active" ? property.is_active : !property.is_active)
+      property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.location.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = filterStatus === "all" || property.status === filterStatus
     return matchesSearch && matchesStatus
   })
 
@@ -136,7 +114,7 @@ export default function PropertiesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Property Management</h1>
-          <p className="text-muted-foreground">Manage luxury apartment listings</p>
+          <p className="text-muted-foreground">Manage your properties</p>
         </div>
         <Button
           onClick={() => {
@@ -171,8 +149,9 @@ export default function PropertiesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="available">Available</SelectItem>
+                <SelectItem value="booked">Booked</SelectItem>
+                <SelectItem value="maintenance">Maintenance</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -197,8 +176,8 @@ export default function PropertiesPage() {
                   <TableHead>Image</TableHead>
                   <TableHead>Property</TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead>Details</TableHead>
                   <TableHead>Price/Night</TableHead>
+                  <TableHead>Guests</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -211,10 +190,10 @@ export default function PropertiesPage() {
                         <img
                           src={property.images[0] || "/placeholder.svg"}
                           alt={property.name}
-                          className="w-16 h-12 object-cover rounded"
+                          className="w-12 h-12 object-cover rounded"
                         />
                       ) : (
-                        <div className="w-16 h-12 bg-muted rounded flex items-center justify-center">
+                        <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
                           <Building2 className="h-4 w-4 text-muted-foreground" />
                         </div>
                       )}
@@ -222,27 +201,22 @@ export default function PropertiesPage() {
                     <TableCell>
                       <div>
                         <div className="font-medium">{property.name}</div>
-                        <div className="text-sm text-muted-foreground truncate max-w-xs">{property.description}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {property.bedrooms} bed, {property.bathrooms} bath
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-sm">{property.location}</span>
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        {property.location}
                       </div>
                     </TableCell>
+                    <TableCell>${property.price_per_night.toFixed(2)}</TableCell>
+                    <TableCell>{property.max_guests} guests</TableCell>
                     <TableCell>
-                      <div className="text-sm">
-                        <div>
-                          {property.bedrooms} bed, {property.bathrooms} bath
-                        </div>
-                        <div className="text-muted-foreground">Max {property.max_guests} guests</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>${property.price_per_night}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(property.is_active)}>
-                        {property.is_active ? "Active" : "Inactive"}
+                      <Badge variant={property.status === "available" ? "default" : "secondary"}>
+                        {property.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -270,11 +244,11 @@ export default function PropertiesPage() {
 
       {/* Property Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>{editingProperty ? "Edit Property" : "Add New Property"}</DialogTitle>
           </DialogHeader>
-          <PropertyForm property={editingProperty} onSave={handleSubmit} onCancel={() => setShowForm(false)} />
+          <PropertyForm property={editingProperty} onSubmit={handleSubmit} onCancel={() => setShowForm(false)} />
         </DialogContent>
       </Dialog>
     </div>

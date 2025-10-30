@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EnhancedProductForm } from "@/components/admin/enhanced-product-form"
 import { Plus, Edit, Trash2, Package, Search, Filter, Eye } from "lucide-react"
 import { toast } from "sonner"
-import { Link } from "react-router-dom"
+import Link from "next/link"
 
 interface Product {
   id: string
@@ -32,9 +32,9 @@ interface Category {
   id: string
   name: string
   slug: string
+  is_active: boolean
   description?: string
   image_url?: string
-  is_active: boolean
   sort_order?: number
   created_at?: string
 }
