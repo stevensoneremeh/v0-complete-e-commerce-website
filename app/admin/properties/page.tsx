@@ -248,7 +248,7 @@ export default function PropertiesPage() {
           <DialogHeader>
             <DialogTitle>{editingProperty ? "Edit Property" : "Add New Property"}</DialogTitle>
           </DialogHeader>
-          <PropertyForm property={editingProperty} onSubmit={handleSubmit} onCancel={() => setShowForm(false)} />
+          <PropertyForm property={editingProperty} onSave={handleSubmit} onCancel={() => setShowForm(false)} />
         </DialogContent>
       </Dialog>
     </div>
