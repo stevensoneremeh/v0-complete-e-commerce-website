@@ -94,7 +94,7 @@ export function FeaturedProducts() {
           .limit(5)
 
         if (data && !error) {
-          const formattedProducts = data.map((product) => ({
+          const formattedProducts = data.map((product: any) => ({
             id: String(product.id),
             name: product.name,
             price: Number.parseFloat(product.price),
