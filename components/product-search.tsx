@@ -83,7 +83,7 @@ export function ProductSearch({ onSearch, placeholder = "Search products...", cl
           .limit(5)
 
         if (data && !error) {
-          const searchResults: SearchResult[] = data.map((product) => ({
+          const searchResults: SearchResult[] = data.map((product: any) => ({
             id: product.id,
             name: product.name,
             price: Number.parseFloat(product.price),
