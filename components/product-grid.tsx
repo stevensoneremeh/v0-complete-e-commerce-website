@@ -120,7 +120,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
           .order("created_at", { ascending: false })
 
         if (data && !error) {
-          const formattedProducts = data.map((product) => ({
+          const formattedProducts = data.map((product: any) => ({
             id: product.id,
             name: product.name,
             price: Number.parseFloat(product.price),
