@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Upload, X, Loader2, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -14,11 +14,40 @@ interface FileUploadProps {
   multiple?: boolean
   maxFiles?: number
   className?: string
+  initialFiles?: string[]
 }
 
-export function FileUpload({ onUpload, onDelete, multiple = false, maxFiles = 5, className }: FileUploadProps) {
+export function FileUpload({ onUpload, onDelete, multiple = false, maxFiles = 5, className, initialFiles = [] }: FileUploadProps) {
   const [files, setFiles] = useState<Array<{ url: string; name: string; uploading: boolean }>>([])
   const [isDragging, setIsDragging] = useState(false)
+  const hasInitialized = useRef(false)
+  const prevInitialFilesRef = useRef<string[]>([])
+
+  // Smarter sync with initialFiles - only update when truly changed, preserve uploading files
+  useEffect(() => {
+    const initialFilesStr = JSON.stringify(initialFiles)
+    const prevFilesStr = JSON.stringify(prevInitialFilesRef.current)
+    
+    // Only sync if initialFiles actually changed OR this is first mount
+    if (initialFilesStr !== prevFilesStr || !hasInitialized.current) {
+      const uploadingFiles = files.filter((f) => f.uploading)
+      const initialFileObjects = initialFiles.map((url) => ({
+        url,
+        name: url.split('/').pop() || 'image',
+        uploading: false,
+      }))
+      
+      // Merge: keep uploading files + new initial files (avoid duplicates)
+      const mergedFiles = [
+        ...uploadingFiles,
+        ...initialFileObjects.filter((init) => !uploadingFiles.some((up) => up.url === init.url))
+      ]
+      
+      setFiles(mergedFiles)
+      prevInitialFilesRef.current = initialFiles
+      hasInitialized.current = true
+    }
+  }, [initialFiles, files])
   const [uploadProgress, setUploadProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -49,7 +78,11 @@ export function FileUpload({ onUpload, onDelete, multiple = false, maxFiles = 5,
       return
     }
 
-    if (files.length + selectedFiles.length > maxFiles) {
+    // Use initialFiles length for accurate max-file validation
+    const currentCount = initialFiles.length
+    const uploadingCount = files.filter(f => f.uploading).length
+    
+    if (currentCount + uploadingCount + selectedFiles.length > maxFiles) {
       toast.error(`Maximum ${maxFiles} files allowed`)
       return
     }

@@ -12,8 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
-import { Plus, Edit, Trash2, Tag } from "lucide-react"
+import { Plus, Edit, Trash2, Tag, Upload as UploadIcon } from "lucide-react"
 import { toast } from "sonner"
+import { FileUpload } from "@/components/admin/file-upload"
 
 interface Category {
   id: string
@@ -185,14 +186,42 @@ export default function CategoriesPage() {
                   rows={3}
                 />
               </div>
-              <div>
-                <Label htmlFor="image_url">Image URL</Label>
+              <div className="space-y-3">
+                <Label>Category Image</Label>
+                <FileUpload
+                  multiple={false}
+                  maxFiles={1}
+                  initialFiles={formData.image_url ? [formData.image_url] : []}
+                  onUpload={(url) => {
+                    setFormData((prev) => ({ ...prev, image_url: url }))
+                  }}
+                  onDelete={() => {
+                    setFormData((prev) => ({ ...prev, image_url: "" }))
+                  }}
+                />
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or enter URL</span>
+                  </div>
+                </div>
                 <Input
                   id="image_url"
                   value={formData.image_url}
                   onChange={(e) => setFormData((prev) => ({ ...prev, image_url: e.target.value }))}
-                  placeholder="Enter image URL"
+                  placeholder="Or paste image URL"
                 />
+                {formData.image_url && (
+                  <div className="mt-2">
+                    <img
+                      src={formData.image_url || "/placeholder.svg"}
+                      alt="Category preview"
+                      className="w-full h-32 object-cover rounded border"
+                    />
+                  </div>
+                )}
               </div>
               <div>
                 <Label htmlFor="display_order">Display Order</Label>
