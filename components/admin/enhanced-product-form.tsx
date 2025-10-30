@@ -12,8 +12,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, X } from "lucide-react"
+import { Plus, X, Upload } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { FileUpload } from "@/components/admin/file-upload"
 
 interface ProductFormProps {
   product?: any
@@ -329,32 +330,70 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
               <CardTitle>Product Images</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input placeholder="Image URL" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} />
-                <Button type="button" onClick={addImage}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                {formData.images.map((image: string, index: number) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={image || "/placeholder.svg"}
-                      alt={`Product ${index + 1}`}
-                      className="w-full h-24 object-cover rounded border"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"
-                      onClick={() => removeImage(index)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+              <div className="space-y-4">
+                <div>
+                  <Label className="mb-2 block">Upload Images</Label>
+                  <FileUpload
+                    multiple={true}
+                    maxFiles={10}
+                    initialFiles={formData.images}
+                    onUpload={(url) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        images: [...prev.images, url],
+                      }))
+                    }}
+                    onDelete={(url) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        images: prev.images.filter((img: string) => img !== url),
+                      }))
+                    }}
+                  />
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
                   </div>
-                ))}
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or enter image URL</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Input placeholder="Paste image URL" value={newImageUrl} onChange={(e) => setNewImageUrl(e.target.value)} />
+                  <Button type="button" onClick={addImage}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
+
+              {formData.images.length > 0 && (
+                <div>
+                  <Label className="mb-2 block">Current Images ({formData.images.length})</Label>
+                  <div className="grid grid-cols-3 gap-4">
+                    {formData.images.map((image: string, index: number) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image || "/placeholder.svg"}
+                          alt={`Product ${index + 1}`}
+                          className="w-full h-24 object-cover rounded border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

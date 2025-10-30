@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { X, Plus, Upload, Save, Eye, Tag, MapPin, Home } from "lucide-react"
 import { toast } from "sonner"
+import { FileUpload } from "@/components/admin/file-upload"
 
 interface PropertyFormProps {
   property?: any
@@ -368,37 +369,70 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
             <TabsContent value="media" className="space-y-6">
               <div className="space-y-4">
                 <Label>Property Images</Label>
+                <FileUpload
+                  multiple={true}
+                  maxFiles={15}
+                  initialFiles={formData.images}
+                  onUpload={(url) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      images: [...prev.images, url],
+                    }))
+                  }}
+                  onDelete={(url) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      images: prev.images.filter((img: string) => img !== url),
+                    }))
+                  }}
+                />
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or enter image URL</span>
+                  </div>
+                </div>
+
                 <div className="flex gap-2">
                   <Input
                     value={newImage}
                     onChange={(e) => setNewImage(e.target.value)}
-                    placeholder="Image URL"
+                    placeholder="Paste image URL"
                     onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addImage())}
                   />
                   <Button type="button" onClick={addImage} size="sm">
-                    <Upload className="h-4 w-4" />
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {formData.images.map((image: string, index: number) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={image || "/placeholder.svg"}
-                        alt={`Property ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removeImage(image)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
+
+                {formData.images.length > 0 && (
+                  <div>
+                    <Label className="mb-2 block">Current Images ({formData.images.length})</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {formData.images.map((image: string, index: number) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={image || "/placeholder.svg"}
+                            alt={`Property ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImage(image)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">

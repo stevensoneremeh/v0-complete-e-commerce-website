@@ -7,7 +7,7 @@ integrations = ["javascript_supabase:1.0.0"]
 channel = "stable-25_05"
 
 [workflows]
-runButton = "Dev Server"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -22,13 +22,13 @@ args = "Frontend Server"
 name = "Frontend Server"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev -- --port=5000 --hostname=0.0.0.0"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev -- -p 5000 -H 0.0.0.0"
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Dev Server"
@@ -46,10 +46,6 @@ args = "pnpm run dev -- --port=5000 --hostname=0.0.0.0"
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 33867
-externalPort = 3003
 
 [[ports]]
 localPort = 39029
