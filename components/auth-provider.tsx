@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { createClient } from "@/lib/supabase/client"
-import type { User as SupabaseUser, AuthChangeEvent } from "@supabase/supabase-js"
+import type { User as SupabaseUser, AuthChangeEvent, Session } from "@supabase/supabase-js"
 
 interface User {
   id: string
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
+    } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
       if (event === "SIGNED_OUT" || !session) {
         setUser(null)
       } else if (session?.user) {
