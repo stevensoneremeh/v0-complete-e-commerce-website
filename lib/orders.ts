@@ -7,7 +7,7 @@ export interface OrderItem {
   quantity: number
   image: string
   product_id: string
-  product_sku?: string
+  sku?: string
 }
 
 export interface Order {
@@ -53,7 +53,7 @@ export interface CreateOrderData {
   items: Array<{
     product_id: string
     product_name: string
-    product_sku?: string
+    sku?: string
     quantity: number
     unit_price: number
   }>
@@ -131,12 +131,11 @@ export async function createOrderClient(
       return { order: null, error: orderError.message }
     }
 
-    // Create order items
     const orderItems = orderData.items.map((item) => ({
       order_id: order.id,
       product_id: item.product_id,
       product_name: item.product_name,
-      product_sku: item.product_sku,
+      sku: item.sku,
       quantity: item.quantity,
       unit_price: item.unit_price,
       total_price: item.quantity * item.unit_price,
@@ -172,7 +171,7 @@ export async function getOrderByIdClient(orderId: string): Promise<Order | null>
           id,
           product_id,
           product_name,
-          product_sku,
+          sku,
           quantity,
           unit_price,
           total_price
@@ -228,7 +227,7 @@ export async function getOrderByIdClient(orderId: string): Promise<Order | null>
         quantity: item.quantity,
         image: "/placeholder.svg?height=100&width=100",
         product_id: item.product_id,
-        product_sku: item.product_sku,
+        sku: item.sku,
       })),
     }
 
@@ -251,7 +250,7 @@ export async function getUserOrdersClient(userId: string): Promise<Order[]> {
           id,
           product_id,
           product_name,
-          product_sku,
+          sku,
           quantity,
           unit_price,
           total_price
@@ -306,7 +305,7 @@ export async function getUserOrdersClient(userId: string): Promise<Order[]> {
         quantity: item.quantity,
         image: "/placeholder.svg?height=100&width=100",
         product_id: item.product_id,
-        product_sku: item.product_sku,
+        sku: item.sku,
       })),
     }))
   } catch (error) {
