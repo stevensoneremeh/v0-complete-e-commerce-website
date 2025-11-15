@@ -17,7 +17,19 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import { ShoppingCart, Users, Package, TrendingUp, DollarSign, AlertCircle, CheckCircle, Clock } from "lucide-react"
+import {
+  ShoppingCart,
+  Users,
+  Package,
+  TrendingUp,
+  DollarSign,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Home,
+  Briefcase,
+  RefreshCw,
+} from "lucide-react"
 import { toast } from "sonner"
 
 interface DashboardStats {
@@ -25,12 +37,16 @@ interface DashboardStats {
   totalRevenue: number
   totalCustomers: number
   totalProducts: number
+  totalProperties: number
+  totalHireItems: number
   pendingOrders: number
   lowStockProducts: number
   recentOrders: any[]
+  recentBookings: any[]
   salesData: any[]
   orderStatusData: any[]
   topProducts: any[]
+  topProperties: any[]
 }
 
 export default function AdminDashboard() {
@@ -44,13 +60,20 @@ export default function AdminDashboard() {
 
   const fetchDashboardStats = async () => {
     try {
+      setLoading(true)
       const response = await fetch(`/api/admin/dashboard?range=${timeRange}`)
       if (response.ok) {
         const data = await response.json()
         setStats(data)
+      } else if (response.status === 401) {
+        toast.error("Admin access denied. Please log in again.")
+        window.location.href = "/auth"
+      } else {
+        toast.error("Failed to fetch dashboard stats")
       }
     } catch (error) {
-      toast.error("Failed to fetch dashboard stats")
+      console.error("[v0] Error fetching dashboard stats:", error)
+      toast.error("Error loading dashboard")
     } finally {
       setLoading(false)
     }
@@ -59,107 +82,149 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="text-center py-12">Loading dashboard...</div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
+            <p className="text-muted-foreground">Loading dashboard...</p>
+          </div>
+        </div>
       </div>
     )
   }
 
-  const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
+  const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"]
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* Header with Time Range */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
+          <p className="text-muted-foreground">Welcome back! Here's your complete business overview.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant={timeRange === "7d" ? "default" : "outline"} onClick={() => setTimeRange("7d")} size="sm">
-            7 Days
-          </Button>
-          <Button variant={timeRange === "30d" ? "default" : "outline"} onClick={() => setTimeRange("30d")} size="sm">
-            30 Days
-          </Button>
-          <Button variant={timeRange === "90d" ? "default" : "outline"} onClick={() => setTimeRange("90d")} size="sm">
-            90 Days
-          </Button>
+        <div className="flex gap-2 flex-wrap">
+          {["7d", "30d", "90d"].map((range) => (
+            <Button
+              key={range}
+              variant={timeRange === range ? "default" : "outline"}
+              onClick={() => setTimeRange(range)}
+              size="sm"
+            >
+              {range === "7d" ? "7 Days" : range === "30d" ? "30 Days" : "90 Days"}
+            </Button>
+          ))}
         </div>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Key Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {/* Total Orders */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-blue-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              Total Orders
+              <ShoppingCart className="h-4 w-4 text-blue-600" />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalOrders || 0}</div>
-            <p className="text-xs text-muted-foreground">{stats?.pendingOrders || 0} pending orders</p>
+            <p className="text-xs text-orange-600 font-medium">{stats?.pendingOrders || 0} pending</p>
           </CardContent>
         </Card>
 
         {/* Total Revenue */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              Total Revenue
+              <DollarSign className="h-4 w-4 text-green-600" />
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats?.totalRevenue?.toFixed(2) || "0.00"}</div>
+            <div className="text-2xl font-bold">${stats?.totalRevenue?.toFixed(0) || "0"}</div>
             <p className="text-xs text-muted-foreground">From all orders</p>
           </CardContent>
         </Card>
 
         {/* Total Customers */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-            <Users className="h-4 w-4 text-purple-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              Customers
+              <Users className="h-4 w-4 text-purple-600" />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalCustomers || 0}</div>
-            <p className="text-xs text-muted-foreground">Active customers</p>
+            <p className="text-xs text-muted-foreground">Active users</p>
           </CardContent>
         </Card>
 
         {/* Total Products */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-orange-600" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              Products
+              <Package className="h-4 w-4 text-orange-600" />
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalProducts || 0}</div>
-            <p className="text-xs text-muted-foreground">{stats?.lowStockProducts || 0} low stock</p>
+            <p className="text-xs text-red-600 font-medium">{stats?.lowStockProducts || 0} low stock</p>
+          </CardContent>
+        </Card>
+
+        {/* Properties */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              Properties
+              <Home className="h-4 w-4 text-cyan-600" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalProperties || 0}</div>
+            <p className="text-xs text-muted-foreground">Listings</p>
+          </CardContent>
+        </Card>
+
+        {/* Hire Services */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              Hire Services
+              <Briefcase className="h-4 w-4 text-indigo-600" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalHireItems || 0}</div>
+            <p className="text-xs text-muted-foreground">Available</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts */}
+      {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales Chart */}
+        {/* Sales Trend */}
         <Card>
           <CardHeader>
-            <CardTitle>Sales Trend</CardTitle>
+            <CardTitle className="text-lg">Sales Trend</CardTitle>
           </CardHeader>
           <CardContent>
             {stats?.salesData && stats.salesData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={stats.salesData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="sales" stroke="#3b82f6" name="Sales" />
-                  <Line type="monotone" dataKey="orders" stroke="#10b981" name="Orders" />
+                  <Line type="monotone" dataKey="sales" stroke="#3b82f6" strokeWidth={2} name="Sales" />
+                  <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} name="Orders" />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-300 flex items-center justify-center text-muted-foreground">
+              <div className="h-250 flex items-center justify-center text-muted-foreground">
                 No sales data available
               </div>
             )}
@@ -169,11 +234,11 @@ export default function AdminDashboard() {
         {/* Order Status Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle>Order Status Distribution</CardTitle>
+            <CardTitle className="text-lg">Order Status</CardTitle>
           </CardHeader>
           <CardContent>
             {stats?.orderStatusData && stats.orderStatusData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
                     data={stats.orderStatusData}
@@ -193,7 +258,7 @@ export default function AdminDashboard() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-300 flex items-center justify-center text-muted-foreground">
+              <div className="h-250 flex items-center justify-center text-muted-foreground">
                 No order data available
               </div>
             )}
@@ -201,14 +266,14 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Alerts and Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Alerts and Summaries Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Alerts */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-orange-600" />
-              Alerts & Notifications
+              Alerts
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -216,8 +281,8 @@ export default function AdminDashboard() {
               <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
                 <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-sm">{stats.lowStockProducts} Products Low on Stock</p>
-                  <p className="text-xs text-muted-foreground">Consider reordering to avoid stockouts</p>
+                  <p className="font-medium text-sm">{stats.lowStockProducts} Products Low Stock</p>
+                  <p className="text-xs text-muted-foreground">Reorder to avoid stockouts</p>
                 </div>
               </div>
             ) : null}
@@ -227,7 +292,7 @@ export default function AdminDashboard() {
                 <Clock className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-sm">{stats.pendingOrders} Pending Orders</p>
-                  <p className="text-xs text-muted-foreground">Review and process these orders</p>
+                  <p className="text-xs text-muted-foreground">Review and process</p>
                 </div>
               </div>
             ) : null}
@@ -237,7 +302,7 @@ export default function AdminDashboard() {
                 <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-sm">All Systems Operational</p>
-                  <p className="text-xs text-muted-foreground">No critical alerts at this time</p>
+                  <p className="text-xs text-muted-foreground">No critical alerts</p>
                 </div>
               </div>
             ) : null}
@@ -247,60 +312,118 @@ export default function AdminDashboard() {
         {/* Top Products */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              Top Selling Products
+              Top Products
             </CardTitle>
           </CardHeader>
           <CardContent>
             {stats?.topProducts && stats.topProducts.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {stats.topProducts.slice(0, 5).map((product, index) => (
                   <div key={index} className="flex items-center justify-between p-2 hover:bg-muted rounded">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.sales} sales</p>
-                    </div>
-                    <Badge variant="secondary">${product.revenue?.toFixed(2) || "0.00"}</Badge>
+                    <p className="text-sm font-medium truncate">{product.name}</p>
+                    <Badge variant="secondary">{product.sales} sold</Badge>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">No product data available</div>
+              <div className="text-center py-8 text-muted-foreground text-sm">No data</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top Properties */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Home className="h-5 w-5 text-cyan-600" />
+              Top Properties
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats?.topProperties && stats.topProperties.length > 0 ? (
+              <div className="space-y-2">
+                {stats.topProperties.slice(0, 5).map((property, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 hover:bg-muted rounded">
+                    <p className="text-sm font-medium truncate">{property.title}</p>
+                    <Badge variant="secondary">{property.bookings} bookings</Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground text-sm">No data</div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Orders */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Recent Orders
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {stats?.recentOrders && stats.recentOrders.length > 0 ? (
-            <div className="space-y-3">
-              {stats.recentOrders.slice(0, 5).map((order, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{order.order_number}</p>
-                    <p className="text-xs text-muted-foreground">{order.customer_name}</p>
+      {/* Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Orders */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Recent Orders
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats?.recentOrders && stats.recentOrders.length > 0 ? (
+              <div className="space-y-2">
+                {stats.recentOrders.slice(0, 5).map((order, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{order.order_number}</p>
+                      <p className="text-xs text-muted-foreground truncate">{order.customer_name}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Badge variant={order.status === "completed" ? "default" : "secondary"} className="text-xs">
+                        {order.status}
+                      </Badge>
+                      <p className="text-sm font-medium">${order.total?.toFixed(0) || "0"}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant={order.status === "completed" ? "default" : "secondary"}>{order.status}</Badge>
-                    <p className="font-medium text-sm">${order.total?.toFixed(2) || "0.00"}</p>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground text-sm">No recent orders</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Bookings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Home className="h-5 w-5" />
+              Recent Bookings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats?.recentBookings && stats.recentBookings.length > 0 ? (
+              <div className="space-y-2">
+                {stats.recentBookings.slice(0, 5).map((booking, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{booking.booking_reference}</p>
+                      <p className="text-xs text-muted-foreground truncate">{booking.guest_name}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Badge variant={booking.status === "confirmed" ? "default" : "secondary"} className="text-xs">
+                        {booking.status}
+                      </Badge>
+                      <p className="text-sm font-medium">${booking.total_amount?.toFixed(0) || "0"}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">No recent orders</div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground text-sm">No recent bookings</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

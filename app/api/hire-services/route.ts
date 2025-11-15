@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
       .select("*")
       .eq("is_active", true)
       .order("service_type", { ascending: true })
-      .order("sort_order", { ascending: true })
 
     if (error) {
       console.error("Error fetching hire services:", error)

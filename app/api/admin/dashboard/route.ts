@@ -1,24 +1,27 @@
-import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
+import { verifyAdmin } from "@/lib/auth/admin-guard"
 
 export async function GET(request: NextRequest) {
   try {
+    const { supabase, error: authError } = await verifyAdmin()
+    if (authError) return authError
+
     const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-          },
-        },
-      },
-    )
+    // const supabase = createServerClient(
+    //   process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    //   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    //   {
+    //     cookies: {
+    //       getAll() {
+    //         return cookieStore.getAll()
+    //       },
+    //       setAll(cookiesToSet) {
+    //         cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+    //       },
+    //     },
+    //   },
+    // )
 
     const { searchParams } = new URL(request.url)
     const range = searchParams.get("range") || "7d"
@@ -33,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Fetch dashboard statistics
     const [ordersRes, customersRes, productsRes, categoriesRes] = await Promise.all([
       supabase.from("orders").select("*").gte("created_at", startDate.toISOString()),
-      supabase.from("profiles").select("*"),
+      supabase.from("profiles").select("id, created_at"),
       supabase.from("products").select("*"),
       supabase.from("categories").select("*"),
     ])

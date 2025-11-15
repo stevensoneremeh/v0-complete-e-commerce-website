@@ -57,6 +57,9 @@ const OrderContext = createContext<{
 } | null>(null)
 
 const convertDatabaseOrderToLegacy = (dbOrder: Order): LegacyOrder => {
+  const shippingName = dbOrder.shipping_name || ""
+  const nameParts = shippingName.split(" ")
+
   return {
     id: dbOrder.order_number,
     date: new Date(dbOrder.created_at).toISOString().split("T")[0],
@@ -74,8 +77,8 @@ const convertDatabaseOrderToLegacy = (dbOrder: Order): LegacyOrder => {
       ? new Date(new Date(dbOrder.shipped_at).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
       : null,
     shippingAddress: {
-      firstName: dbOrder.shipping_name.split(" ")[0] || "",
-      lastName: dbOrder.shipping_name.split(" ").slice(1).join(" ") || "",
+      firstName: nameParts[0] || "",
+      lastName: nameParts.slice(1).join(" ") || "",
       address: dbOrder.shipping_address,
       city: dbOrder.shipping_city,
       state: "", // Not stored separately in database

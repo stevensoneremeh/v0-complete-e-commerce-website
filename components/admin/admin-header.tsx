@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Settings } from "lucide-react"
+import { Bell, Settings, LogOut } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,10 +16,12 @@ import { Badge } from "@/components/ui/badge"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import { getNotifications } from "@/lib/local-storage"
+import { useAuth } from "@/components/auth-provider"
 
 export function AdminHeader() {
   const pathname = usePathname()
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0)
+  const { user } = useAuth()
 
   useEffect(() => {
     const updateNotificationCount = () => {
@@ -48,6 +50,7 @@ export function AdminHeader() {
       "/admin/hire-bookings": "Hire Services",
       "/admin/real-estate": "Real Estate",
       "/admin/reviews": "Reviews",
+      "/admin/hire-items": "Hire Items",
     }
     return titleMap[pathname] || "Admin Panel"
   }
@@ -77,16 +80,16 @@ export function AdminHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder-user.jpg" alt="Admin" />
-                <AvatarFallback>AD</AvatarFallback>
+                <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.name} />
+                <AvatarFallback>{user?.name?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Admin User</p>
-                <p className="text-xs leading-none text-muted-foreground">admin@ablnatasha.com</p>
+                <p className="text-sm font-medium leading-none">{user?.name}</p>
+                <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -98,7 +101,10 @@ export function AdminHeader() {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/auth">Log out</Link>
+              <Link href="/auth" className="flex items-center">
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

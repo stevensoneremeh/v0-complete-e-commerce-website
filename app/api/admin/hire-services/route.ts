@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
       .from("hire_services")
       .select("*")
       .order("service_type", { ascending: true })
-      .order("sort_order", { ascending: true })
 
     if (dbError) {
       console.error("Error fetching hire services:", dbError)

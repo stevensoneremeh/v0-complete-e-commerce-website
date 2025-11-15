@@ -49,12 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user && session.expires_at && session.expires_at * 1000 > Date.now()) {
           await fetchUserProfile(session.user)
         } else if (session?.user) {
-          // Session expired, clear it
           await supabase.auth.signOut()
         }
       } catch (error) {
-        console.error("Error getting session:", error)
-        // Clear any invalid session
+        console.error("[v0] Error getting session:", error)
         if (supabase) {
           try {
             await supabase.auth.signOut()
@@ -92,63 +90,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (!supabase) return
 
-      const ADMIN_EMAIL = "talktostevenson@gmail.com"
+      const response = await fetch("/api/auth/verify-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
 
-      // Check if profile exists
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", supabaseUser.id)
-        .single()
-
-      // Auto-grant admin access to designated admin email
-      if (supabaseUser.email === ADMIN_EMAIL) {
-        if (!profile || !profile.is_admin) {
-          // Upsert profile with admin privileges
-          await supabase.from("profiles").upsert(
-            {
-              id: supabaseUser.id,
-              email: supabaseUser.email,
-              full_name: profile?.full_name || supabaseUser.user_metadata?.full_name || "Admin User",
-              is_admin: true,
-              role: "admin",
-              updated_at: new Date().toISOString(),
-            },
-            {
-              onConflict: "id",
-            },
-          )
-        }
-
-        const userData: User = {
-          id: supabaseUser.id,
-          name: profile?.full_name || supabaseUser.user_metadata?.full_name || "Admin User",
-          email: supabaseUser.email || "",
-          role: "admin",
-          avatar: supabaseUser.user_metadata?.avatar_url,
-        }
-
-        setUser(userData)
-        return
+      if (!response.ok) {
+        throw new Error("Failed to verify user")
       }
 
-      // For non-admin users
-      if (profileError && profileError.code !== "PGRST116") {
-        console.error("Error fetching profile:", profileError)
-        return
-      }
+      const data = await response.json()
 
       const userData: User = {
         id: supabaseUser.id,
-        name: profile?.full_name || supabaseUser.user_metadata?.full_name || "User",
+        name: data.user?.fullName || supabaseUser.user_metadata?.full_name || "User",
         email: supabaseUser.email || "",
-        role: profile?.is_admin ? "admin" : "user",
+        role: data.isAdmin ? "admin" : "user",
         avatar: supabaseUser.user_metadata?.avatar_url,
       }
 
       setUser(userData)
     } catch (error) {
-      console.error("Error in fetchUserProfile:", error)
+      console.error("[v0] Error in fetchUserProfile:", error)
+      // Still set basic user data even if profile fetch fails
+      const userData: User = {
+        id: supabaseUser.id,
+        name: supabaseUser.user_metadata?.full_name || "User",
+        email: supabaseUser.email || "",
+        role: "user",
+        avatar: supabaseUser.user_metadata?.avatar_url,
+      }
+      setUser(userData)
     }
   }
 
@@ -172,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchUserProfile(data.user)
       }
     } catch (error) {
-      console.error("Login error:", error)
+      console.error("[v0] Login error:", error)
       throw error
     } finally {
       setIsLoading(false)
@@ -185,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase.auth.signOut()
       setUser(null)
     } catch (error) {
-      console.error("Logout error:", error)
+      console.error("[v0] Logout error:", error)
     }
   }
 
@@ -212,33 +184,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(error.message)
       }
 
-      // Create profile record
       if (data.user) {
-        // Auto-grant admin access to designated admin email
-        const ADMIN_EMAIL = "talktostevenson@gmail.com"
-        const isAdmin = data.user.email === ADMIN_EMAIL
-
-        const { error: profileError } = await supabase.from("profiles").insert([
-          {
-            id: data.user.id,
-            email: data.user.email,
-            full_name: name,
-            is_admin: isAdmin,
-            role: isAdmin ? "admin" : "user",
-          },
-        ])
-
-        if (profileError) {
-          console.error("Error creating profile:", profileError)
+        try {
+          await fetch("/api/auth/setup-profile", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: data.user.id,
+              email: data.user.email,
+              fullName: name,
+            }),
+          })
+        } catch (err) {
+          console.error("[v0] Error setting up profile:", err)
         }
 
-        // If user is immediately confirmed, fetch profile
         if (data.user.email_confirmed_at) {
           await fetchUserProfile(data.user)
         }
       }
     } catch (error) {
-      console.error("Signup error:", error)
+      console.error("[v0] Signup error:", error)
       throw error
     } finally {
       setIsLoading(false)

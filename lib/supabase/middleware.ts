@@ -3,10 +3,10 @@ import { NextResponse, type NextRequest } from "next/server"
 
 export async function updateSession(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  // Skip Supabase operations if environment variables are not available (e.g., during build)
-  if (!supabaseUrl || !supabaseAnonKey) {
+  // Skip Supabase operations if environment variables are not available
+  if (!supabaseUrl || !supabaseServiceKey) {
     return NextResponse.next({ request })
   }
 
@@ -14,9 +14,7 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
-  // With Fluid compute, don't put this client in a global environment
-  // variable. Always create a new one on each request.
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient(supabaseUrl, supabaseServiceKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll()
@@ -31,17 +29,10 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  // IMPORTANT: If you remove getUser() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect admin routes
   if (request.nextUrl.pathname.startsWith("/admin")) {
     if (!user) {
       const url = request.nextUrl.clone()
@@ -49,16 +40,35 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Check if user is admin
-    const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("is_admin, role")
+        .eq("id", user.id)
+        .single()
 
-    if (!profile?.is_admin) {
+      // If admin check fails, deny access
+      if (profileError || !profile) {
+        console.warn("[v0] Admin verification failed for admin route")
+        const url = request.nextUrl.clone()
+        url.pathname = "/"
+        return NextResponse.redirect(url)
+      }
+
+      const isAdmin = profile.is_admin === true || profile.role === "admin"
+      if (!isAdmin) {
+        console.warn("[v0] User is not admin, denying admin route access")
+        const url = request.nextUrl.clone()
+        url.pathname = "/"
+        return NextResponse.redirect(url)
+      }
+    } catch (error) {
+      console.error("[v0] Error verifying admin status:", error)
       const url = request.nextUrl.clone()
       url.pathname = "/"
       return NextResponse.redirect(url)
     }
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
   return supabaseResponse
 }

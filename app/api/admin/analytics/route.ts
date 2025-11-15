@@ -10,7 +10,7 @@ export async function GET() {
 
     const { data: products, error: productsError } = await supabase.from("products").select("*")
 
-    const { data: customers, error: customersError } = await supabase.from("profiles").select("*")
+    const { data: customers, error: customersError } = await supabase.from("profiles").select("id, created_at")
 
     if (ordersError || productsError || customersError) {
       console.error("Error fetching analytics data:", {
@@ -26,8 +26,8 @@ export async function GET() {
 
     const totalRevenue = orders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0
 
-    const recentOrders = orders?.filter(order => new Date(order.created_at) > lastMonth) || []
-    const oldOrders = orders?.filter(order => new Date(order.created_at) <= lastMonth) || []
+    const recentOrders = orders?.filter((order) => new Date(order.created_at) > lastMonth) || []
+    const oldOrders = orders?.filter((order) => new Date(order.created_at) <= lastMonth) || []
 
     const recentRevenue = recentOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
     const oldRevenue = oldOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
@@ -36,7 +36,7 @@ export async function GET() {
 
     const orderGrowth = oldOrders.length > 0 ? ((recentOrders.length - oldOrders.length) / oldOrders.length) * 100 : 0
 
-    const recentCustomers = customers?.filter(customer => new Date(customer.created_at) > lastMonth) || []
+    const recentCustomers = customers?.filter((customer) => new Date(customer.created_at) > lastMonth) || []
     const customerGrowth =
       (customers?.length || 0) - recentCustomers.length > 0
         ? (recentCustomers.length / ((customers?.length || 0) - recentCustomers.length)) * 100

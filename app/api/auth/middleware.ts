@@ -29,14 +29,18 @@ export async function verifyAdmin(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Check if user is admin
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("is_admin, role")
       .eq("id", user.id)
       .single()
 
-    if (profileError || !profile?.is_admin) {
+    if (profileError || !profile) {
+      return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 })
+    }
+
+    const isAdmin = profile.is_admin === true || profile.role === "admin"
+    if (!isAdmin) {
       return NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 })
     }
 
