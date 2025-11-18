@@ -94,14 +94,18 @@ export async function POST(request: NextRequest) {
         })
 
         if (insertError) {
-          return NextResponse.json({
-            authenticated: true,
-            userId: user.id,
-            email: user.email,
-            profileExists: false,
-            isAdmin: false,
-            error: `Failed to create profile: ${insertError.message}`,
-          })
+          return NextResponse.json(
+            {
+              authenticated: true,
+              userId: user.id,
+              email: user.email,
+              profileExists: false,
+              isAdmin: false,
+              error: `Failed to create profile: ${insertError.message}`,
+              success: false,
+            },
+            { status: 500 }
+          )
         }
 
         return NextResponse.json({
@@ -112,6 +116,7 @@ export async function POST(request: NextRequest) {
           isAdmin: true,
           role: "admin",
           fixed: true,
+          success: true,
         })
       } else if (profile.is_admin !== true || profile.role !== "admin") {
         const { error: updateError } = await supabaseAdmin
@@ -124,15 +129,19 @@ export async function POST(request: NextRequest) {
           .eq("id", user.id)
 
         if (updateError) {
-          return NextResponse.json({
-            authenticated: true,
-            userId: user.id,
-            email: user.email,
-            profileExists: true,
-            isAdmin: false,
-            role: profile.role,
-            error: `Failed to update profile: ${updateError.message}`,
-          })
+          return NextResponse.json(
+            {
+              authenticated: true,
+              userId: user.id,
+              email: user.email,
+              profileExists: true,
+              isAdmin: false,
+              role: profile.role,
+              error: `Failed to update profile: ${updateError.message}`,
+              success: false,
+            },
+            { status: 500 }
+          )
         }
 
         return NextResponse.json({
@@ -143,6 +152,7 @@ export async function POST(request: NextRequest) {
           isAdmin: true,
           role: "admin",
           fixed: true,
+          success: true,
         })
       }
     }

@@ -51,16 +51,22 @@ export default function AdminAccessPage() {
       const response = await fetch("/api/admin/verify-access?fix=true", {
         method: "POST",
       })
-      if (response.ok) {
-        toast.success("Profile updated! Redirecting...")
+      
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
+        toast.success("Admin access granted! Redirecting to dashboard...")
         setTimeout(() => {
           window.location.href = "/admin"
         }, 1500)
       } else {
-        toast.error("Failed to fix profile")
+        const errorMessage = data.error || "Failed to update admin permissions"
+        toast.error(errorMessage)
+        setResult(data)
       }
     } catch (error) {
-      toast.error("Error fixing profile")
+      console.error("Fix profile error:", error)
+      toast.error("Error fixing profile. Please try again.")
     }
   }
 

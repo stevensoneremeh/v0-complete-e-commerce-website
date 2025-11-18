@@ -40,49 +40,27 @@ export function AdminSidebar() {
     },
     {
       id: "catalog",
-      label: "Catalog Management",
+      label: "Store Management",
       items: [
         { href: "/admin/products", icon: Package, label: "Products" },
         { href: "/admin/categories", icon: Tag, label: "Categories" },
-        { href: "/admin/reviews", icon: Star, label: "Reviews" },
+        { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
       ],
     },
     {
       id: "properties",
-      label: "Properties & Rentals",
+      label: "Property Management",
       items: [
         { href: "/admin/properties", icon: Building2, label: "Properties" },
-        { href: "/admin/real-estate", icon: HomeIcon, label: "Real Estate" },
         { href: "/admin/bookings", icon: Calendar, label: "Bookings" },
       ],
     },
     {
-      id: "services",
-      label: "Services",
-      items: [{ href: "/admin/hire-bookings", icon: Car, label: "Hire Services" }],
-    },
-    {
-      id: "sales",
-      label: "Sales & Orders",
-      items: [
-        { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
-        { href: "/admin/coupons", icon: TicketPercent, label: "Coupons" },
-      ],
-    },
-    {
       id: "users",
-      label: "Users & Communication",
+      label: "Customer Management",
       items: [
         { href: "/admin/customers", icon: Users, label: "Customers" },
-        { href: "/admin/notifications", icon: Bell, label: "Notifications" },
-      ],
-    },
-    {
-      id: "analytics",
-      label: "Analytics & Settings",
-      items: [
-        { href: "/admin/analytics", icon: BarChart, label: "Analytics" },
-        { href: "/admin/settings", icon: Settings, label: "Settings" },
+        { href: "/admin/coupons", icon: TicketPercent, label: "Coupons" },
       ],
     },
   ]
