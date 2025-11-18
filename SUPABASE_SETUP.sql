@@ -257,7 +257,17 @@ ALTER TABLE wishlists ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can read own profile" ON profiles;
 CREATE POLICY "Users can read own profile" ON profiles FOR SELECT USING (auth.uid() = id);
 
-DROP POLICY IF EXISTS "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+-- Users can update their own profile but CANNOT change is_admin or role
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+CREATE POLICY "Users can update own profile" ON profiles 
+FOR UPDATE 
+USING (auth.uid() = id)
+WITH CHECK (
+  auth.uid() = id AND
+  -- Prevent privilege escalation: is_admin and role must remain unchanged
+  is_admin IS NOT DISTINCT FROM (SELECT is_admin FROM profiles WHERE id = auth.uid()) AND
+  role IS NOT DISTINCT FROM (SELECT role FROM profiles WHERE id = auth.uid())
+);
 
 DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
 CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT USING (
