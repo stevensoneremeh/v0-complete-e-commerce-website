@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { NextResponse } from "next/server"
 
 export async function verifyAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -7,7 +8,10 @@ export async function verifyAdmin() {
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.warn("[v0] Supabase environment variables not configured")
-    return { isAdmin: false, error: "Service not configured" }
+    return { 
+      supabase: null, 
+      error: NextResponse.json({ error: "Service not configured" }, { status: 503 })
+    }
   }
 
   try {
@@ -33,7 +37,10 @@ export async function verifyAdmin() {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return { isAdmin: false, error: "Unauthorized" }
+      return { 
+        supabase: null, 
+        error: NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
     }
 
     const { data: profile, error: profileError } = await supabase
@@ -44,14 +51,27 @@ export async function verifyAdmin() {
 
     if (profileError) {
       console.warn("[v0] Error fetching profile:", profileError)
-      return { isAdmin: false, error: "Error verifying admin status" }
+      return { 
+        supabase: null, 
+        error: NextResponse.json({ error: "Error verifying admin status" }, { status: 500 })
+      }
     }
 
     const isAdmin = profile?.is_admin === true || profile?.role === "admin"
 
-    return { isAdmin, error: null }
+    if (!isAdmin) {
+      return {
+        supabase: null,
+        error: NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 })
+      }
+    }
+
+    return { supabase, error: null }
   } catch (error) {
     console.error("[v0] Admin verification error:", error)
-    return { isAdmin: false, error: "Verification failed" }
+    return { 
+      supabase: null, 
+      error: NextResponse.json({ error: "Verification failed" }, { status: 500 })
+    }
   }
 }
