@@ -51,7 +51,8 @@ export async function updateSession(request: NextRequest) {
       if (profileError || !profile) {
         console.warn("[v0] Admin verification failed for admin route")
         const url = request.nextUrl.clone()
-        url.pathname = "/"
+        url.pathname = "/auth"
+        url.searchParams.set("redirect", request.nextUrl.pathname)
         return NextResponse.redirect(url)
       }
 
@@ -59,7 +60,7 @@ export async function updateSession(request: NextRequest) {
       if (!isAdmin) {
         console.warn("[v0] User is not admin, denying admin route access")
         const url = request.nextUrl.clone()
-        url.pathname = "/"
+        url.pathname = "/admin/access"
         return NextResponse.redirect(url)
       }
     } catch (error) {
