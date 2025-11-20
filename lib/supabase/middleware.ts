@@ -14,6 +14,7 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  // Create service role client - this bypasses RLS
   const supabase = createServerClient(supabaseUrl, supabaseServiceKey, {
     cookies: {
       getAll() {
@@ -34,39 +35,56 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   if (request.nextUrl.pathname.startsWith("/admin")) {
+    // Allow access to /admin/access for diagnostics
+    if (request.nextUrl.pathname === "/admin/access") {
+      return supabaseResponse
+    }
+
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = "/auth"
+      url.searchParams.set("redirect", request.nextUrl.pathname)
       return NextResponse.redirect(url)
     }
 
     try {
+      // Use service role to bypass RLS and avoid infinite recursion
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("is_admin, role")
+        .select("is_admin, role, email")
         .eq("id", user.id)
-        .single()
+        .maybeSingle()
 
-      // If admin check fails, deny access
-      if (profileError || !profile) {
-        console.warn("[v0] Admin verification failed for admin route")
-        const url = request.nextUrl.clone()
-        url.pathname = "/auth"
-        url.searchParams.set("redirect", request.nextUrl.pathname)
-        return NextResponse.redirect(url)
-      }
-
-      const isAdmin = profile.is_admin === true || profile.role === "admin"
-      if (!isAdmin) {
-        console.warn("[v0] User is not admin, denying admin route access")
+      // If profile doesn't exist or query fails, redirect to access page
+      if (profileError) {
+        console.error("[Middleware] Profile query error:", profileError.message)
         const url = request.nextUrl.clone()
         url.pathname = "/admin/access"
         return NextResponse.redirect(url)
       }
+
+      if (!profile) {
+        console.warn("[Middleware] No profile found for user:", user.id)
+        const url = request.nextUrl.clone()
+        url.pathname = "/admin/access"
+        return NextResponse.redirect(url)
+      }
+
+      const isAdmin = profile.is_admin === true || profile.role === "admin"
+      
+      if (!isAdmin) {
+        console.warn("[Middleware] User is not admin:", user.email)
+        const url = request.nextUrl.clone()
+        url.pathname = "/admin/access"
+        return NextResponse.redirect(url)
+      }
+
+      // Admin access granted
+      console.log("[Middleware] Admin access granted:", user.email)
     } catch (error) {
-      console.error("[v0] Error verifying admin status:", error)
+      console.error("[Middleware] Unexpected error verifying admin:", error)
       const url = request.nextUrl.clone()
-      url.pathname = "/"
+      url.pathname = "/admin/access"
       return NextResponse.redirect(url)
     }
   }
