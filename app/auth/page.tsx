@@ -1,9 +1,8 @@
-
 "use client"
 
 import type React from "react"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -12,9 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useAuth } from "@/components/auth-provider"
 import { Eye, EyeOff, ArrowLeft, Home } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
-import { toast } from "sonner"
 
 export default function AuthPage() {
   const [loginEmail, setLoginEmail] = useState("")
@@ -29,39 +27,35 @@ export default function AuthPage() {
   const [loginError, setLoginError] = useState("")
   const [signupError, setSignupError] = useState("")
   const [signupSuccess, setSignupSuccess] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const { login, signup, isLoading, user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (user) {
+      router.push("/")
+    }
+  }, [user, router])
+
+  useEffect(() => {
+    const error = searchParams.get("error")
+    if (error === "callback_error") {
+      setLoginError("Authentication failed. Please try again.")
+    } else if (error === "unexpected_error") {
+      setLoginError("An unexpected error occurred. Please try again.")
+    }
+  }, [searchParams])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoginError("")
-    setIsLoading(true)
 
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: loginPassword,
-      })
-
-      if (error) {
-        setLoginError(error.message)
-        setIsLoading(false)
-        return
-      }
-
-      if (data.user) {
-        toast.success("Logged in successfully!")
-        const redirect = searchParams.get("redirect") || "/"
-        router.push(redirect)
-        router.refresh()
-      }
+      await login(loginEmail, loginPassword)
+      router.push("/")
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Invalid email or password"
       setLoginError(errorMessage)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -69,50 +63,28 @@ export default function AuthPage() {
     e.preventDefault()
     setSignupError("")
     setSignupSuccess("")
-    setIsLoading(true)
 
     if (signupPassword !== confirmPassword) {
       setSignupError("Passwords do not match")
-      setIsLoading(false)
       return
     }
 
     if (signupPassword.length < 6) {
       setSignupError("Password must be at least 6 characters")
-      setIsLoading(false)
       return
     }
 
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase.auth.signUp({
-        email: signupEmail,
-        password: signupPassword,
-        options: {
-          data: {
-            full_name: signupName,
-          },
-        },
-      })
-
-      if (error) {
-        setSignupError(error.message)
-        setIsLoading(false)
-        return
-      }
-
-      if (data.user) {
-        setSignupSuccess("Account created successfully! Please check your email to verify your account.")
-        setSignupName("")
-        setSignupEmail("")
-        setSignupPassword("")
-        setConfirmPassword("")
-      }
+      await signup(signupName, signupEmail, signupPassword)
+      setSignupSuccess("Account created successfully! Please check your email to verify your account.")
+      // Clear form
+      setSignupName("")
+      setSignupEmail("")
+      setSignupPassword("")
+      setConfirmPassword("")
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create account"
       setSignupError(errorMessage)
-    } finally {
-      setIsLoading(false)
     }
   }
 

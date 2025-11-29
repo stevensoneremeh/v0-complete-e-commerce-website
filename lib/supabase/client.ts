@@ -1,6 +1,13 @@
 import { createBrowserClient } from "@supabase/ssr"
 
+let supabaseClient: ReturnType<typeof createBrowserClient> | null = null
+
 export function createClient() {
+  // Return existing client if already created (singleton pattern)
+  if (supabaseClient) {
+    return supabaseClient
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -10,7 +17,15 @@ export function createClient() {
     return createMockClient()
   }
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  supabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  })
+
+  return supabaseClient
 }
 
 function createQueryBuilder() {

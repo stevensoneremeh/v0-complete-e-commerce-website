@@ -101,6 +101,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/abl-natasha-logo.png" />
         <link rel="manifest" href="/manifest.json" />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -108,8 +109,23 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "ABL Natasha Enterprises",
-              description: "Premium luxury products and services",
-              url: "https://ablnatasha.com",
+              url: validSiteUrl,
+              logo: `${validSiteUrl}/abl-natasha-logo.png`,
+              description: "Premium e-commerce platform and luxury apartment rentals",
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone: "+234-903-094-4943",
+                contactType: "customer service",
+                availableLanguage: "English",
+              },
+              sameAs: ["https://wa.me/2349030944943"],
+              address: {
+                "@type": "PostalAddress",
+                addressCountry: "NG",
+              },
+              foundingDate: "2024",
+              numberOfEmployees: "10-50",
+              industry: "E-commerce, Real Estate",
             }),
           }}
         />
@@ -135,23 +151,25 @@ export default function RootLayout({
         />
       </head>
       <body className={`${dmSans.className} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <OrderProvider>
-                  <ReviewsProvider>
-                    <CouponProvider>
-                      <Suspense fallback={null}>{children}</Suspense>
-                      <Toaster />
-                      <Analytics />
-                    </CouponProvider>
-                  </ReviewsProvider>
-                </OrderProvider>
-              </WishlistProvider>
-            </CartProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <AuthProvider>
+              <ReviewsProvider>
+                <WishlistProvider>
+                  <CouponProvider>
+                    <OrderProvider>
+                      <CartProvider>
+                        <Suspense fallback={null}>{children}</Suspense>
+                        <Toaster />
+                        <Analytics />
+                      </CartProvider>
+                    </OrderProvider>
+                  </CouponProvider>
+                </WishlistProvider>
+              </ReviewsProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )
