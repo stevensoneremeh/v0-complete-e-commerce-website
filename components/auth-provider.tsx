@@ -56,7 +56,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (error) {
           console.error("[v0] Session error:", error.message)
-          if (error.message.includes("Refresh Token") || error.message.includes("refresh_token")) {
+          if (
+            error.message.includes("Refresh Token") ||
+            error.message.includes("refresh_token") ||
+            error.message.includes("Already Used")
+          ) {
             await supabase.auth.signOut()
             setUser(null)
             setIsLoading(false)
@@ -118,8 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchingProfileRef.current = true
 
     try {
-      if (!supabase) return
-
       const response = await fetch("/api/auth/verify-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
