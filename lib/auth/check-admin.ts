@@ -14,7 +14,6 @@ export async function checkAdminAccess() {
     }
 
     const cookieStore = await cookies()
-
     const supabaseAuth = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
@@ -26,7 +25,7 @@ export async function checkAdminAccess() {
               cookieStore.set(name, value, options)
             })
           } catch {
-            // Handle errors silently during cookie operations
+            // Ignored in Server Component
           }
         },
       },
