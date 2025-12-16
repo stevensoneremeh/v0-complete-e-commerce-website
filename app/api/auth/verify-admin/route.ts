@@ -35,8 +35,11 @@ export async function POST() {
   } = await supabaseAuth.auth.getUser()
 
   if (authError || !user) {
+    console.log("[v0] User not authenticated in verify-admin")
     return NextResponse.json({ isAdmin: false, user: null })
   }
+
+  console.log("[v0] Verifying admin status for:", user.email)
 
   const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
@@ -60,6 +63,8 @@ export async function POST() {
   }
 
   const isAdmin = profile.is_admin === true || profile.role === "admin"
+
+  console.log("[v0] Admin verification result:", { email: profile.email, isAdmin, role: profile.role })
 
   return NextResponse.json({
     isAdmin,

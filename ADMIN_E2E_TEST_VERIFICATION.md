@@ -4,7 +4,7 @@
 
 ### Complete System Architecture
 
-\`\`\`
+```
 ┌─────────────────────┐
 │   ADMIN DASHBOARD   │
 │  /app/admin/*       │
@@ -36,14 +36,14 @@
 │  /app/properties    │
 │  /app/hire          │
 └─────────────────────┘
-\`\`\`
+```
 
 ## 🔐 Admin Authentication Flow
 
 ### Current Implementation
 
 **File: `app/admin/layout.tsx`**
-\`\`\`typescript
+```typescript
 export default async function AdminLayout({...}) {
   const adminAccess = await checkAdminAccess()
   
@@ -59,7 +59,7 @@ export default async function AdminLayout({...}) {
     </div>
   )
 }
-\`\`\`
+```
 
 **File: `lib/auth/check-admin.ts`**
 - Uses service role key to bypass RLS
@@ -98,7 +98,7 @@ export default async function AdminLayout({...}) {
 3. Submit → Calls `POST /api/admin/products`
 
 **API Route:** `/api/admin/products/route.ts`
-\`\`\`typescript
+```typescript
 export async function POST(request: NextRequest) {
   const { supabase, error: authError } = await verifyAdmin()
   // Admin verified ✅
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
   
   return NextResponse.json({ product })
 }
-\`\`\`
+```
 
 4. Product inserted into `products` table with all fields
 
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
 **User Page:** `/app/products/page.tsx` → `<ProductGrid />`
 
 **Component:** `/components/product-grid.tsx`
-\`\`\`typescript
+```typescript
 useEffect(() => {
   const fetchProducts = async () => {
     const supabase = createClient()
@@ -136,7 +136,7 @@ useEffect(() => {
   
   fetchProducts()
 }, [])
-\`\`\`
+```
 
 **Result:** New product appears immediately on `/products` page
 
@@ -148,7 +148,7 @@ useEffect(() => {
 4. Clicks "Save" → Calls `PUT /api/admin/products/[id]`
 
 **API:** Updates database
-\`\`\`typescript
+```typescript
 export async function PUT(request, { params }) {
   const { supabase } = await verifyAdmin()
   
@@ -158,7 +158,7 @@ export async function PUT(request, { params }) {
     .update(updates)
     .eq("id", id)
 }
-\`\`\`
+```
 
 5. Refresh `/products` page → Price shows 79.99
 

@@ -155,10 +155,10 @@
 ## 🎯 **DEPLOYMENT STEPS**
 
 1. **Run Database Migration**:
-   \`\`\`sql
+   ```sql
    -- Run in Supabase SQL Editor
    -- Execute: scripts/02-add-missing-product-fields.sql
-   \`\`\`
+   ```
 
 2. **Verify Environment Variables**:
    - `NEXT_PUBLIC_SUPABASE_URL`
@@ -167,22 +167,22 @@
    - All other required keys
 
 3. **Create Admin User**:
-   \`\`\`sql
+   ```sql
    -- Update existing user to admin
    UPDATE profiles 
    SET is_admin = true, role = 'admin' 
    WHERE email = 'your-admin@email.com';
-   \`\`\`
+   ```
 
 4. **Deploy to Vercel**:
-   \`\`\`bash
+   ```bash
    # Push to GitHub
    git add .
    git commit -m "Production-ready e-commerce platform"
    git push origin main
    
    # Deploy on Vercel dashboard
-   \`\`\`
+   ```
 
 ## ✅ **FINAL VERIFICATION**
 

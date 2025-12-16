@@ -4,6 +4,8 @@ import { createClient } from "@supabase/supabase-js"
 
 export async function checkAdminAccess() {
   try {
+    console.log("[v0] Checking admin access...")
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -37,8 +39,11 @@ export async function checkAdminAccess() {
     } = await supabaseAuth.auth.getUser()
 
     if (authError || !user) {
+      console.log("[v0] Not authenticated:", authError?.message)
       return { isAdmin: false, user: null, error: "Not authenticated" }
     }
+
+    console.log("[v0] User authenticated:", user.email)
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: {
@@ -59,6 +64,7 @@ export async function checkAdminAccess() {
     }
 
     const isAdmin = profile?.is_admin === true || profile?.role === "admin"
+    console.log("[v0] Admin check result:", { email: user.email, isAdmin, role: profile?.role })
 
     if (!isAdmin) {
       return { isAdmin: false, user, error: "User is not an admin" }

@@ -28,6 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const initializedRef = useRef(false)
   const fetchingProfileRef = useRef(false)
+  const lastSessionRef = useRef<string | null>(null)
 
   const supabase = (() => {
     try {
@@ -63,16 +64,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ) {
             await supabase.auth.signOut()
             setUser(null)
+            lastSessionRef.current = null
             setIsLoading(false)
             return
           }
         }
 
         if (session?.user && session.expires_at && session.expires_at * 1000 > Date.now()) {
-          await fetchUserProfile(session.user)
+          const sessionId = session.access_token
+          if (lastSessionRef.current !== sessionId) {
+            lastSessionRef.current = sessionId
+            await fetchUserProfile(session.user)
+          }
         } else if (session?.user) {
           await supabase.auth.signOut()
           setUser(null)
+          lastSessionRef.current = null
         }
       } catch (error: any) {
         console.error("[v0] Error getting session:", error)
@@ -83,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } catch (e) {}
           }
           setUser(null)
+          lastSessionRef.current = null
         }
       } finally {
         setIsLoading(false)
@@ -99,36 +107,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+      console.log("[v0] Auth state changed:", event)
+
       if (event === "TOKEN_REFRESHED") {
+        console.log("[v0] Token refreshed, skipping profile fetch")
         return
       }
 
       if (event === "SIGNED_OUT" || !session) {
         setUser(null)
         fetchingProfileRef.current = false
-      } else if (session?.user && event !== "TOKEN_REFRESHED") {
-        if (!fetchingProfileRef.current) {
+        lastSessionRef.current = null
+      } else if (session?.user) {
+        const sessionId = session.access_token
+        if (lastSessionRef.current !== sessionId && !fetchingProfileRef.current) {
+          lastSessionRef.current = sessionId
           await fetchUserProfile(session.user)
         }
       }
       setIsLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      console.log("[v0] Cleaning up auth subscription")
+      subscription.unsubscribe()
+    }
   }, [])
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
-    if (fetchingProfileRef.current) return
+    if (fetchingProfileRef.current) {
+      console.log("[v0] Profile fetch already in progress, skipping")
+      return
+    }
     fetchingProfileRef.current = true
 
     try {
+      console.log("[v0] Fetching user profile for:", supabaseUser.email)
+
       const response = await fetch("/api/auth/verify-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
       })
 
       if (!response.ok) {
-        throw new Error("Failed to verify user")
+        throw new Error(`Failed to verify user: ${response.status}`)
       }
 
       const data = await response.json()
@@ -141,6 +164,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar: supabaseUser.user_metadata?.avatar_url,
       }
 
+      console.log("[v0] User profile fetched successfully:", userData.email, "Role:", userData.role)
       setUser(userData)
     } catch (error) {
       console.error("[v0] Error in fetchUserProfile:", error)
