@@ -2,11 +2,12 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function updateSession(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   // Skip Supabase operations if environment variables are not available
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     return NextResponse.next({ request })
   }
 
@@ -14,7 +15,7 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
-  const supabase = createServerClient(supabaseUrl, supabaseServiceKey, {
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll()
@@ -40,34 +41,43 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    try {
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("is_admin, role")
-        .eq("id", user.id)
-        .single()
+    if (supabaseServiceKey) {
+      try {
+        const { createClient } = await import("@supabase/supabase-js")
+        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        })
 
-      // If admin check fails, deny access
-      if (profileError || !profile) {
-        console.warn("[v0] Admin verification failed for admin route")
+        const { data: profile, error: profileError } = await supabaseAdmin
+          .from("profiles")
+          .select("is_admin, role")
+          .eq("id", user.id)
+          .single()
+
+        // If admin check fails, deny access
+        if (profileError || !profile) {
+          const url = request.nextUrl.clone()
+          url.pathname = "/"
+          return NextResponse.redirect(url)
+        }
+
+        const isAdmin = profile.is_admin === true || profile.role === "admin"
+        if (!isAdmin) {
+          const url = request.nextUrl.clone()
+          url.pathname = "/"
+          return NextResponse.redirect(url)
+        }
+      } catch (error) {
+        console.error("[Middleware] Error verifying admin status:", error)
         const url = request.nextUrl.clone()
         url.pathname = "/"
         return NextResponse.redirect(url)
       }
-
-      const isAdmin = profile.is_admin === true || profile.role === "admin"
-      if (!isAdmin) {
-        console.warn("[v0] User is not admin, denying admin route access")
-        const url = request.nextUrl.clone()
-        url.pathname = "/"
-        return NextResponse.redirect(url)
-      }
-    } catch (error) {
-      console.error("[v0] Error verifying admin status:", error)
-      const url = request.nextUrl.clone()
-      url.pathname = "/"
-      return NextResponse.redirect(url)
     }
+    // If no service key, let the admin layout handle the check
   }
 
   return supabaseResponse
