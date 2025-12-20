@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from "react"
 import { createClient } from "@/lib/supabase/client"
 import type { User as SupabaseUser, AuthChangeEvent, Session } from "@supabase/supabase-js"
 
@@ -26,15 +26,23 @@ const AuthContext = createContext<AuthContextType | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const initializedRef = useRef(false)
+  const fetchingProfileRef = useRef(false)
+  const lastSessionRef = useRef<string | null>(null)
 
-  let supabase: ReturnType<typeof createClient> | null = null
-  try {
-    supabase = createClient()
-  } catch (error) {
-    console.error("[v0] Failed to create Supabase client:", error)
-  }
+  const supabase = (() => {
+    try {
+      return createClient()
+    } catch (error) {
+      console.error("[v0] Failed to create Supabase client:", error)
+      return null
+    }
+  })()
 
   useEffect(() => {
+    if (initializedRef.current) return
+    initializedRef.current = true
+
     const getSession = async () => {
       try {
         if (!supabase) {
@@ -44,21 +52,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const {
           data: { session },
+          error,
         } = await supabase.auth.getSession()
 
+        if (error) {
+          console.error("[v0] Session error:", error.message)
+          if (
+            error.message.includes("Refresh Token") ||
+            error.message.includes("refresh_token") ||
+            error.message.includes("Already Used")
+          ) {
+            await supabase.auth.signOut()
+            setUser(null)
+            lastSessionRef.current = null
+            setIsLoading(false)
+            return
+          }
+        }
+
         if (session?.user && session.expires_at && session.expires_at * 1000 > Date.now()) {
-          await fetchUserProfile(session.user)
+          const sessionId = session.access_token
+          if (lastSessionRef.current !== sessionId) {
+            lastSessionRef.current = sessionId
+            await fetchUserProfile(session.user)
+          }
         } else if (session?.user) {
           await supabase.auth.signOut()
+          setUser(null)
+          lastSessionRef.current = null
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("[v0] Error getting session:", error)
-        if (supabase) {
-          try {
-            await supabase.auth.signOut()
-          } catch (e) {
-            // Ignore errors when signing out
+        if (error?.message?.includes("Refresh Token") || error?.message?.includes("Already Used")) {
+          if (supabase) {
+            try {
+              await supabase.auth.signOut()
+            } catch (e) {}
           }
+          setUser(null)
+          lastSessionRef.current = null
         }
       } finally {
         setIsLoading(false)
@@ -75,28 +107,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+      console.log("[v0] Auth state changed:", event)
+
+      if (event === "TOKEN_REFRESHED") {
+        console.log("[v0] Token refreshed, skipping profile fetch")
+        return
+      }
+
       if (event === "SIGNED_OUT" || !session) {
         setUser(null)
+        fetchingProfileRef.current = false
+        lastSessionRef.current = null
       } else if (session?.user) {
-        await fetchUserProfile(session.user)
+        const sessionId = session.access_token
+        if (lastSessionRef.current !== sessionId && !fetchingProfileRef.current) {
+          lastSessionRef.current = sessionId
+          await fetchUserProfile(session.user)
+        }
       }
       setIsLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      console.log("[v0] Cleaning up auth subscription")
+      subscription.unsubscribe()
+    }
   }, [])
 
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
+    if (fetchingProfileRef.current) {
+      console.log("[v0] Profile fetch already in progress, skipping")
+      return
+    }
+    fetchingProfileRef.current = true
+
     try {
-      if (!supabase) return
+      console.log("[v0] Fetching user profile for:", supabaseUser.email)
 
       const response = await fetch("/api/auth/verify-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
       })
 
       if (!response.ok) {
-        throw new Error("Failed to verify user")
+        throw new Error(`Failed to verify user: ${response.status}`)
       }
 
       const data = await response.json()
@@ -109,10 +164,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar: supabaseUser.user_metadata?.avatar_url,
       }
 
+      console.log("[v0] User profile fetched successfully:", userData.email, "Role:", userData.role)
       setUser(userData)
     } catch (error) {
       console.error("[v0] Error in fetchUserProfile:", error)
-      // Still set basic user data even if profile fetch fails
       const userData: User = {
         id: supabaseUser.id,
         name: supabaseUser.user_metadata?.full_name || "User",
@@ -121,6 +176,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar: supabaseUser.user_metadata?.avatar_url,
       }
       setUser(userData)
+    } finally {
+      fetchingProfileRef.current = false
     }
   }
 

@@ -1,4 +1,4 @@
-modules = ["web", "nodejs-20", "postgresql-16"]
+modules = ["web", "nodejs-20"]
 [agent]
 expertMode = true
 integrations = ["javascript_supabase:1.0.0"]
@@ -46,30 +46,6 @@ args = "pnpm run dev -- --port=5000 --hostname=0.0.0.0"
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 33251
-externalPort = 4200
-
-[[ports]]
-localPort = 34733
-externalPort = 5000
-
-[[ports]]
-localPort = 39029
-externalPort = 3002
-
-[[ports]]
-localPort = 41841
-externalPort = 3001
-
-[[ports]]
-localPort = 44659
-externalPort = 3003
-
-[[ports]]
-localPort = 46587
-externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"

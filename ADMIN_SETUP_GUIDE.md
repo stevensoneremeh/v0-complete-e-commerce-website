@@ -21,11 +21,11 @@
 
 Run this SQL query in your Supabase SQL Editor:
 
-\`\`\`sql
+```sql
 UPDATE profiles 
 SET is_admin = true, role = 'admin' 
 WHERE email = 'user@example.com';
-\`\`\`
+```
 
 Replace `user@example.com` with the actual user's email address.
 
@@ -33,7 +33,7 @@ Replace `user@example.com` with the actual user's email address.
 
 You can also create a new admin user directly:
 
-\`\`\`sql
+```sql
 -- First, create the auth user (this should be done through the signup process)
 -- Then update their profile to admin
 INSERT INTO profiles (id, email, full_name, is_admin, role)
@@ -44,7 +44,7 @@ VALUES (
   true,
   'admin'
 );
-\`\`\`
+```
 
 ## Accessing the Admin Dashboard
 

@@ -1,16 +1,46 @@
 import { createBrowserClient } from "@supabase/ssr"
 
+let supabaseClient: ReturnType<typeof createBrowserClient> | null = null
+
 export function createClient() {
+  // Return existing client if already created
+  if (supabaseClient) {
+    return supabaseClient
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Return a mock client if environment variables are missing
   if (!supabaseUrl || !supabaseAnonKey) {
     console.warn("[v0] Supabase environment variables not configured. Using mock client.")
     return createMockClient()
   }
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  try {
+    supabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        flowType: "pkce",
+      },
+      global: {
+        headers: {
+          "x-client-info": "abl-natasha-web",
+        },
+      },
+    })
+
+    console.log("[v0] Supabase client initialized successfully")
+    return supabaseClient
+  } catch (error) {
+    console.error("[v0] Failed to initialize Supabase client:", error)
+    return createMockClient()
+  }
+}
+
+export function resetClient() {
+  supabaseClient = null
 }
 
 function createQueryBuilder() {

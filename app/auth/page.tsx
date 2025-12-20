@@ -33,7 +33,11 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (user) {
-      router.push("/")
+      if (user.role === "admin") {
+        router.push("/admin")
+      } else {
+        router.push("/")
+      }
     }
   }, [user, router])
 
@@ -52,7 +56,6 @@ export default function AuthPage() {
 
     try {
       await login(loginEmail, loginPassword)
-      router.push("/")
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Invalid email or password"
       setLoginError(errorMessage)

@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Settings, LogOut } from "lucide-react"
+import { Bell, Settings, LogOut, Shield } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,7 +21,7 @@ import { useAuth } from "@/components/auth-provider"
 export function AdminHeader() {
   const pathname = usePathname()
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0)
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
 
   useEffect(() => {
     const updateNotificationCount = () => {
@@ -55,10 +55,21 @@ export function AdminHeader() {
     return titleMap[pathname] || "Admin Panel"
   }
 
+  const handleLogout = async () => {
+    await logout()
+    window.location.href = "/auth"
+  }
+
   return (
     <header className="flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur px-6 sticky top-0 z-40">
       <div className="flex items-center gap-4">
         <h1 className="text-xl font-semibold">{getPageTitle()}</h1>
+        {user?.role === "admin" && (
+          <Badge variant="default" className="flex items-center gap-1">
+            <Shield className="h-3 w-3" />
+            Admin
+          </Badge>
+        )}
       </div>
 
       <div className="flex items-center space-x-4">
@@ -90,6 +101,11 @@ export function AdminHeader() {
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user?.name}</p>
                 <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                {user?.role === "admin" && (
+                  <Badge variant="outline" className="w-fit mt-1">
+                    Administrator
+                  </Badge>
+                )}
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -100,11 +116,9 @@ export function AdminHeader() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/auth" className="flex items-center">
-                <LogOut className="mr-2 h-4 w-4" />
-                Log out
-              </Link>
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

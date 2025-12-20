@@ -20,11 +20,11 @@ This is a comprehensive e-commerce and property rental platform built with Next.
 
 ### 1. Clone the Repository
 
-\`\`\`bash
+```bash
 git clone <repository-url>
 cd v0-complete-e-commerce-website
 npm install
-\`\`\`
+```
 
 ### 2. Set Up Supabase
 
@@ -38,7 +38,7 @@ npm install
 
 Create a `.env.local` file in the root directory:
 
-\`\`\`env
+```env
 # Supabase Configuration
 SUPABASE_SUPABASE_NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 SUPABASE_NEXT_PUBLIC_SUPABASE_ANON_KEY_ANON_KEY=your_anon_key
@@ -51,7 +51,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 # Optional: For development
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000/auth/callback
-\`\`\`
+```
 
 ### 4. Set Up Database Schema
 
@@ -62,9 +62,9 @@ NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000/auth/callback
 
 ### 5. Run the Development Server
 
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
 Visit http://localhost:3000 to see the application.
 
@@ -225,9 +225,9 @@ Users with the admin email automatically receive admin role on signup/login.
 3. Add environment variables in Vercel project settings
 4. Deploy
 
-\`\`\`bash
+```bash
 vercel deploy
-\`\`\`
+```
 
 ### Environment Variables for Production
 

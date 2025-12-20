@@ -50,7 +50,7 @@ A comprehensive luxury e-commerce and property booking platform featuring premiu
 
 ## 📋 Environment Variables
 
-\`\`\`env
+```env
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -65,7 +65,7 @@ BLOB_READ_WRITE_TOKEN=your_blob_token
 
 # Site Configuration
 NEXT_PUBLIC_SITE_URL=your_site_url
-\`\`\`
+```
 
 ## 🔧 Admin Access
 
