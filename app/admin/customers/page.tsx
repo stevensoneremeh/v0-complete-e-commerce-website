@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { UserManagementGuide } from "@/components/admin/user-management-guide"
-import { Eye, Shield, UserPlus, Search, Filter, Download, Users } from "lucide-react"
+import { Eye, Shield, UserPlus, Search, Filter, Download, Users, Edit, Trash2, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 interface Customer {
   id: string
@@ -37,9 +38,23 @@ export default function CustomersPage() {
   const [filterRole, setFilterRole] = useState("all")
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [showAddDialog, setShowAddDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
   const [showGuide, setShowGuide] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null)
 
   const [newCustomer, setNewCustomer] = useState({
+    email: "",
+    full_name: "",
+    phone: "",
+    address: "",
+    city: "",
+    country: "",
+    role: "user",
+  })
+
+  const [editCustomer, setEditCustomer] = useState({
+    id: "",
     email: "",
     full_name: "",
     phone: "",
@@ -116,6 +131,76 @@ export default function CustomersPage() {
     } catch (error) {
       toast.error("Failed to add customer")
     }
+  }
+
+  const updateCustomer = async () => {
+    try {
+      const response = await fetch(`/api/admin/customers/${editCustomer.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: editCustomer.full_name,
+          phone: editCustomer.phone,
+          address: editCustomer.address,
+          city: editCustomer.city,
+          country: editCustomer.country,
+          role: editCustomer.role,
+          is_admin: editCustomer.role === "admin",
+        }),
+      })
+
+      if (response.ok) {
+        await fetchCustomers()
+        setShowEditDialog(false)
+        toast.success("Customer updated successfully")
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.error || "Failed to update customer")
+      }
+    } catch (error) {
+      toast.error("Failed to update customer")
+    }
+  }
+
+  const deleteCustomer = async () => {
+    if (!customerToDelete) return
+
+    try {
+      const response = await fetch(`/api/admin/customers/${customerToDelete.id}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        await fetchCustomers()
+        setDeleteDialogOpen(false)
+        setCustomerToDelete(null)
+        toast.success("Customer deleted successfully")
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.error || "Failed to delete customer")
+      }
+    } catch (error) {
+      toast.error("Failed to delete customer")
+    }
+  }
+
+  const openEditDialog = (customer: Customer) => {
+    setEditCustomer({
+      id: customer.id,
+      email: customer.email,
+      full_name: customer.full_name || "",
+      phone: customer.phone || "",
+      address: customer.address || "",
+      city: customer.city || "",
+      country: customer.country || "",
+      role: customer.role,
+    })
+    setShowEditDialog(true)
+  }
+
+  const confirmDeleteCustomer = (customer: Customer) => {
+    setCustomerToDelete(customer)
+    setDeleteDialogOpen(true)
   }
 
   const filteredCustomers = customers.filter((customer) => {
@@ -354,8 +439,14 @@ export default function CustomersPage() {
                         <Button variant="outline" size="sm" onClick={() => setSelectedCustomer(customer)}>
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(customer)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Button variant="outline" size="sm" onClick={() => toggleAdminRole(customer.id, customer.role)}>
                           <Shield className="h-4 w-4" />
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => confirmDeleteCustomer(customer)}>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -425,6 +516,116 @@ export default function CustomersPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Edit Customer Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit_full_name">Full Name</Label>
+                <Input
+                  id="edit_full_name"
+                  value={editCustomer.full_name}
+                  onChange={(e) => setEditCustomer((prev) => ({ ...prev, full_name: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_email">Email (Read Only)</Label>
+                <Input id="edit_email" type="email" value={editCustomer.email} disabled />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit_phone">Phone</Label>
+                <Input
+                  id="edit_phone"
+                  value={editCustomer.phone}
+                  onChange={(e) => setEditCustomer((prev) => ({ ...prev, phone: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_role">Role</Label>
+                <Select
+                  value={editCustomer.role}
+                  onValueChange={(value) => setEditCustomer((prev) => ({ ...prev, role: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="edit_address">Address</Label>
+              <Textarea
+                id="edit_address"
+                value={editCustomer.address}
+                onChange={(e) => setEditCustomer((prev) => ({ ...prev, address: e.target.value }))}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit_city">City</Label>
+                <Input
+                  id="edit_city"
+                  value={editCustomer.city}
+                  onChange={(e) => setEditCustomer((prev) => ({ ...prev, city: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit_country">Country</Label>
+                <Input
+                  id="edit_country"
+                  value={editCustomer.country}
+                  onChange={(e) => setEditCustomer((prev) => ({ ...prev, country: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={updateCustomer}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete Customer?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{customerToDelete?.full_name || customerToDelete?.email}</strong>?
+              This action cannot be undone and will permanently remove:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Customer account and profile</li>
+                <li>All associated orders and order history</li>
+                <li>Wishlist and cart items</li>
+                <li>Any saved addresses and preferences</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteCustomer} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete Customer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
