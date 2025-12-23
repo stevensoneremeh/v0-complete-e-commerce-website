@@ -167,4 +167,4 @@ For technical support: Contact through the admin panel
 
 ---
 
-Built with ❤️ using [v0.app](https://v0.app) - The AI-powered development platform
+
