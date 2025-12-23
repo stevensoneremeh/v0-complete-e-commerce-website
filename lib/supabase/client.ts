@@ -12,7 +12,12 @@ export function createClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn("[v0] Supabase environment variables not configured. Using mock client.")
+    // During build time, env vars may not be available - return mock client
+    if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+      console.log("[v0] Build time: Using mock Supabase client")
+    } else {
+      console.warn("[v0] Supabase environment variables not configured. Using mock client.")
+    }
     return createMockClient()
   }
 

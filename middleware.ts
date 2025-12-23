@@ -1,13 +1,19 @@
-import { type NextRequest } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import { updateSession } from "@/lib/supabase/middleware"
 
 export async function middleware(request: NextRequest) {
   // Allow auth routes to pass through without session check
   if (request.nextUrl.pathname.startsWith('/auth')) {
-    return
+    return NextResponse.next()
   }
 
-  return await updateSession(request)
+  try {
+    return await updateSession(request)
+  } catch (error) {
+    // If session update fails during build, continue without blocking
+    console.error('[middleware] Session update failed:', error)
+    return NextResponse.next()
+  }
 }
 
 export const config = {

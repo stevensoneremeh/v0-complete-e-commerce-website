@@ -6,7 +6,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false, // Enable TypeScript checking in production builds
   },
-  serverExternalPackages: ['@supabase/supabase-js'],
+  output: 'standalone',
+  serverExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
+  serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
