@@ -8,7 +8,6 @@ const nextConfig = {
   },
   output: 'standalone',
   serverExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
-  serverComponentsExternalPackages: ['@supabase/supabase-js', '@supabase/ssr'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
