@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/auth/admin-guard"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export async function GET(request: NextRequest) {
   try {
@@ -76,6 +77,11 @@ export async function POST(request: NextRequest) {
       console.error("Error creating product:", dbError)
       return NextResponse.json({ error: "Failed to create product" }, { status: 500 })
     }
+
+    // Revalidate all product-related paths
+    revalidatePath("/products")
+    revalidatePath("/")
+    revalidateTag("products")
 
     return NextResponse.json({ product }, { status: 201 })
   } catch (error) {

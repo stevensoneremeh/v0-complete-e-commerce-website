@@ -1,5 +1,6 @@
 import { verifyAdmin } from "@/lib/auth/admin-guard"
 import { type NextRequest, NextResponse } from "next/server"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { supabase, error: authError } = await verifyAdmin()
@@ -43,6 +44,11 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
         })
         .eq("id", property.product_id)
     }
+
+    // Revalidate property-related paths
+    revalidatePath("/properties")
+    revalidatePath("/")
+    revalidateTag("properties")
 
     return NextResponse.json(property)
   } catch (error) {
@@ -106,6 +112,11 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
     if (property?.product_id) {
       await supabase.from("products").delete().eq("id", property.product_id)
     }
+
+    // Revalidate property-related paths
+    revalidatePath("/properties")
+    revalidatePath("/")
+    revalidateTag("properties")
 
     return NextResponse.json({ success: true })
   } catch (error) {

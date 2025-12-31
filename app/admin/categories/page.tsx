@@ -54,11 +54,13 @@ export default function CategoriesPage() {
         const categoriesData = Array.isArray(data) ? data : data.categories || []
         setCategories(categoriesData)
       } else {
-        toast.error(`Failed to fetch categories: ${response.status}`)
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error(`Failed to fetch categories: ${response.status}`, errorData)
+        toast.error(`Failed to fetch categories: ${errorData.error || response.statusText}`)
       }
     } catch (error) {
-      console.error("Error fetching categories:", error)
-      toast.error("Failed to fetch categories")
+      console.error("Network error fetching categories:", error)
+      toast.error("Network error: Failed to fetch categories. Please check your connection.")
     } finally {
       setLoading(false)
     }
@@ -89,9 +91,14 @@ export default function CategoriesPage() {
         setEditingCategory(null)
         setFormData({ name: "", description: "", image_url: "", is_active: true, display_order: 0 })
         toast.success(`Category ${editingCategory ? "updated" : "created"} successfully`)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Failed to save category:', errorData)
+        toast.error(`Failed to save category: ${errorData.error || response.statusText}`)
       }
     } catch (error) {
-      toast.error("Failed to save category")
+      console.error('Network error saving category:', error)
+      toast.error("Network error: Failed to save category. Please check your connection and try again.")
     }
   }
 
@@ -108,7 +115,7 @@ export default function CategoriesPage() {
   }
 
   const handleDelete = async (categoryId: string) => {
-    if (confirm("Are you sure you want to delete this category?")) {
+    if (confirm("Are you sure you want to delete this category? This action cannot be undone.")) {
       try {
         const response = await fetch(`/api/admin/categories/${categoryId}`, {
           method: "DELETE",
@@ -117,9 +124,14 @@ export default function CategoriesPage() {
         if (response.ok) {
           await fetchCategories()
           toast.success("Category deleted successfully")
+        } else {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          console.error('Failed to delete category:', errorData)
+          toast.error(`Failed to delete category: ${errorData.error || response.statusText}`)
         }
       } catch (error) {
-        toast.error("Failed to delete category")
+        console.error('Network error deleting category:', error)
+        toast.error("Network error: Failed to delete category. Please check your connection and try again.")
       }
     }
   }

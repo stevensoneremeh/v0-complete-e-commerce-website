@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/auth/admin-guard"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -60,6 +61,12 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: "Failed to update product" }, { status: 500 })
     }
 
+    // Revalidate all product-related paths
+    revalidatePath("/products")
+    revalidatePath("/")
+    revalidatePath(`/products/${id}`)
+    revalidateTag("products")
+
     return NextResponse.json({ product })
   } catch (error) {
     console.error("API Error:", error)
@@ -82,6 +89,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Failed to update product" }, { status: 500 })
     }
 
+    // Revalidate all product-related paths
+    revalidatePath("/products")
+    revalidatePath("/")
+    revalidatePath(`/products/${id}`)
+    revalidateTag("products")
+
     return NextResponse.json({ product })
   } catch (error) {
     console.error("API Error:", error)
@@ -101,6 +114,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       console.error("Error deleting product:", dbError)
       return NextResponse.json({ error: "Failed to delete product" }, { status: 500 })
     }
+
+    // Revalidate all product-related paths
+    revalidatePath("/products")
+    revalidatePath("/")
+    revalidateTag("products")
 
     return NextResponse.json({ message: "Product deleted successfully" })
   } catch (error) {

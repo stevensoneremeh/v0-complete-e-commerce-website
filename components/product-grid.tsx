@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { WhatsAppButton } from "@/components/whatsapp-button"
 import { DualCurrencyDisplay } from "@/components/dual-currency-display"
 import { createClient } from "@/lib/supabase/client"
+import { useRealtimeProducts } from "@/hooks/use-realtime-products"
 
 const fallbackProducts = [
   {
@@ -100,6 +101,9 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
   const { getProductRating } = useReviews()
   const { toast } = useToast()
+  
+  // Subscribe to real-time product changes
+  const realtimeTrigger = useRealtimeProducts()
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -149,7 +153,7 @@ export function ProductGrid({ filters, searchQuery }: ProductGridProps) {
     }
 
     fetchProducts()
-  }, [])
+  }, [realtimeTrigger]) // Re-fetch when real-time changes occur
 
   // Apply filters
   useEffect(() => {

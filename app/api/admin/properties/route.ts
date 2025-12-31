@@ -1,5 +1,6 @@
 import { verifyAdmin } from "@/lib/auth/admin-guard"
 import { type NextRequest, NextResponse } from "next/server"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export async function GET() {
   const { supabase, error: authError } = await verifyAdmin()
@@ -65,6 +66,11 @@ export async function POST(request: NextRequest) {
 
     if (propertyError) throw propertyError
 
+    // Revalidate property-related paths
+    revalidatePath("/properties")
+    revalidatePath("/")
+    revalidateTag("properties")
+
     return NextResponse.json({ ...property, product })
   } catch (error) {
     return NextResponse.json({ error: "Failed to create property" }, { status: 500 })
@@ -101,6 +107,11 @@ export async function PUT(request: NextRequest) {
         })
         .eq("id", property.product_id)
     }
+
+    // Revalidate property-related paths
+    revalidatePath("/properties")
+    revalidatePath("/")
+    revalidateTag("properties")
 
     return NextResponse.json(property)
   } catch (error) {

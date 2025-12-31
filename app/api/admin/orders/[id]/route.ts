@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/auth/admin-guard"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -23,6 +24,11 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       console.error("Error updating order:", dbError)
       return NextResponse.json({ error: "Failed to update order" }, { status: 500 })
     }
+
+    // Revalidate order-related paths
+    revalidatePath("/admin/orders")
+    revalidatePath("/orders")
+    revalidateTag("orders")
 
     return NextResponse.json(order)
   } catch (error) {

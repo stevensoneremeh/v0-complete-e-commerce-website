@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/auth/admin-guard"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export async function GET() {
   try {
@@ -24,7 +25,7 @@ export async function GET() {
       product_count: category.products?.[0]?.count || 0
     }))
 
-    return NextResponse.json(categoriesWithCount)
+    return NextResponse.json({ categories: categoriesWithCount })
   } catch (error) {
     console.error("Error in categories API:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -49,7 +50,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to create category" }, { status: 500 })
     }
 
-    return NextResponse.json(category)
+    // Revalidate all category-related paths
+    revalidatePath("/products")
+    revalidatePath("/categories")
+    revalidatePath("/")
+    revalidateTag("categories")
+    revalidateTag("products")
+
+    return NextResponse.json({ category }, { status: 201 })
   } catch (error) {
     console.error("Error in categories POST API:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

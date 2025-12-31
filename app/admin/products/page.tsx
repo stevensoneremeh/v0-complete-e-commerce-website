@@ -60,9 +60,14 @@ export default function ProductsPage() {
       if (response.ok) {
         const data = await response.json()
         setProducts(data.products || [])
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Failed to fetch products:', errorData)
+        toast.error(`Failed to fetch products: ${errorData.error || response.statusText}`)
       }
     } catch (error) {
-      toast.error("Failed to fetch products")
+      console.error('Network error fetching products:', error)
+      toast.error("Network error: Failed to fetch products. Please check your connection.")
     } finally {
       setLoading(false)
     }
@@ -78,10 +83,13 @@ export default function ProductsPage() {
         // Filter to only active categories for product assignment
         setCategories(categoriesData.filter((cat: Category) => cat.is_active))
       } else {
-        console.error(`Failed to fetch categories: ${response.status}`)
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error(`Failed to fetch categories: ${response.status}`, errorData)
+        toast.error(`Failed to fetch categories: ${errorData.error || response.statusText}`)
       }
     } catch (error) {
-      console.error("Failed to fetch categories:", error)
+      console.error("Network error fetching categories:", error)
+      toast.error("Network error: Failed to fetch categories. Please check your connection.")
     }
   }
 
@@ -101,9 +109,14 @@ export default function ProductsPage() {
         setShowForm(false)
         setEditingProduct(null)
         toast.success(`Product ${editingProduct ? "updated" : "created"} successfully`)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Failed to save product:', errorData)
+        toast.error(`Failed to save product: ${errorData.error || response.statusText}`)
       }
     } catch (error) {
-      toast.error("Failed to save product")
+      console.error('Network error saving product:', error)
+      toast.error("Network error: Failed to save product. Please check your connection and try again.")
     }
   }
 
@@ -113,7 +126,7 @@ export default function ProductsPage() {
   }
 
   const handleDelete = async (productId: string) => {
-    if (confirm("Are you sure you want to delete this product?")) {
+    if (confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
       try {
         const response = await fetch(`/api/admin/products/${productId}`, {
           method: "DELETE",
@@ -122,9 +135,14 @@ export default function ProductsPage() {
         if (response.ok) {
           await fetchProducts()
           toast.success("Product deleted successfully")
+        } else {
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          console.error('Failed to delete product:', errorData)
+          toast.error(`Failed to delete product: ${errorData.error || response.statusText}`)
         }
       } catch (error) {
-        toast.error("Failed to delete product")
+        console.error('Network error deleting product:', error)
+        toast.error("Network error: Failed to delete product. Please check your connection and try again.")
       }
     }
   }

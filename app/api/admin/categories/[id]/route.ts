@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/auth/admin-guard"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -20,6 +21,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       console.error("Error updating category:", dbError)
       return NextResponse.json({ error: "Failed to update category" }, { status: 500 })
     }
+
+    // Revalidate all category-related paths
+    revalidatePath("/products")
+    revalidatePath("/categories")
+    revalidatePath("/")
+    revalidateTag("categories")
+    revalidateTag("products")
 
     return NextResponse.json(category)
   } catch (error) {
@@ -48,6 +56,13 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: "Failed to update category" }, { status: 500 })
     }
 
+    // Revalidate all category-related paths
+    revalidatePath("/products")
+    revalidatePath("/categories")
+    revalidatePath("/")
+    revalidateTag("categories")
+    revalidateTag("products")
+
     return NextResponse.json(category)
   } catch (error) {
     console.error("Error in category PATCH API:", error)
@@ -70,6 +85,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       console.error("Error deleting category:", dbError)
       return NextResponse.json({ error: "Failed to delete category" }, { status: 500 })
     }
+
+    // Revalidate all category-related paths
+    revalidatePath("/products")
+    revalidatePath("/categories")
+    revalidatePath("/")
+    revalidateTag("categories")
+    revalidateTag("products")
 
     return NextResponse.json({ success: true })
   } catch (error) {
