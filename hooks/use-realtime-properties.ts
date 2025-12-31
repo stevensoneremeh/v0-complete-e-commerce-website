@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import type { RealtimeChannel } from "@supabase/supabase-js"
+import type { RealtimeChannel, RealtimePostgresChangesPayload } from "@supabase/supabase-js"
 
 export function useRealtimeProperties() {
   const [trigger, setTrigger] = useState(0)
@@ -21,13 +21,13 @@ export function useRealtimeProperties() {
           schema: "public",
           table: "real_estate_properties",
         },
-        (payload) => {
+        (payload: RealtimePostgresChangesPayload<{ [key: string]: any }>) => {
           console.log("[Realtime] Property changed:", payload)
           // Trigger a re-fetch by incrementing the trigger
-          setTrigger((prev) => prev + 1)
+          setTrigger((prev: number) => prev + 1)
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         console.log("[Realtime] Properties subscription status:", status)
       })
 
