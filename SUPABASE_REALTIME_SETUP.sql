@@ -6,7 +6,7 @@
 -- =====================================================
 
 -- Enable real-time for products table
--- This allows instant updates when products are added/edited/deleted
+-- This allows instant updates when products are added/editaed/deleted
 ALTER TABLE products REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE products;
 
