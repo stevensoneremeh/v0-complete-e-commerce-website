@@ -42,8 +42,6 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
     floor_plans: property?.floor_plans || [],
     status: property?.status || "available",
     tags: property?.tags || [],
-    meta_title: property?.meta_title || "",
-    meta_description: property?.meta_description || "",
     featured: property?.featured || false,
   })
 
@@ -138,22 +136,18 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="basic" className="flex items-center gap-2">
               <Home className="h-4 w-4" />
               Basic Info
             </TabsTrigger>
             <TabsTrigger value="details" className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              Details
+              Details & Amenities
             </TabsTrigger>
             <TabsTrigger value="media" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
-              Media
-            </TabsTrigger>
-            <TabsTrigger value="management" className="flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              Management
+              Images & Management
             </TabsTrigger>
           </TabsList>
 
@@ -433,31 +427,6 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     </div>
                   </div>
                 )}
-              </div>
-
-              <div className="space-y-4">
-                <Label>SEO & Meta Information</Label>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="meta_title">Meta Title</Label>
-                    <Input
-                      id="meta_title"
-                      value={formData.meta_title}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, meta_title: e.target.value }))}
-                      placeholder="SEO title for search engines"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="meta_description">Meta Description</Label>
-                    <Textarea
-                      id="meta_description"
-                      value={formData.meta_description}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, meta_description: e.target.value }))}
-                      placeholder="SEO description for search engines"
-                      rows={3}
-                    />
-                  </div>
-                </div>
               </div>
             </TabsContent>
 

@@ -41,14 +41,9 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
     is_active: product?.is_active || true,
     images: product?.images || [],
     features: product?.features || [],
-    specifications: product?.specifications || {},
-    meta_title: product?.meta_title || "",
-    meta_description: product?.meta_description || "",
   })
 
   const [newFeature, setNewFeature] = useState("")
-  const [newSpecKey, setNewSpecKey] = useState("")
-  const [newSpecValue, setNewSpecValue] = useState("")
   const [newImageUrl, setNewImageUrl] = useState("")
   const { toast } = useToast()
 
@@ -92,28 +87,6 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
     }))
   }
 
-  const addSpecification = () => {
-    if (newSpecKey.trim() && newSpecValue.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        specifications: {
-          ...prev.specifications,
-          [newSpecKey.trim()]: newSpecValue.trim(),
-        },
-      }))
-      setNewSpecKey("")
-      setNewSpecValue("")
-    }
-  }
-
-  const removeSpecification = (key: string) => {
-    setFormData((prev) => {
-      const newSpecs = { ...prev.specifications }
-      delete newSpecs[key]
-      return { ...prev, specifications: newSpecs }
-    })
-  }
-
   const addImage = () => {
     if (newImageUrl.trim()) {
       setFormData((prev) => ({
@@ -134,11 +107,10 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="pricing">Pricing & Inventory</TabsTrigger>
-          <TabsTrigger value="media">Media & Features</TabsTrigger>
-          <TabsTrigger value="seo">SEO & Meta</TabsTrigger>
+          <TabsTrigger value="media">Images & Features</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-4">
@@ -245,16 +217,18 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                     value={formData.price}
                     onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
                     required
+                    placeholder="0.00"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="compare_at_price">Compare at Price</Label>
+                  <Label htmlFor="compare_at_price">Compare at Price (Optional)</Label>
                   <Input
                     id="compare_at_price"
                     type="number"
                     step="0.01"
                     value={formData.compare_at_price}
                     onChange={(e) => setFormData((prev) => ({ ...prev, compare_at_price: e.target.value }))}
+                    placeholder="Original price for sale items"
                   />
                 </div>
               </div>
@@ -282,17 +256,18 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="weight">Weight (kg)</Label>
+                  <Label htmlFor="weight">Weight (kg) (Optional)</Label>
                   <Input
                     id="weight"
                     type="number"
                     step="0.01"
                     value={formData.weight}
                     onChange={(e) => setFormData((prev) => ({ ...prev, weight: e.target.value }))}
+                    placeholder="e.g., 2.5"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="dimensions">Dimensions (L x W x H)</Label>
+                  <Label htmlFor="dimensions">Dimensions (Optional)</Label>
                   <Input
                     id="dimensions"
                     value={formData.dimensions}
@@ -399,83 +374,35 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
 
           <Card>
             <CardHeader>
-              <CardTitle>Features</CardTitle>
+              <CardTitle>Product Features (Optional)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
-                <Input placeholder="Add feature" value={newFeature} onChange={(e) => setNewFeature(e.target.value)} />
+                <Input 
+                  placeholder="Add product feature (e.g., Waterproof, 2-year warranty)" 
+                  value={newFeature} 
+                  onChange={(e) => setNewFeature(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addFeature()
+                    }
+                  }}
+                />
                 <Button type="button" onClick={addFeature}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.features.map((feature: string, index: number) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                    {feature}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeFeature(index)} />
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Specifications</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Specification name"
-                  value={newSpecKey}
-                  onChange={(e) => setNewSpecKey(e.target.value)}
-                />
-                <Input placeholder="Value" value={newSpecValue} onChange={(e) => setNewSpecValue(e.target.value)} />
-                <Button type="button" onClick={addSpecification}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {Object.entries(formData.specifications).map(([key, value]: [string, unknown]) => (
-                  <div key={key} className="flex items-center justify-between p-2 border rounded">
-                    <span>
-                      <strong>{key}:</strong> {String(value)}
-                    </span>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => removeSpecification(key)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="seo" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO & Meta Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="meta_title">Meta Title</Label>
-                <Input
-                  id="meta_title"
-                  value={formData.meta_title}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, meta_title: e.target.value }))}
-                  placeholder="SEO title for search engines"
-                />
-              </div>
-              <div>
-                <Label htmlFor="meta_description">Meta Description</Label>
-                <Textarea
-                  id="meta_description"
-                  value={formData.meta_description}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, meta_description: e.target.value }))}
-                  placeholder="SEO description for search engines"
-                  rows={3}
-                />
-              </div>
+              {formData.features.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {formData.features.map((feature: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                      {feature}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => removeFeature(index)} />
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
