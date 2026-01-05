@@ -226,7 +226,7 @@ Complete production-ready e-commerce platform with:
 - [ ] Create hire service → available on hire page
 
 ### 8. Backend API Testing
-```
+\`\`\`
 Test all endpoints:
 
 Products:
@@ -256,7 +256,7 @@ DELETE /api/admin/hire-services/[id] - Delete service
 
 Dashboard:
 GET /api/admin/dashboard - Fetch dashboard stats (with time range)
-```
+\`\`\`
 
 ---
 

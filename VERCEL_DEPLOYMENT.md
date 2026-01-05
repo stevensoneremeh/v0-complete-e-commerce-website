@@ -30,18 +30,18 @@ The application now builds successfully and is ready for Vercel deployment!
 Add the following environment variables in Vercel:
 
 **Required:**
-```
+\`\`\`
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 NEXT_PUBLIC_SITE_URL=https://your-domain.vercel.app
-```
+\`\`\`
 
 **Optional:**
-```
+\`\`\`
 GOOGLE_SITE_VERIFICATION=your_google_verification_code
 YANDEX_VERIFICATION=your_yandex_verification_code
-```
+\`\`\`
 
 To find your Supabase credentials:
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
@@ -73,13 +73,13 @@ To find your Supabase credentials:
 ## Verification
 
 Build tested locally and passed:
-```
+\`\`\`
 ✓ Compiled successfully
 ✓ Linting and checking validity of types
 ✓ Generating static pages (68/68)
 ✓ Finalizing page optimization
 ✓ Collecting build traces
-```
+\`\`\`
 
 ## Post-Deployment Checklist
 

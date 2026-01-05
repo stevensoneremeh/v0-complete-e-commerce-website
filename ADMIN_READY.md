@@ -29,24 +29,24 @@ Your admin dashboard now has **production-grade functionality** with the followi
 Get up and running in **5 minutes**:
 
 ### 1. Enable Real-time in Supabase
-```bash
+\`\`\`bash
 # Copy and run this SQL in your Supabase SQL Editor
 cat SUPABASE_REALTIME_SETUP.sql
-```
+\`\`\`
 
 ### 2. Verify Environment Variables
-```bash
+\`\`\`bash
 # Ensure these are set in .env.local
 NEXT_PUBLIC_SUPABASE_URL=your_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_key
-```
+\`\`\`
 
 ### 3. Restart Server
-```bash
+\`\`\`bash
 rm -rf .next
 npm run dev
-```
+\`\`\`
 
 ### 4. Test It Works
 1. Open `/admin/products`
@@ -89,7 +89,7 @@ npm run dev
 ## 🔧 Technical Details
 
 ### Architecture
-```
+\`\`\`
 Admin Action
     ↓
 API Route (with revalidation)
@@ -101,7 +101,7 @@ Supabase Database Update
 User Components Auto-refresh
     ↓
 Changes Visible Instantly ✨
-```
+\`\`\`
 
 ### Key Technologies
 - **Next.js 15**: Server-side rendering + caching
@@ -118,7 +118,7 @@ Changes Visible Instantly ✨
 ## 🧪 Testing Guide
 
 ### Manual Testing
-```bash
+\`\`\`bash
 # Terminal 1: Run dev server
 npm run dev
 
@@ -127,10 +127,10 @@ npm run dev
 # Tab 2: http://localhost:3000/products
 
 # Make changes in Tab 1, watch Tab 2 update instantly
-```
+\`\`\`
 
 ### Automated Testing
-```bash
+\`\`\`bash
 # Run type checks
 npm run type-check
 
@@ -139,7 +139,7 @@ npm run lint
 
 # Build for production
 npm run build
-```
+\`\`\`
 
 ## 🐛 Troubleshooting
 
@@ -170,15 +170,15 @@ npm run build
 ## 🎓 How It Works
 
 ### Cache Revalidation
-```typescript
+\`\`\`typescript
 // After every admin update
 revalidatePath("/products")  // Clear Next.js cache
 revalidateTag("products")    // Clear tagged caches
 // → Next.js rebuilds pages with fresh data
-```
+\`\`\`
 
 ### Real-time Subscriptions
-```typescript
+\`\`\`typescript
 // User component subscribes to changes
 supabase
   .channel("products-changes")
@@ -188,7 +188,7 @@ supabase
       refetchProducts()
     }
   )
-```
+\`\`\`
 
 ## 🚀 Deployment
 

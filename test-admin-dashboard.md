@@ -68,14 +68,14 @@
    - **Expected**: Product disappears from Tab B within 1 second ✨
 
 5. **Browser Console Checks** (Tab B):
-   ```
+   \`\`\`
    Expected messages:
    [v0] Supabase client initialized successfully
    [Realtime] Products subscription status: SUBSCRIBED
    [Realtime] Product changed: { eventType: 'INSERT', ... }
    [Realtime] Product changed: { eventType: 'UPDATE', ... }
    [Realtime] Product changed: { eventType: 'DELETE', ... }
-   ```
+   \`\`\`
 
 ### Test 2: Category Management
 **Objective**: Verify categories can be managed and changes propagate
@@ -108,7 +108,7 @@
 **Objective**: Verify API routes work correctly with proper authentication
 
 #### Products API Tests:
-```bash
+\`\`\`bash
 # Test GET products (should require auth for admin endpoint)
 curl -X GET http://localhost:3000/api/admin/products \
   -H "Content-Type: application/json"
@@ -119,15 +119,15 @@ curl -X GET http://localhost:3000/api/admin/products \
 curl -X GET http://localhost:3000/api/products
 
 # Expected: 200 OK with products list
-```
+\`\`\`
 
 #### Categories API Tests:
-```bash
+\`\`\`bash
 # Test GET categories
 curl -X GET http://localhost:3000/api/admin/categories
 
 # Expected: 401/403 if not admin
-```
+\`\`\`
 
 ### Test 4: Error Handling
 **Objective**: Verify improved error messages work correctly
@@ -154,10 +154,10 @@ curl -X GET http://localhost:3000/api/admin/categories
 
 #### Steps:
 1. **Build for Production** (optional, to test caching):
-   ```bash
+   \`\`\`bash
    pnpm run build
    pnpm start
-   ```
+   \`\`\`
 
 2. **Make Changes**:
    - Add/edit a product in admin
@@ -173,14 +173,14 @@ curl -X GET http://localhost:3000/api/admin/categories
 
 #### Prerequisites:
 ⚠️ **IMPORTANT**: Real-time will only work if you've run:
-```sql
+\`\`\`sql
 -- In Supabase SQL Editor:
 ALTER TABLE products REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE products;
 
 ALTER TABLE categories REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE categories;
-```
+\`\`\`
 
 #### Steps:
 1. **Check Subscription Status**:

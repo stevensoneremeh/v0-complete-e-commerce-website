@@ -185,6 +185,46 @@ export function Header() {
         </div>
 
         <div className="flex items-center space-x-1 xs:space-x-1.5 sm:space-x-2">
+          <div className="flex items-center md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 xs:h-9 xs:w-9 rounded-lg hover:bg-muted/50">
+                  <Search className="h-3.5 w-3.5 xs:h-4 xs:w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="top" className="w-full p-4 luxury-card">
+                <div className="relative mt-8">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search luxury products..."
+                    className="luxury-input pl-10 h-12 rounded-xl text-sm"
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch(searchQuery)}
+                    autoFocus
+                  />
+                  {showSuggestions && (
+                    <div className="absolute top-full left-0 right-0 luxury-card mt-2 overflow-hidden z-50">
+                      {filteredSuggestions.map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors border-b last:border-0"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <Search className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{suggestion}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
           {/* Theme Toggle */}
           <Button
             variant="ghost"
@@ -277,65 +317,6 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72 xs:w-80 luxury-card">
               <div className="flex flex-col space-y-6 mt-6 xs:mt-8">
-                {/* Mobile Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search..."
-                    className="luxury-input pl-10 h-11 xs:h-12 rounded-xl text-sm"
-                    value={searchQuery}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch(searchQuery)}
-                  />
-                </div>
-
-                {/* Navigation Links */}
-                <div className="space-y-3 xs:space-y-4">
-                  <Link
-                    href="/"
-                    className="block text-base xs:text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Home
-                  </Link>
-                  <Link
-                    href="/products"
-                    className="block text-base xs:text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Products
-                  </Link>
-                  <Link
-                    href="/properties"
-                    className="block text-base xs:text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Properties
-                  </Link>
-                  <Link
-                    href="/hire"
-                    className="block text-base xs:text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Hire
-                  </Link>
-                  <Link
-                    href="/categories"
-                    className="block text-base xs:text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Categories
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="block text-base xs:text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    About
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="block text-base xs:text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Contact
-                  </Link>
-                </div>
-
                 {/* Mobile Actions */}
                 <div className="pt-4 xs:pt-6 border-t border-border space-y-3 xs:space-y-4">
                   <Link

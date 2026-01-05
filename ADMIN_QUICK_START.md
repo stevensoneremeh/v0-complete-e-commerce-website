@@ -62,18 +62,18 @@ Use this checklist to ensure your admin dashboard is production ready:
 ## 🔍 Verification
 
 ### Browser Console Should Show:
-```
+\`\`\`
 [v0] Supabase client initialized successfully
 [Realtime] Products subscription status: SUBSCRIBED
 [Realtime] Categories subscription status: SUBSCRIBED
-```
+\`\`\`
 
 ### When You Make Changes in Admin:
-```
+\`\`\`
 [Realtime] Product changed: { eventType: 'INSERT', ... }
 [Realtime] Product changed: { eventType: 'UPDATE', ... }
 [Realtime] Product changed: { eventType: 'DELETE', ... }
-```
+\`\`\`
 
 ## ❌ Troubleshooting
 

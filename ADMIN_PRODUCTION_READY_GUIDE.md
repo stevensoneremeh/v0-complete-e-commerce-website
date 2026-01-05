@@ -48,7 +48,7 @@ To enable real-time updates, you **MUST** enable replication in Supabase:
 ### Step 2: Alternative - Enable via SQL
 Run this SQL in your Supabase SQL Editor:
 
-```sql
+\`\`\`sql
 -- Enable replication for products table
 ALTER TABLE products REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE products;
@@ -64,7 +64,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE real_estate_properties;
 -- Enable replication for orders table
 ALTER TABLE orders REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE orders;
-```
+\`\`\`
 
 ### Step 3: Verify Real-time is Working
 1. Open your website in one browser tab
@@ -135,11 +135,11 @@ ALTER PUBLICATION supabase_realtime ADD TABLE orders;
 ## Production Deployment Notes
 
 ### Environment Variables Required
-```env
+\`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
+\`\`\`
 
 ### Performance Considerations
 1. **Cache Revalidation**: Next.js will automatically rebuild pages when data changes

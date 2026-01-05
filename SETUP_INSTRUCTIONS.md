@@ -52,7 +52,7 @@ These pages were already using Supabase and continue to work:
 2. Copy your project URL and API keys
 3. Update the `.env.local` file in your project root with your actual Supabase credentials:
 
-```env
+\`\`\`env
 # Replace these with your actual Supabase credentials
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
@@ -63,22 +63,22 @@ NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your-paystack-public-key
 PAYSTACK_SECRET_KEY=your-paystack-secret-key
 BLOB_READ_WRITE_TOKEN=your-blob-token
 NEXT_PUBLIC_SITE_URL=http://localhost:5000
-```
+\`\`\`
 
 ### Step 4: Create an Admin User
 1. In Supabase, go to **Authentication** → **Users**
 2. Create a new user (or use an existing one)
 3. Copy the user's ID
 4. Go to **SQL Editor** and run:
-```sql
+\`\`\`sql
 UPDATE profiles SET is_admin = true WHERE id = 'your-user-id-here';
-```
+\`\`\`
 
 ### Step 5: Restart the Server
 After updating the environment variables, restart the development server:
-```bash
+\`\`\`bash
 pnpm run dev --port=5000 --hostname=0.0.0.0
-```
+\`\`\`
 
 ## Admin Dashboard Features
 

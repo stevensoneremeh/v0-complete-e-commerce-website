@@ -12,11 +12,11 @@
 
 ### Method 2: SQL Query
 Run this SQL query in your Supabase SQL Editor:
-```sql
+\`\`\`sql
 UPDATE users 
 SET role = 'admin' 
 WHERE email = 'user@example.com';
-```
+\`\`\`
 Replace `user@example.com` with the actual email address.
 
 ## Admin Dashboard Features

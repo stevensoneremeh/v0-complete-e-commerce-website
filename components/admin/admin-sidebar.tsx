@@ -23,13 +23,29 @@ import {
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar"
 
 export function AdminSidebar() {
   const pathname = usePathname()
   const [expandedGroups, setExpandedGroups] = useState<string[]>(["main"])
+  const { isMobile, setOpenMobile } = useSidebar()
 
   const toggleGroup = (group: string) => {
     setExpandedGroups((prev) => (prev.includes(group) ? prev.filter((g) => g !== group) : [...prev, group]))
+  }
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
   }
 
   const navGroups = [
@@ -88,57 +104,65 @@ export function AdminSidebar() {
   ]
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r bg-gradient-to-b from-background to-muted/20 px-4 py-6 overflow-y-auto">
-      <div className="mb-8">
-        <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Admin Panel
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">ABL Natasha Enterprises</p>
-      </div>
-
-      <nav className="flex-1 space-y-6">
-        {navGroups.map((group) => (
-          <div key={group.id}>
-            <button
-              onClick={() => toggleGroup(group.id)}
-              className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {group.label}
-              <ChevronDown
-                className={cn("h-4 w-4 transition-transform", expandedGroups.includes(group.id) && "rotate-180")}
-              />
-            </button>
-            {expandedGroups.includes(group.id) && (
-              <div className="space-y-1 mt-2">
-                {group.items.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-muted/50",
-                      pathname === item.href
-                        ? "bg-primary/10 text-primary border-l-2 border-primary"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            )}
+    <Sidebar collapsible="icon" className="border-r shadow-sm">
+      <SidebarHeader className="p-4 sm:p-6">
+        <div className="flex items-center gap-2 overflow-hidden">
+          <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent truncate">
+            Admin Panel
           </div>
-        ))}
-      </nav>
+        </div>
+        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 truncate">ABL Natasha Enterprises</p>
+      </SidebarHeader>
 
-      <div className="border-t pt-4">
-        <Button variant="outline" className="w-full justify-start bg-transparent" asChild>
+      <SidebarContent className="px-2 sm:px-4 py-2 sm:py-4">
+        <SidebarMenu className="space-y-4 sm:space-y-6">
+          {navGroups.map((group) => (
+            <SidebarMenuItem key={group.id}>
+              <button
+                onClick={() => toggleGroup(group.id)}
+                className="flex items-center justify-between w-full px-2 sm:px-3 py-1 sm:py-2 text-[10px] sm:text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <span className="truncate">{group.label}</span>
+                <ChevronDown
+                  className={cn(
+                    "h-3 w-3 sm:h-4 sm:w-4 transition-transform",
+                    expandedGroups.includes(group.id) && "rotate-180",
+                  )}
+                />
+              </button>
+              {expandedGroups.includes(group.id) && (
+                <div className="space-y-1 mt-1 sm:mt-2">
+                  {group.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={handleLinkClick}
+                      className={cn(
+                        "flex items-center gap-2 sm:gap-3 rounded-md px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all hover:bg-muted/50",
+                        pathname === item.href
+                          ? "bg-primary/10 text-primary border-l-2 border-primary"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      <item.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+
+      <SidebarFooter className="p-4 border-t">
+        <Button variant="outline" className="w-full justify-start bg-transparent text-xs sm:text-sm" asChild>
           <Link href="/auth">
-            <LogOut className="h-4 w-4 mr-2" />
+            <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2" />
             Logout
           </Link>
         </Button>
-      </div>
-    </aside>
+      </SidebarFooter>
+    </Sidebar>
   )
 }

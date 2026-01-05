@@ -64,7 +64,7 @@
 8. **Result**: Changes appear immediately without manual refresh!
 
 ### Technical Flow
-```
+\`\`\`
 Admin Action → API Route → Supabase DB Update
                     ↓
               Cache Revalidation
@@ -76,7 +76,7 @@ Admin Action → API Route → Supabase DB Update
         User Components Auto-refresh
                     ↓
            Changes Visible Instantly
-```
+\`\`\`
 
 ## Important Setup Required
 
@@ -95,7 +95,7 @@ You **MUST** enable replication in Supabase for real-time to work:
 #### Option 2: Via SQL (Recommended)
 Run this in your Supabase SQL Editor:
 
-```sql
+\`\`\`sql
 -- Enable replication for all admin-managed tables
 ALTER TABLE products REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE products;
@@ -108,7 +108,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE real_estate_properties;
 
 ALTER TABLE orders REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE orders;
-```
+\`\`\`
 
 ### Verify Setup
 1. Open browser console on your website
@@ -174,11 +174,11 @@ ALTER PUBLICATION supabase_realtime ADD TABLE orders;
 
 ## Environment Variables Required
 Make sure these are set in your `.env.local`:
-```env
+\`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
+\`\`\`
 
 ## Troubleshooting
 

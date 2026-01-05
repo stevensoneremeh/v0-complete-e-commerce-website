@@ -105,10 +105,7 @@ export function HeroSection() {
           className="w-full h-full object-cover"
           poster="/luxury-living-room.jpeg"
         >
-          <source
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/64bb5c83-2bb1-4c22-8f9f-642334f46cac-d87osryg91ycSMO0JRVMoOSmYnhH4e.mp4"
-            type="video/mp4"
-          />
+          <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/64bb5c83-2bb1-4c22-8f9f-642334f46cac-d87osryg91ycSMO0JRVMoOSmYnhH4e.mp4" type="video/mp4" />
           <source src="/luxury-apartment-video.webm" type="video/webm" />
           Your browser does not support the video tag.
         </video>
@@ -119,17 +116,17 @@ export function HeroSection() {
       <button
         onClick={toggleVideo}
         disabled={!isVideoLoaded || hasError}
-        className="absolute top-6 right-6 z-20 glass-effect hover:bg-white/20 rounded-full p-3 elegant-hover disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute bottom-6 right-6 sm:top-6 sm:bottom-auto z-20 glass-effect hover:bg-white/20 rounded-full p-3 elegant-hover disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label={isPlaying ? "Pause video" : "Play video"}
       >
         {hasError ? (
-          <div className="h-5 w-5 text-destructive">⚠</div>
+          <div className="h-8 w-8 text-destructive flex items-center justify-center">⚠</div>
         ) : !isVideoLoaded ? (
-          <div className="h-5 w-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <div className="h-8 w-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
         ) : isPlaying ? (
-          <Pause className="h-5 w-5 text-foreground" />
+          <Pause className="h-8 w-8 text-foreground" />
         ) : (
-          <Play className="h-5 w-5 text-foreground fill-current" />
+          <Play className="h-8 w-8 text-foreground fill-current" />
         )}
       </button>
 
@@ -141,20 +138,24 @@ export function HeroSection() {
               <span className="text-sm font-medium text-primary">ABL Natasha Enterprises 2024</span>
             </div>
 
-            <div className="space-y-6">
-              <h1 className="display-1 text-balance slide-up">
+            <div className="space-y-4 sm:space-y-6">
+              <h1 className="display-2 sm:display-1 text-balance slide-up leading-[1.1] sm:leading-tight">
                 Premium
                 <span className="block text-gradient">Lifestyle</span>
                 <span className="block">& Luxury Living</span>
               </h1>
-              <p className="body-large text-muted-foreground max-w-2xl text-pretty slide-up">
+              <p className="body-medium sm:body-large text-muted-foreground max-w-2xl text-pretty slide-up">
                 Discover exceptional luxury apartments, premium products, and unmatched elegance. ABL Natasha
                 Enterprises - Where luxury meets lifestyle.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 slide-up">
-              <Button size="lg" asChild className="luxury-button h-14 px-8 rounded-xl text-base font-semibold group">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 slide-up">
+              <Button
+                size="lg"
+                asChild
+                className="luxury-button h-12 sm:h-14 px-6 sm:px-8 rounded-xl text-sm sm:text-base font-semibold group w-full sm:w-auto"
+              >
                 <Link href="/properties" className="flex items-center gap-2">
                   Explore Luxury Stays
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -164,43 +165,43 @@ export function HeroSection() {
                 size="lg"
                 variant="outline"
                 asChild
-                className="h-14 px-8 rounded-xl text-base font-semibold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300 bg-transparent"
+                className="h-12 sm:h-14 px-6 sm:px-8 rounded-xl text-sm sm:text-base font-semibold border-2 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300 bg-transparent w-full sm:w-auto"
               >
                 <Link href="/products">Shop Premium</Link>
               </Button>
             </div>
 
-            <div className="responsive-grid pt-8 slide-up">
-              <div className="flex flex-col items-center text-center space-y-3 feature-highlight p-4 rounded-xl">
-                <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center elegant-hover">
-                  <Building2 className="h-7 w-7 text-primary" />
+            <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 pt-8 slide-up">
+              <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 feature-highlight p-3 sm:p-4 rounded-xl">
+                <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center elegant-hover">
+                  <Building2 className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                 </div>
                 <div>
                   <span className="text-sm font-semibold block">Luxury Apartments</span>
                   <span className="text-xs text-muted-foreground">Premium locations</span>
                 </div>
               </div>
-              <div className="flex flex-col items-center text-center space-y-3 feature-highlight p-4 rounded-xl">
-                <div className="h-14 w-14 rounded-xl bg-accent/20 flex items-center justify-center elegant-hover">
-                  <Clock className="h-7 w-7 text-accent" />
+              <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 feature-highlight p-3 sm:p-4 rounded-xl">
+                <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-accent/20 flex items-center justify-center elegant-hover">
+                  <Clock className="h-5 w-5 sm:h-7 sm:w-7 text-accent" />
                 </div>
                 <div>
                   <span className="text-sm font-semibold block">24/7 Concierge</span>
                   <span className="text-xs text-muted-foreground">Premium service</span>
                 </div>
               </div>
-              <div className="flex flex-col items-center text-center space-y-3 feature-highlight p-4 rounded-xl">
-                <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center elegant-hover">
-                  <Shield className="h-7 w-7 text-primary" />
+              <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 feature-highlight p-3 sm:p-4 rounded-xl">
+                <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center elegant-hover">
+                  <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-primary" />
                 </div>
                 <div>
                   <span className="text-sm font-semibold block">Secure Booking</span>
                   <span className="text-xs text-muted-foreground">Protected payments</span>
                 </div>
               </div>
-              <div className="flex flex-col items-center text-center space-y-3 feature-highlight p-4 rounded-xl">
-                <div className="h-14 w-14 rounded-xl bg-accent/20 flex items-center justify-center elegant-hover">
-                  <Sparkles className="h-7 w-7 text-accent" />
+              <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 feature-highlight p-3 sm:p-4 rounded-xl">
+                <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl bg-accent/20 flex items-center justify-center elegant-hover">
+                  <Sparkles className="h-5 w-5 sm:h-7 sm:w-7 text-accent" />
                 </div>
                 <div>
                   <span className="text-sm font-semibold block">Premium Quality</span>

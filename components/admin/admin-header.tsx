@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Settings, LogOut, Shield } from "lucide-react"
+import { Bell, Settings, LogOut, Shield, Menu } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,11 +17,13 @@ import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import { getNotifications } from "@/lib/local-storage"
 import { useAuth } from "@/components/auth-provider"
+import { useSidebar } from "@/components/ui/sidebar"
 
 export function AdminHeader() {
   const pathname = usePathname()
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0)
   const { user, logout } = useAuth()
+  const { toggleSidebar } = useSidebar()
 
   useEffect(() => {
     const updateNotificationCount = () => {
@@ -61,18 +63,24 @@ export function AdminHeader() {
   }
 
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur px-6 sticky top-0 z-40">
-      <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold">{getPageTitle()}</h1>
+    <header className="flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur px-4 sm:px-6 sticky top-0 z-40 w-full">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => toggleSidebar()}>
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle Sidebar</span>
+        </Button>
+        <h1 className="text-lg sm:text-xl font-semibold truncate max-w-[120px] xs:max-w-[200px] sm:max-w-none">
+          {getPageTitle()}
+        </h1>
         {user?.role === "admin" && (
-          <Badge variant="default" className="flex items-center gap-1">
+          <Badge variant="default" className="hidden xs:flex items-center gap-1">
             <Shield className="h-3 w-3" />
             Admin
           </Badge>
         )}
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/admin/notifications" className="relative">
             <Bell className="h-5 w-5" />

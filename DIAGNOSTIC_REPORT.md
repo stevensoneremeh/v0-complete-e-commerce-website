@@ -110,36 +110,36 @@ Products table lacks:
 ### Admin → User Data Flow Analysis
 
 **Products Flow:** ✅ WORKING (with fixes needed)
-```
+\`\`\`
 Admin Form → /api/admin/products (POST/PUT)
            → Supabase products table
            → /app/products/page.tsx (GET)
            → User sees updates
-```
+\`\`\`
 
 **Categories Flow:** ✅ WORKING
-```
+\`\`\`
 Admin Form → /api/admin/categories (POST/PUT)
            → Supabase categories table
            → Filters on products page
            → User sees updates
-```
+\`\`\`
 
 **Properties Flow:** ✅ WORKING
-```
+\`\`\`
 Admin Form → /api/admin/properties (POST/PUT)
            → Supabase properties table
            → /app/properties/page.tsx (GET)
            → User sees updates
-```
+\`\`\`
 
 **Hire Services Flow:** ✅ WORKING
-```
+\`\`\`
 Admin Form → /api/admin/hire-services (POST/PUT)
            → Supabase hire_items table
            → /app/hire/page.tsx (GET)
            → User sees updates
-```
+\`\`\`
 
 ---
 
