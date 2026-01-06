@@ -39,7 +39,6 @@ export default function CategoriesPage() {
     description: "",
     image_url: "",
     is_active: true,
-    display_order: 0,
   })
 
   useEffect(() => {
@@ -89,7 +88,7 @@ export default function CategoriesPage() {
         await fetchCategories()
         setShowAddDialog(false)
         setEditingCategory(null)
-        setFormData({ name: "", description: "", image_url: "", is_active: true, display_order: 0 })
+        setFormData({ name: "", description: "", image_url: "", is_active: true })
         toast.success(`Category ${editingCategory ? "updated" : "created"} successfully`)
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
@@ -108,7 +107,6 @@ export default function CategoriesPage() {
       description: category.description || "",
       image_url: category.image_url || "",
       is_active: category.is_active,
-      display_order: category.display_order,
     })
     setEditingCategory(category)
     setShowAddDialog(true)
@@ -166,20 +164,20 @@ export default function CategoriesPage() {
             <Button
               onClick={() => {
                 setEditingCategory(null)
-                setFormData({ name: "", description: "", image_url: "", is_active: true, display_order: 0 })
+                setFormData({ name: "", description: "", image_url: "", is_active: true })
               }}
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Category
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingCategory ? "Edit Category" : "Add New Category"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="name">Category Name</Label>
+                <Label htmlFor="name">Category Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -235,16 +233,6 @@ export default function CategoriesPage() {
                   </div>
                 )}
               </div>
-              <div>
-                <Label htmlFor="display_order">Display Order</Label>
-                <Input
-                  id="display_order"
-                  type="number"
-                  value={formData.display_order}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, display_order: Number.parseInt(e.target.value) }))}
-                  placeholder="0"
-                />
-              </div>
               <div className="flex items-center space-x-2">
                 <Switch
                   id="is_active"
@@ -253,7 +241,7 @@ export default function CategoriesPage() {
                 />
                 <Label htmlFor="is_active">Active</Label>
               </div>
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end space-x-2 pt-4 border-t sticky bottom-0 bg-background">
                 <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
                   Cancel
                 </Button>
@@ -284,7 +272,6 @@ export default function CategoriesPage() {
                   <TableHead>Description</TableHead>
                   <TableHead>Products</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Display Order</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -327,7 +314,6 @@ export default function CategoriesPage() {
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell>{category.display_order}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" onClick={() => handleEdit(category)}>

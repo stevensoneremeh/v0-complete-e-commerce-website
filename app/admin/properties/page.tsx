@@ -244,7 +244,7 @@ export default function PropertiesPage() {
 
       {/* Property Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProperty ? "Edit Property" : "Add New Property"}</DialogTitle>
           </DialogHeader>

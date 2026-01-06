@@ -27,23 +27,15 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
   const [formData, setFormData] = useState({
     name: product?.name || "",
     description: product?.description || "",
-    short_description: product?.short_description || "",
     price: product?.price || "",
-    compare_at_price: product?.compare_at_price || "",
     category_id: product?.category_id || "",
-    sku: product?.sku || "",
     stock_quantity: product?.stock_quantity || 0,
-    low_stock_threshold: product?.low_stock_threshold || 5,
-    weight: product?.weight || "",
-    dimensions: product?.dimensions || "",
     status: product?.status || "active",
     is_featured: product?.is_featured || false,
     is_active: product?.is_active || true,
     images: product?.images || [],
-    features: product?.features || [],
   })
 
-  const [newFeature, setNewFeature] = useState("")
   const [newImageUrl, setNewImageUrl] = useState("")
   const { toast } = useToast()
 
@@ -54,7 +46,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
     if (!formData.name || !formData.description || !formData.price || !formData.category_id) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in all required fields (Name, Description, Price, Category)",
         variant: "destructive",
       })
       return
@@ -63,28 +55,8 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
     onSubmit({
       ...formData,
       price: Number.parseFloat(formData.price),
-      compare_at_price: formData.compare_at_price ? Number.parseFloat(formData.compare_at_price) : null,
       stock_quantity: Number.parseInt(formData.stock_quantity),
-      low_stock_threshold: Number.parseInt(formData.low_stock_threshold),
-      weight: formData.weight ? Number.parseFloat(formData.weight) : null,
     })
-  }
-
-  const addFeature = () => {
-    if (newFeature.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        features: [...prev.features, newFeature.trim()],
-      }))
-      setNewFeature("")
-    }
-  }
-
-  const removeFeature = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      features: prev.features.filter((_: string, i: number) => i !== index),
-    }))
   }
 
   const addImage = () => {
@@ -105,39 +77,28 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <Tabs defaultValue="basic" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="basic">Basic Info</TabsTrigger>
           <TabsTrigger value="pricing">Pricing & Inventory</TabsTrigger>
-          <TabsTrigger value="media">Images & Features</TabsTrigger>
+          <TabsTrigger value="media">Images</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="basic" className="space-y-4">
+        <TabsContent value="basic" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Product Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="sku">SKU</Label>
-                  <Input
-                    id="sku"
-                    value={formData.sku}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, sku: e.target.value }))}
-                    placeholder="Auto-generated if empty"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="name">Product Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                  required
+                />
               </div>
 
               <div>
@@ -148,16 +109,6 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                   onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                   rows={4}
                   required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="short_description">Short Description</Label>
-                <Textarea
-                  id="short_description"
-                  value={formData.short_description}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, short_description: e.target.value }))}
-                  rows={2}
                 />
               </div>
 
@@ -201,7 +152,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
           </Card>
         </TabsContent>
 
-        <TabsContent value="pricing" className="space-y-4">
+        <TabsContent value="pricing" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
               <CardTitle>Pricing & Inventory</CardTitle>
@@ -221,58 +172,12 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                   />
                 </div>
                 <div>
-                  <Label htmlFor="compare_at_price">Compare at Price (Optional)</Label>
-                  <Input
-                    id="compare_at_price"
-                    type="number"
-                    step="0.01"
-                    value={formData.compare_at_price}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, compare_at_price: e.target.value }))}
-                    placeholder="Original price for sale items"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
                   <Label htmlFor="stock_quantity">Stock Quantity</Label>
                   <Input
                     id="stock_quantity"
                     type="number"
                     value={formData.stock_quantity}
                     onChange={(e) => setFormData((prev) => ({ ...prev, stock_quantity: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="low_stock_threshold">Low Stock Threshold</Label>
-                  <Input
-                    id="low_stock_threshold"
-                    type="number"
-                    value={formData.low_stock_threshold}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, low_stock_threshold: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="weight">Weight (kg) (Optional)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    step="0.01"
-                    value={formData.weight}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, weight: e.target.value }))}
-                    placeholder="e.g., 2.5"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="dimensions">Dimensions (Optional)</Label>
-                  <Input
-                    id="dimensions"
-                    value={formData.dimensions}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, dimensions: e.target.value }))}
-                    placeholder="e.g., 10 x 5 x 3 cm"
                   />
                 </div>
               </div>
@@ -299,7 +204,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
           </Card>
         </TabsContent>
 
-        <TabsContent value="media" className="space-y-4">
+        <TabsContent value="media" className="space-y-4 mt-4">
           <Card>
             <CardHeader>
               <CardTitle>Product Images</CardTitle>
@@ -371,44 +276,10 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
               )}
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Features (Optional)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Add product feature (e.g., Waterproof, 2-year warranty)" 
-                  value={newFeature} 
-                  onChange={(e) => setNewFeature(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      addFeature()
-                    }
-                  }}
-                />
-                <Button type="button" onClick={addFeature}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {formData.features.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.features.map((feature: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {feature}
-                      <X className="h-3 w-3 cursor-pointer" onClick={() => removeFeature(index)} />
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
 
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end space-x-2 pt-4 border-t sticky bottom-0 bg-background">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>

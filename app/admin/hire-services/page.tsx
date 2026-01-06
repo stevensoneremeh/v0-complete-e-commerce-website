@@ -258,14 +258,14 @@ export default function HireServicesPage() {
       </Card>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingService ? "Edit Service" : "Add New Service"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Service Name*</Label>
+                <Label htmlFor="name">Service Name *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -274,7 +274,7 @@ export default function HireServicesPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="category">Category*</Label>
+                <Label htmlFor="category">Category *</Label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -288,17 +288,17 @@ export default function HireServicesPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="price_per_day">Price Per Day*</Label>
-                <Input
-                  id="price_per_day"
-                  type="number"
-                  step="0.01"
-                  value={formData.price_per_day}
-                  onChange={(e) => setFormData({ ...formData, price_per_day: Number.parseFloat(e.target.value) })}
-                  required
-                />
-              </div>
+            </div>
+            <div>
+              <Label htmlFor="price_per_day">Price Per Day *</Label>
+              <Input
+                id="price_per_day"
+                type="number"
+                step="0.01"
+                value={formData.price_per_day}
+                onChange={(e) => setFormData({ ...formData, price_per_day: Number.parseFloat(e.target.value) })}
+                required
+              />
             </div>
             <div>
               <Label htmlFor="description">Description</Label>
@@ -368,7 +368,7 @@ export default function HireServicesPage() {
                 <Label htmlFor="is_active">Active</Label>
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 border-t sticky bottom-0 bg-background">
               <Button
                 type="button"
                 variant="outline"

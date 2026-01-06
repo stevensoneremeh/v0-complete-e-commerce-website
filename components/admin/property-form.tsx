@@ -29,25 +29,16 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
     property_type: property?.property_type || "apartment",
     bedrooms: property?.bedrooms || 1,
     bathrooms: property?.bathrooms || 1,
-    square_feet: property?.square_feet || 0,
     booking_price_per_night: property?.booking_price_per_night || 0,
     location_details: property?.location_details || { address: "", city: "", country: "" },
     amenities: property?.amenities || [],
     images: property?.images || [],
     is_available_for_booking: property?.is_available_for_booking ?? true,
-    minimum_stay_nights: property?.minimum_stay_nights || 1,
-    year_built: property?.year_built || new Date().getFullYear(),
-    lot_size: property?.lot_size || 0,
-    virtual_tour_url: property?.virtual_tour_url || "",
-    floor_plans: property?.floor_plans || [],
     status: property?.status || "available",
-    tags: property?.tags || [],
-    featured: property?.featured || false,
   })
 
   const [newAmenity, setNewAmenity] = useState("")
   const [newImage, setNewImage] = useState("")
-  const [newTag, setNewTag] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,19 +46,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/admin/properties", {
-        method: property ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, id: property?.id }),
-      })
-
-      if (response.ok) {
-        const savedProperty = await response.json()
-        onSave(savedProperty)
-        toast.success(`Property ${property ? "updated" : "created"} successfully!`)
-      } else {
-        throw new Error("Failed to save property")
-      }
+      await onSave(formData)
     } catch (error) {
       toast.error("Failed to save property. Please try again.")
     } finally {
@@ -92,23 +71,6 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
     }))
   }
 
-  const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData((prev) => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()],
-      }))
-      setNewTag("")
-    }
-  }
-
-  const removeTag = (tag: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      tags: prev.tags.filter((t: string) => t !== tag),
-    }))
-  }
-
   const addImage = () => {
     if (newImage.trim() && !formData.images.includes(newImage.trim())) {
       setFormData((prev) => ({
@@ -127,35 +89,26 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
   }
 
   return (
-    <Card className="max-w-6xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Eye className="h-5 w-5" />
-          {property ? "Edit Property" : "Add New Property"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="basic" className="flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              Basic Info
-            </TabsTrigger>
-            <TabsTrigger value="details" className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Details & Amenities
-            </TabsTrigger>
-            <TabsTrigger value="media" className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Images & Management
-            </TabsTrigger>
-          </TabsList>
-
-          <form onSubmit={handleSubmit} className="mt-6">
-            <TabsContent value="basic" className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Tabs defaultValue="basic" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="basic" className="flex items-center gap-2">
+            <Home className="h-4 w-4" />
+            Basic Info
+          </TabsTrigger>
+          <TabsTrigger value="details" className="flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            Location & Amenities
+          </TabsTrigger>
+          <TabsTrigger value="media" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Images
+          </TabsTrigger>
+        </TabsList>
+            <TabsContent value="basic" className="space-y-6 mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Property Title</Label>
+                  <Label htmlFor="title">Property Title *</Label>
                   <Input
                     id="title"
                     value={formData.title}
@@ -186,7 +139,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">Description *</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -221,18 +174,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="square_feet">Square Feet</Label>
-                  <Input
-                    id="square_feet"
-                    type="number"
-                    min="0"
-                    value={formData.square_feet}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, square_feet: Number.parseInt(e.target.value) }))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price per Night ($)</Label>
+                  <Label htmlFor="price">Price per Night ($) *</Label>
                   <Input
                     id="price"
                     type="number"
@@ -245,10 +187,39 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     required
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="booked">Booked</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="booking_available">Available for Booking</Label>
+                <Switch
+                  id="booking_available"
+                  checked={formData.is_available_for_booking}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({ ...prev, is_available_for_booking: checked }))
+                  }
+                />
               </div>
             </TabsContent>
 
-            <TabsContent value="details" className="space-y-6">
+            <TabsContent value="details" className="space-y-6 mt-4">
               <div className="space-y-4">
                 <Label>Location Details</Label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -322,45 +293,9 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                   ))}
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="year_built">Year Built</Label>
-                  <Input
-                    id="year_built"
-                    type="number"
-                    min="1800"
-                    max={new Date().getFullYear() + 5}
-                    value={formData.year_built}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, year_built: Number.parseInt(e.target.value) }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="minimum_stay">Minimum Stay (nights)</Label>
-                  <Input
-                    id="minimum_stay"
-                    type="number"
-                    min="1"
-                    value={formData.minimum_stay_nights}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, minimum_stay_nights: Number.parseInt(e.target.value) }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="virtual_tour">Virtual Tour URL</Label>
-                  <Input
-                    id="virtual_tour"
-                    type="url"
-                    value={formData.virtual_tour_url}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, virtual_tour_url: e.target.value }))}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
             </TabsContent>
 
-            <TabsContent value="media" className="space-y-6">
+            <TabsContent value="media" className="space-y-6 mt-4">
               <div className="space-y-4">
                 <Label>Property Images</Label>
                 <FileUpload
@@ -429,90 +364,17 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                 )}
               </div>
             </TabsContent>
+          </Tabs>
 
-            <TabsContent value="management" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <Label>Property Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => setFormData((prev) => ({ ...prev, status: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="booked">Booked</SelectItem>
-                      <SelectItem value="sold">Sold</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="draft">Draft</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="featured">Featured Property</Label>
-                    <Switch
-                      id="featured"
-                      checked={formData.featured}
-                      onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, featured: checked }))}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="booking_available">Available for Booking</Label>
-                    <Switch
-                      id="booking_available"
-                      checked={formData.is_available_for_booking}
-                      onCheckedChange={(checked) =>
-                        setFormData((prev) => ({ ...prev, is_available_for_booking: checked }))
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <Label>Property Tags</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="Add tag (e.g., luxury, waterfront, pet-friendly)"
-                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-                  />
-                  <Button type="button" onClick={addTag} size="sm">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag: string) => (
-                    <Badge key={tag} variant="outline" className="flex items-center gap-1">
-                      {tag}
-                      <X className="h-3 w-3 cursor-pointer hover:text-destructive" onClick={() => removeTag(tag)} />
-                    </Badge>
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Tags help categorize and filter properties. Use descriptive keywords like "luxury", "waterfront",
-                  "pet-friendly", etc.
-                </p>
-              </div>
-            </TabsContent>
-
-            <div className="flex justify-end gap-4 mt-8 pt-6 border-t">
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                <Save className="h-4 w-4 mr-2" />
-                {isLoading ? "Saving..." : "Save Property"}
-              </Button>
-            </div>
-          </form>
-        </Tabs>
-      </CardContent>
-    </Card>
+          <div className="flex justify-end gap-4 mt-6 pt-6 border-t sticky bottom-0 bg-background">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              <Save className="h-4 w-4 mr-2" />
+              {isLoading ? "Saving..." : property ? "Update Property" : "Create Property"}
+            </Button>
+          </div>
+        </form>
   )
 }
