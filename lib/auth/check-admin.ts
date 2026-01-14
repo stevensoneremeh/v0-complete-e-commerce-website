@@ -9,7 +9,6 @@ export async function checkAdminAccess() {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
-      console.error("[Admin] Missing Supabase configuration")
       return { isAdmin: false, user: null, error: "Configuration error" }
     }
 
@@ -49,12 +48,11 @@ export async function checkAdminAccess() {
 
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("is_admin, role, full_name, email")
+      .select("is_admin, role")
       .eq("id", user.id)
       .single()
 
-    if (profileError) {
-      console.error("[Admin] Profile check error:", profileError.message)
+    if (profileError || !profile) {
       return { isAdmin: false, user, error: "Failed to verify admin status" }
     }
 
@@ -64,15 +62,7 @@ export async function checkAdminAccess() {
       return { isAdmin: false, user, error: "User is not an admin" }
     }
 
-    return {
-      isAdmin: true,
-      user: {
-        ...user,
-        fullName: profile.full_name,
-        email: profile.email,
-      },
-      error: null,
-    }
+    return { isAdmin: true, user, error: null }
   } catch (error) {
     console.error("[Admin] Verification error:", error)
     return { isAdmin: false, user: null, error: "Failed to verify admin status" }
