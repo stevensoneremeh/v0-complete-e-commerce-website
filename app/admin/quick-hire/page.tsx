@@ -42,12 +42,16 @@ export default function QuickHirePage() {
 
   const fetchServices = async () => {
     try {
-      const res = await fetch('/api/admin/hire-services')
+      const res = await fetch('/api/test-admin/hire-services')
       if (res.ok) {
         const data = await res.json()
         setServices(data.services || [])
+      } else {
+        console.error('[v0] Fetch failed:', res.status)
+        toast.error('Failed to load services')
       }
     } catch (error) {
+      console.error('[v0] Error:', error)
       toast.error('Failed to load services')
     } finally {
       setLoading(false)
@@ -62,7 +66,7 @@ export default function QuickHirePage() {
     }
 
     try {
-      const url = editing ? `/api/admin/hire-services/${editing.id}` : '/api/admin/hire-services'
+      const url = editing ? `/api/admin/hire-services/${editing.id}` : '/api/test-admin/hire-services'
       const res = await fetch(url, {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -75,8 +79,13 @@ export default function QuickHirePage() {
         setEditing(null)
         resetForm()
         toast.success(`Service ${editing ? 'updated' : 'created'}!`)
+      } else {
+        const error = await res.json()
+        console.error('[v0] Error:', error)
+        toast.error(error.error || 'Failed to save')
       }
     } catch (error) {
+      console.error('[v0] Error:', error)
       toast.error('Error saving')
     }
   }

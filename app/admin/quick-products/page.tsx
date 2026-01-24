@@ -39,8 +39,8 @@ export default function QuickProductsPage() {
     try {
       setLoading(true)
       const [pRes, cRes] = await Promise.all([
-        fetch('/api/admin/products'),
-        fetch('/api/admin/categories'),
+        fetch('/api/test-admin/products'),
+        fetch('/api/test-admin/categories'),
       ])
 
       if (pRes.ok) {
@@ -52,6 +52,7 @@ export default function QuickProductsPage() {
         setCategories(Array.isArray(cData) ? cData : cData.categories || [])
       }
     } catch (error) {
+      console.error('[v0] Fetch error:', error)
       toast.error('Failed to load data')
     } finally {
       setLoading(false)
@@ -62,7 +63,7 @@ export default function QuickProductsPage() {
     try {
       const url = editingProduct 
         ? `/api/admin/products/${editingProduct.id}`
-        : '/api/admin/products'
+        : '/api/test-admin/products'
       
       const res = await fetch(url, {
         method: editingProduct ? 'PUT' : 'POST',
@@ -77,9 +78,11 @@ export default function QuickProductsPage() {
         toast.success(`Product ${editingProduct ? 'updated' : 'created'} successfully!`)
       } else {
         const error = await res.json()
+        console.error('[v0] Save error:', error)
         toast.error(error.error || 'Failed to save')
       }
     } catch (error) {
+      console.error('[v0] Error saving:', error)
       toast.error('Error saving product')
     }
   }

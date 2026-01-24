@@ -38,12 +38,16 @@ export default function QuickCategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/admin/categories')
+      const res = await fetch('/api/test-admin/categories')
       if (res.ok) {
         const data = await res.json()
         setCategories(Array.isArray(data) ? data : data.categories || [])
+      } else {
+        console.error('[v0] Failed to fetch:', res.status, res.statusText)
+        toast.error('Failed to load categories')
       }
     } catch (error) {
+      console.error('[v0] Fetch error:', error)
       toast.error('Failed to load categories')
     } finally {
       setLoading(false)
@@ -59,7 +63,7 @@ export default function QuickCategoriesPage() {
 
     try {
       const slug = formData.name.toLowerCase().replace(/\s+/g, '-')
-      const url = editing ? `/api/admin/categories/${editing.id}` : '/api/admin/categories'
+      const url = editing ? `/api/admin/categories/${editing.id}` : '/api/test-admin/categories'
       const res = await fetch(url, {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,9 +77,12 @@ export default function QuickCategoriesPage() {
         resetForm()
         toast.success(`Category ${editing ? 'updated' : 'created'} successfully!`)
       } else {
-        toast.error('Failed to save')
+        const error = await res.json()
+        console.error('[v0] Save error:', error)
+        toast.error(error.error || 'Failed to save')
       }
     } catch (error) {
+      console.error('[v0] Error saving:', error)
       toast.error('Error saving category')
     }
   }

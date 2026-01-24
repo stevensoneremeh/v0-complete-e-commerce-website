@@ -46,12 +46,16 @@ export default function QuickPropertiesPage() {
 
   const fetchProperties = async () => {
     try {
-      const res = await fetch('/api/admin/properties')
+      const res = await fetch('/api/test-admin/properties')
       if (res.ok) {
         const data = await res.json()
         setProperties(data.properties || [])
+      } else {
+        console.error('[v0] Fetch failed:', res.status)
+        toast.error('Failed to load')
       }
     } catch (error) {
+      console.error('[v0] Error:', error)
       toast.error('Failed to load')
     } finally {
       setLoading(false)
@@ -66,7 +70,7 @@ export default function QuickPropertiesPage() {
     }
 
     try {
-      const url = editing ? `/api/admin/properties/${editing.id}` : '/api/admin/properties'
+      const url = editing ? `/api/admin/properties/${editing.id}` : '/api/test-admin/properties'
       const res = await fetch(url, {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,6 +82,11 @@ export default function QuickPropertiesPage() {
         setShowForm(false)
         setEditing(null)
         resetForm()
+        toast.success(`Property ${editing ? 'updated' : 'created'}!`)
+      } else {
+        const error = await res.json()
+        console.error('[v0] Error:', error)
+        toast.error(error.error || 'Failed to save')
         toast.success(`Property ${editing ? 'updated' : 'created'}!`)
       }
     } catch (error) {
