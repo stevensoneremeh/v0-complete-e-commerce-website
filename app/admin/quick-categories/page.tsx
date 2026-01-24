@@ -38,9 +38,13 @@ export default function QuickCategoriesPage() {
 
   const fetchCategories = async () => {
     try {
+      console.log('[v0] Fetching categories...')
       const res = await fetch('/api/test-admin/categories')
+      console.log('[v0] Fetch response status:', res.status)
+      
       if (res.ok) {
         const data = await res.json()
+        console.log('[v0] Categories fetched:', data)
         setCategories(Array.isArray(data) ? data : data.categories || [])
       } else {
         console.error('[v0] Failed to fetch:', res.status, res.statusText)
@@ -56,7 +60,10 @@ export default function QuickCategoriesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[v0] Form submitted', { formData })
+    
     if (!formData.name.trim()) {
+      console.log('[v0] Name is empty')
       toast.error('Category name is required')
       return
     }
@@ -64,13 +71,19 @@ export default function QuickCategoriesPage() {
     try {
       const slug = formData.name.toLowerCase().replace(/\s+/g, '-')
       const url = editing ? `/api/admin/categories/${editing.id}` : '/api/test-admin/categories'
+      
+      console.log('[v0] Sending request to:', url, { method: editing ? 'PUT' : 'POST' })
+      
       const res = await fetch(url, {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, slug }),
       })
 
+      console.log('[v0] Response status:', res.status, res.statusText)
+
       if (res.ok) {
+        console.log('[v0] Success! Fetching updated categories')
         await fetchCategories()
         setShowForm(false)
         setEditing(null)
@@ -78,7 +91,7 @@ export default function QuickCategoriesPage() {
         toast.success(`Category ${editing ? 'updated' : 'created'} successfully!`)
       } else {
         const error = await res.json()
-        console.error('[v0] Save error:', error)
+        console.error('[v0] Save error:', res.status, error)
         toast.error(error.error || 'Failed to save')
       }
     } catch (error) {

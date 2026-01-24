@@ -34,12 +34,19 @@ export async function GET() {
 // POST - create category (NO AUTH FOR TESTING)
 export async function POST(request: NextRequest) {
   try {
+    console.log("[TEST] POST /api/test-admin/categories - Request received")
+    
     const body = await request.json()
+    console.log("[TEST] Request body:", body)
+    
     const { name, description, slug, is_active } = body
 
     if (!name) {
+      console.log("[TEST] Name is missing")
       return NextResponse.json({ error: "Category name is required" }, { status: 400 })
     }
+
+    console.log("[TEST] Creating category:", { name, slug, description, is_active })
 
     const { data: category, error: dbError } = await supabase
       .from("categories")
@@ -56,10 +63,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (dbError) {
-      console.error("[TEST] Error creating category:", dbError)
+      console.error("[TEST] Database error creating category:", dbError)
       return NextResponse.json({ error: dbError.message }, { status: 500 })
     }
 
+    console.log("[TEST] Category created successfully:", category)
     return NextResponse.json({ category }, { status: 201 })
   } catch (error) {
     console.error("[TEST] Error in categories POST:", error)
