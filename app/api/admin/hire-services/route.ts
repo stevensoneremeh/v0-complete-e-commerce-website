@@ -1,6 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/auth/admin-guard"
 
+/**
+ * GET /api/admin/hire-services
+ * Fetches all hire services (car hire, boat cruises) for admin dashboard
+ * Services are sorted by service type
+ */
 export async function GET(request: NextRequest) {
   try {
     const { supabase, error: authError } = await verifyAdmin()
@@ -24,6 +29,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * POST /api/admin/hire-services
+ * Creates a new hire service (car or boat)
+ * Automatically generates slug from name
+ */
 export async function POST(request: NextRequest) {
   try {
     const { supabase, error: authError } = await verifyAdmin()

@@ -2,6 +2,15 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
+/**
+ * GET /api/hire-services
+ * Public API endpoint for fetching hire services (car hire, boat cruises) on the user-facing side
+ * Only returns active services (is_active = true) sorted by service type
+ * 
+ * Real-time sync: When admins create/update/delete hire services via admin dashboard,
+ * changes are immediately visible to users as this queries the same Supabase table
+ * and filters by is_active status.
+ */
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies()
