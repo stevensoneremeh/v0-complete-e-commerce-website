@@ -2,6 +2,11 @@ import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/auth/admin-guard"
 import { revalidatePath, revalidateTag } from "next/cache"
 
+/**
+ * GET /api/admin/categories
+ * Fetches all categories for admin dashboard with product counts
+ * Returns categories sorted by display order
+ */
 export async function GET() {
   try {
     const { supabase, error: authError } = await verifyAdmin()
@@ -32,6 +37,11 @@ export async function GET() {
   }
 }
 
+/**
+ * POST /api/admin/categories
+ * Creates a new category in the database
+ * Revalidates /categories and /products paths to update user-facing pages
+ */
 export async function POST(request: NextRequest) {
   try {
     const { supabase, error: authError } = await verifyAdmin()

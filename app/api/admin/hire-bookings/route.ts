@@ -1,6 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyAdmin } from "@/lib/auth/admin-guard"
 
+/**
+ * GET /api/admin/hire-bookings
+ * Fetches all hire service bookings for admin dashboard with customer profiles
+ * Bookings are sorted by creation date (newest first)
+ */
 export async function GET(request: NextRequest) {
   try {
     const { supabase, error: authError } = await verifyAdmin()
@@ -31,6 +36,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * POST /api/admin/hire-bookings
+ * Creates a new hire service booking (admin-initiated)
+ * Automatically sets timestamps
+ */
 export async function POST(request: NextRequest) {
   try {
     const { supabase, error: authError } = await verifyAdmin()

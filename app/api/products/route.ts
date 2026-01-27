@@ -2,6 +2,16 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
+/**
+ * GET /api/products
+ * Public API endpoint for fetching products on the user-facing side
+ * Only returns active products (is_active = true) to ensure real-time sync with admin changes
+ * Supports filtering by category, featured status, and limit
+ * 
+ * Real-time sync: When admins create/update/delete products via admin dashboard,
+ * changes are immediately visible to users as this queries the same Supabase table
+ * and filters by is_active status.
+ */
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = await cookies()

@@ -2,6 +2,15 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
+/**
+ * GET /api/categories
+ * Public API endpoint for fetching categories on the user-facing side
+ * Only returns active categories (is_active = true) sorted by sort_order
+ * 
+ * Real-time sync: When admins create/update/delete categories via admin dashboard,
+ * changes are immediately visible to users as this queries the same Supabase table
+ * and filters by is_active status.
+ */
 export async function GET() {
   try {
     const cookieStore = await cookies()
