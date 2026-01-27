@@ -264,7 +264,7 @@ export default function CategoriesPage() {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={submitting || !formData.name.trim()}>
-                  {submitting ? "Saving..." : editingCategory ? "Update" : "Create"} {submitting ? "" : "Category"}
+                  {submitting ? "Saving..." : editingCategory ? "Update Category" : "Create Category"}
                 </Button>
               </div>
             </form>
