@@ -34,6 +34,7 @@ interface HireItem {
 export default function HireServicesPage() {
   const [services, setServices] = useState<HireItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingService, setEditingService] = useState<HireItem | null>(null)
   const [filterType, setFilterType] = useState("all")
@@ -68,6 +69,22 @@ export default function HireServicesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error("Service name is required")
+      return
+    }
+    if (!formData.description.trim()) {
+      toast.error("Description is required")
+      return
+    }
+    if (formData.price_per_day <= 0) {
+      toast.error("Price per day must be greater than 0")
+      return
+    }
+
+    setSubmitting(true)
     try {
       const response = await fetch(
         editingService ? `/api/admin/hire-services/${editingService.id}` : "/api/admin/hire-services",
@@ -84,9 +101,16 @@ export default function HireServicesPage() {
         setEditingService(null)
         resetForm()
         toast.success(`Service ${editingService ? "updated" : "created"} successfully`)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        console.error("Failed to save service:", errorData)
+        toast.error(`Failed to save service: ${errorData.error || response.statusText}`)
       }
     } catch (error) {
-      toast.error("Failed to save service")
+      console.error("Network error saving service:", error)
+      toast.error("Network error: Failed to save service. Please check your connection and try again.")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -105,7 +129,7 @@ export default function HireServicesPage() {
   }
 
   const handleDelete = async (serviceId: string) => {
-    if (confirm("Are you sure you want to delete this hire service?")) {
+    if (confirm("Are you sure you want to delete this hire service? This action cannot be undone.")) {
       try {
         const response = await fetch(`/api/admin/hire-services/${serviceId}`, {
           method: "DELETE",
@@ -114,9 +138,14 @@ export default function HireServicesPage() {
         if (response.ok) {
           await fetchServices()
           toast.success("Service deleted successfully")
+        } else {
+          const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+          console.error("Failed to delete service:", errorData)
+          toast.error(`Failed to delete service: ${errorData.error || response.statusText}`)
         }
       } catch (error) {
-        toast.error("Failed to delete service")
+        console.error("Network error deleting service:", error)
+        toast.error("Network error: Failed to delete service. Please check your connection and try again.")
       }
     }
   }
@@ -257,7 +286,14 @@ export default function HireServicesPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={showForm} onOpenChange={setShowForm}>
+      <Dialog open={showForm} onOpenChange={(open) => {
+        setShowForm(open)
+        if (!open) {
+          setEditingService(null)
+          resetForm()
+          setSubmitting(false)
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingService ? "Edit Service" : "Add New Service"}</DialogTitle>
@@ -372,6 +408,7 @@ export default function HireServicesPage() {
               <Button
                 type="button"
                 variant="outline"
+                disabled={submitting}
                 onClick={() => {
                   setShowForm(false)
                   setEditingService(null)
@@ -380,7 +417,9 @@ export default function HireServicesPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit">{editingService ? "Update Service" : "Create Service"}</Button>
+              <Button type="submit" disabled={submitting || !formData.name.trim() || !formData.description.trim() || formData.price_per_day <= 0}>
+                {submitting ? "Saving..." : editingService ? "Update Service" : "Create Service"}
+              </Button>
             </div>
           </form>
         </DialogContent>

@@ -44,6 +44,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -95,6 +96,7 @@ export default function ProductsPage() {
   }
 
   const handleSubmit = async (productData: any) => {
+    setSubmitting(true)
     try {
       const response = await fetch(
         editingProduct ? `/api/admin/products/${editingProduct.id}` : "/api/admin/products",
@@ -118,6 +120,8 @@ export default function ProductsPage() {
     } catch (error) {
       console.error("Network error saving product:", error)
       toast.error("Network error: Failed to save product. Please check your connection and try again.")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -338,7 +342,13 @@ export default function ProductsPage() {
       </Card>
 
       {/* Product Form Dialog */}
-      <Dialog open={showForm} onOpenChange={setShowForm}>
+      <Dialog open={showForm} onOpenChange={(open) => {
+        setShowForm(open)
+        if (!open) {
+          setEditingProduct(null)
+          setSubmitting(false)
+        }
+      }}>
         <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
@@ -348,6 +358,7 @@ export default function ProductsPage() {
             categories={categories}
             onSubmit={handleSubmit}
             onCancel={() => setShowForm(false)}
+            isSubmitting={submitting}
           />
         </DialogContent>
       </Dialog>

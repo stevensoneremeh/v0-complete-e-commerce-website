@@ -31,6 +31,7 @@ interface Category {
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 
@@ -68,6 +69,13 @@ export default function CategoriesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Validation
+    if (!formData.name.trim()) {
+      toast.error("Category name is required")
+      return
+    }
+
+    setSubmitting(true)
     try {
       const slug = formData.name
         .toLowerCase()
@@ -98,6 +106,8 @@ export default function CategoriesPage() {
     } catch (error) {
       console.error('Network error saving category:', error)
       toast.error("Network error: Failed to save category. Please check your connection and try again.")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -159,7 +169,15 @@ export default function CategoriesPage() {
           <h1 className="text-3xl font-bold">Category Management</h1>
           <p className="text-muted-foreground">Organize your products into categories</p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <Dialog open={showAddDialog} onOpenChange={(open) => {
+          setShowAddDialog(open)
+          if (!open) {
+            // Reset form when dialog is closed
+            setEditingCategory(null)
+            setFormData({ name: "", description: "", image_url: "", is_active: true })
+            setSubmitting(false)
+          }
+        }}>
           <DialogTrigger asChild>
             <Button
               onClick={() => {
@@ -242,10 +260,12 @@ export default function CategoriesPage() {
                 <Label htmlFor="is_active">Active</Label>
               </div>
               <div className="flex justify-end space-x-2 pt-4 border-t sticky bottom-0 bg-background">
-                <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
+                <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)} disabled={submitting}>
                   Cancel
                 </Button>
-                <Button type="submit">{editingCategory ? "Update" : "Create"} Category</Button>
+                <Button type="submit" disabled={submitting || !formData.name.trim()}>
+                  {submitting ? "Saving..." : editingCategory ? "Update" : "Create"} {submitting ? "" : "Category"}
+                </Button>
               </div>
             </form>
           </DialogContent>

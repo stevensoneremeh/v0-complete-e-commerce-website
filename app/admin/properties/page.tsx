@@ -72,9 +72,14 @@ export default function PropertiesPage() {
         setShowForm(false)
         setEditingProperty(null)
         toast.success(`Property ${editingProperty ? "updated" : "created"} successfully`)
+      } else {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        console.error("Failed to save property:", errorData)
+        toast.error(`Failed to save property: ${errorData.error || response.statusText}`)
       }
     } catch (error) {
-      toast.error("Failed to save property")
+      console.error("Network error saving property:", error)
+      toast.error("Network error: Failed to save property. Please check your connection and try again.")
     }
   }
 
@@ -84,7 +89,7 @@ export default function PropertiesPage() {
   }
 
   const handleDelete = async (propertyId: string) => {
-    if (confirm("Are you sure you want to delete this property?")) {
+    if (confirm("Are you sure you want to delete this property? This action cannot be undone.")) {
       try {
         const response = await fetch(`/api/admin/properties/${propertyId}`, {
           method: "DELETE",
@@ -93,9 +98,14 @@ export default function PropertiesPage() {
         if (response.ok) {
           await fetchProperties()
           toast.success("Property deleted successfully")
+        } else {
+          const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+          console.error("Failed to delete property:", errorData)
+          toast.error(`Failed to delete property: ${errorData.error || response.statusText}`)
         }
       } catch (error) {
-        toast.error("Failed to delete property")
+        console.error("Network error deleting property:", error)
+        toast.error("Network error: Failed to delete property. Please check your connection and try again.")
       }
     }
   }
