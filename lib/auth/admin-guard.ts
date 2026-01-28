@@ -1,12 +1,14 @@
+import { createClient } from "@supabase/supabase-js"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
 export async function verifyAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
     console.warn("[v0] Supabase environment variables not configured")
     return { 
       supabase: null, 
@@ -15,8 +17,9 @@ export async function verifyAdmin() {
   }
 
   try {
+    // Use anon key with cookies for auth check
     const cookieStore = await cookies()
-    const supabase = createServerClient(supabaseUrl, supabaseServiceKey, {
+    const authClient = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
           return cookieStore.getAll()
@@ -34,7 +37,7 @@ export async function verifyAdmin() {
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser()
+    } = await authClient.auth.getUser()
 
     if (authError || !user) {
       return { 
@@ -43,7 +46,8 @@ export async function verifyAdmin() {
       }
     }
 
-    const { data: profile, error: profileError } = await supabase
+    // Verify admin status
+    const { data: profile, error: profileError } = await authClient
       .from("profiles")
       .select("is_admin, role")
       .eq("id", user.id)
@@ -65,6 +69,14 @@ export async function verifyAdmin() {
         error: NextResponse.json({ error: "Forbidden - Admin access required" }, { status: 403 })
       }
     }
+
+    // Return service role client for database operations (bypasses RLS)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
 
     return { supabase, error: null }
   } catch (error) {
