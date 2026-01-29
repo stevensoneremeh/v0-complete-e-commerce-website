@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EnhancedProductForm } from "@/components/admin/enhanced-product-form"
 import { Plus, Edit, Trash2, Package, Search, Filter, Eye } from "lucide-react"
@@ -113,7 +113,8 @@ export default function ProductsPage() {
       } else {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
         console.error("Failed to save product:", errorData)
-        toast.error(`Failed to save product: ${errorData.error || response.statusText}`)
+        const details = errorData.details ? ` (${errorData.details})` : ""
+        toast.error(`Failed to save product: ${errorData.error || response.statusText}${details}`)
       }
     } catch (error) {
       console.error("Network error saving product:", error)
@@ -342,6 +343,9 @@ export default function ProductsPage() {
         <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
+            <DialogDescription>
+              {editingProduct ? "Update product details, pricing, and images." : "Create a new product in your catalog."}
+            </DialogDescription>
           </DialogHeader>
           <EnhancedProductForm
             product={editingProduct}

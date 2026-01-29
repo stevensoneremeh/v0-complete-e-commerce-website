@@ -52,10 +52,26 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
       return
     }
 
+    const parsedPrice = Number.parseFloat(String(formData.price))
+    if (!Number.isFinite(parsedPrice)) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid price.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const parsedStock = Number.parseInt(String(formData.stock_quantity))
+    const normalizedStock = Number.isFinite(parsedStock) ? parsedStock : 0
+
     onSubmit({
       ...formData,
-      price: Number.parseFloat(formData.price),
-      stock_quantity: Number.parseInt(formData.stock_quantity),
+      price: parsedPrice,
+      stock_quantity: normalizedStock,
+      is_featured: Boolean(formData.is_featured),
+      is_active: Boolean(formData.is_active),
+      images: Array.isArray(formData.images) ? formData.images.filter(Boolean) : [],
     })
   }
 
@@ -187,7 +203,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                   <Checkbox
                     id="is_featured"
                     checked={formData.is_featured}
-                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_featured: checked }))}
+                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_featured: checked === true }))}
                   />
                   <Label htmlFor="is_featured">Featured Product</Label>
                 </div>
@@ -195,7 +211,7 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
                   <Checkbox
                     id="is_active"
                     checked={formData.is_active}
-                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_active: checked }))}
+                    onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_active: checked === true }))}
                   />
                   <Label htmlFor="is_active">Active</Label>
                 </div>

@@ -59,7 +59,14 @@ export default function ProductDetailPage() {
       const response = await fetch(`/api/admin/products/${productId}`)
       if (response.ok) {
         const data = await response.json()
-        setProduct(data.product || data)
+        const rawProduct = data.product || data
+        setProduct({
+          ...rawProduct,
+          images: Array.isArray(rawProduct.images) ? rawProduct.images : [],
+          features: Array.isArray(rawProduct.features) ? rawProduct.features : [],
+          specifications:
+            rawProduct.specifications && typeof rawProduct.specifications === "object" ? rawProduct.specifications : {},
+        })
       } else {
         toast.error("Product not found")
         router.push("/admin/products")
@@ -96,6 +103,11 @@ export default function ProductDetailPage() {
         await fetchProduct()
         setIsEditing(false)
         toast.success("Product updated successfully")
+      } else {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        console.error("Failed to update product:", errorData)
+        const details = errorData.details ? ` (${errorData.details})` : ""
+        toast.error(`Failed to update product: ${errorData.error || response.statusText}${details}`)
       }
     } catch (error) {
       toast.error("Failed to update product")
