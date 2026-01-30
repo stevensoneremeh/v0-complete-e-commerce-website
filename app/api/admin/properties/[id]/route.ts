@@ -1,6 +1,8 @@
 import { verifyAdmin } from "@/lib/auth/admin-guard"
 import { type NextRequest, NextResponse } from "next/server"
 import { revalidatePath, revalidateTag } from "next/cache"
+import { splitPropertyMedia } from "@/lib/property-media"
+import { withListingType } from "@/lib/property-listing"
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { supabase, error: authError } = await verifyAdmin()
@@ -9,12 +11,15 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   try {
     const { id: propertyId } = await context.params
     const updates = await request.json()
+    const shouldUpdateAmenities = Array.isArray(updates.amenities) || typeof updates.listing_type !== "undefined"
+    const amenities = shouldUpdateAmenities ? withListingType(updates.amenities, updates.listing_type) : undefined
 
     // Update property with partial data (typically status changes)
     const { data: property, error: propertyError } = await supabase
       .from("real_estate_properties")
       .update({
         ...updates,
+        ...(amenities ? { amenities } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("id", propertyId)
@@ -86,6 +91,54 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   } catch (error) {
     console.error("Error fetching property:", error)
     return NextResponse.json({ error: "Property not found" }, { status: 404 })
+  }
+}
+
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { supabase, error: authError } = await verifyAdmin()
+  if (authError) return authError
+
+  try {
+    const { id: propertyId } = await context.params
+    const updateData = await request.json()
+    const media = splitPropertyMedia(updateData.images)
+    const shouldUpdateAmenities = Array.isArray(updateData.amenities) || typeof updateData.listing_type !== "undefined"
+    const amenities = shouldUpdateAmenities ? withListingType(updateData.amenities, updateData.listing_type) : undefined
+
+    const { data: property, error: propertyError } = await supabase
+      .from("real_estate_properties")
+      .update({
+        ...updateData,
+        ...(amenities ? { amenities } : {}),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", propertyId)
+      .select()
+      .single()
+
+    if (propertyError) throw propertyError
+
+    if (property.product_id) {
+      await supabase
+        .from("products")
+        .update({
+          name: updateData.title,
+          description: updateData.description,
+          price: updateData.booking_price_per_night,
+          images: media.images,
+          is_active: updateData.is_available_for_booking,
+        })
+        .eq("id", property.product_id)
+    }
+
+    revalidatePath("/properties")
+    revalidatePath("/")
+    revalidateTag("properties")
+
+    return NextResponse.json(property)
+  } catch (error) {
+    console.error("Error updating property:", error)
+    return NextResponse.json({ error: "Failed to update property" }, { status: 500 })
   }
 }
 

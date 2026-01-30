@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { PropertyDetailClient } from "@/components/property-detail-client"
+import { splitPropertyMedia } from "@/lib/property-media"
 
 interface PropertyPageProps {
   params: Promise<{ id: string }>
@@ -43,13 +44,14 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
     }
 
     // Format property data from real_estate_properties
+    const media = splitPropertyMedia(propertyData.images || propertyData.products?.images)
     property = {
       id: propertyData.id,
-      title: propertyData.products?.name || "Luxury Property",
-      description: propertyData.products?.description || "Beautiful property with modern amenities",
+      title: propertyData.title || propertyData.products?.name || "Luxury Property",
+      description: propertyData.description || propertyData.products?.description || "Beautiful property with modern amenities",
       price: propertyData.booking_price_per_night || Number.parseFloat(propertyData.products?.price || "0"),
-      location: "Premium Location",
-      address: "Luxury District",
+      location: propertyData.location || "Premium Location",
+      address: propertyData.location || "Luxury District",
       bedrooms: propertyData.bedrooms,
       bathrooms: propertyData.bathrooms,
       area: propertyData.square_feet,
@@ -57,7 +59,8 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
       listing_type: "rent",
       amenities: propertyData.amenities || [],
       features: [],
-      images: propertyData.products?.images || ["/placeholder.svg?height=400&width=600&text=Property+Image"],
+      images: media.images.length > 0 ? media.images : ["/placeholder.svg?height=400&width=600&text=Property+Image"],
+      videos: media.videos,
       available: propertyData.is_available_for_booking,
       featured: true,
       virtual_tour_url: propertyData.virtual_tour_url,

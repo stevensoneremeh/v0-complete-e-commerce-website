@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MapPin, Users, Bed, Bath, Star, Heart } from "lucide-react"
 import { useWishlist } from "@/components/wishlist-provider"
+import { useRealtimeProperties } from "@/hooks/use-realtime-properties"
+import { splitPropertyMedia } from "@/lib/property-media"
 
 interface Property {
   id: string
@@ -22,6 +24,7 @@ interface Property {
   amenities: string[]
   property_type: string
   is_featured: boolean
+  is_available_for_booking?: boolean
 }
 
 interface Filters {
@@ -40,140 +43,84 @@ export function PropertyGrid({ searchQuery, filters }: PropertyGridProps) {
   const [properties, setProperties] = useState<Property[]>([])
   const [loading, setLoading] = useState(true)
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlist()
+  const refreshTrigger = useRealtimeProperties()
 
   useEffect(() => {
-    // Mock data for properties
-    const mockProperties: Property[] = [
-      {
-        id: "1",
-        title: "Luxury Downtown Penthouse",
-        location: "Manhattan, New York",
-        price_per_night: 450,
-        bedrooms: 3,
-        bathrooms: 2,
-        guests: 6,
-        rating: 4.9,
-        images: ["/luxury-penthouse-interior.png"],
-        amenities: ["WiFi", "Parking", "Pool", "Gym"],
-        property_type: "penthouse",
-        is_featured: true,
-      },
-      {
-        id: "2",
-        title: "Modern Seaside Villa",
-        location: "Malibu, California",
-        price_per_night: 650,
-        bedrooms: 4,
-        bathrooms: 3,
-        guests: 8,
-        rating: 4.8,
-        images: ["/modern-seaside-villa.png"],
-        amenities: ["WiFi", "Beach Access", "Hot Tub", "Kitchen"],
-        property_type: "villa",
-        is_featured: true,
-      },
-      {
-        id: "3",
-        title: "Cozy Urban Loft",
-        location: "Brooklyn, New York",
-        price_per_night: 280,
-        bedrooms: 2,
-        bathrooms: 1,
-        guests: 4,
-        rating: 4.7,
-        images: ["/urban-loft.png"],
-        amenities: ["WiFi", "Kitchen", "Workspace", "Rooftop"],
-        property_type: "loft",
-        is_featured: true,
-      },
-      {
-        id: "4",
-        title: "Beachfront Paradise",
-        location: "Miami Beach, Florida",
-        price_per_night: 380,
-        bedrooms: 2,
-        bathrooms: 2,
-        guests: 4,
-        rating: 4.6,
-        images: ["/beachfront-property-ocean-view.png"],
-        amenities: ["WiFi", "Beach Access", "Balcony", "Kitchen"],
-        property_type: "beachfront",
-        is_featured: false,
-      },
-      {
-        id: "5",
-        title: "Executive Apartment",
-        location: "Chicago, Illinois",
-        price_per_night: 320,
-        bedrooms: 2,
-        bathrooms: 2,
-        guests: 4,
-        rating: 4.5,
-        images: ["/modern-apartment.png"],
-        amenities: ["WiFi", "Gym", "Parking", "Kitchen"],
-        property_type: "apartment",
-        is_featured: false,
-      },
-      {
-        id: "6",
-        title: "Luxury City Penthouse",
-        location: "Los Angeles, California",
-        price_per_night: 520,
-        bedrooms: 3,
-        bathrooms: 3,
-        guests: 6,
-        rating: 4.8,
-        images: ["/luxury-penthouse-city-view.png"],
-        amenities: ["WiFi", "Pool", "Gym", "Balcony"],
-        property_type: "penthouse",
-        is_featured: false,
-      },
-    ]
+    const fetchProperties = async () => {
+      try {
+        const response = await fetch("/api/properties")
+        if (response.ok) {
+          const data = await response.json()
+          const raw = Array.isArray(data) ? data : data.properties || []
+          const mapped: Property[] = raw.map((item: any) => {
+            const media = splitPropertyMedia(item.images || item.products?.images)
+            const bedrooms = Number(item.bedrooms ?? 1)
+            return {
+              id: item.id,
+              title: item.title || item.products?.name || "Property",
+              location: item.location || "",
+              price_per_night: Number(item.booking_price_per_night ?? item.products?.price ?? 0),
+              bedrooms,
+              bathrooms: Number(item.bathrooms ?? 1),
+              guests: Number(item.max_guests ?? bedrooms * 2 || 1),
+              rating: Number(item.rating ?? 4.8),
+              images: media.images,
+              amenities: Array.isArray(item.amenities) ? item.amenities : [],
+              property_type: item.property_type || "property",
+              is_featured: Boolean(item.is_featured),
+              is_available_for_booking: item.is_available_for_booking,
+            }
+          })
 
-    // Apply filters
-    let filteredProperties = mockProperties
+          // Apply filters
+          let filteredProperties = mapped
 
-    // Search filter
-    if (searchQuery) {
-      filteredProperties = filteredProperties.filter(
-        (property) =>
-          property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          property.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          property.property_type.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-    }
+          if (searchQuery) {
+            filteredProperties = filteredProperties.filter(
+              (property) =>
+                property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                property.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                property.property_type.toLowerCase().includes(searchQuery.toLowerCase()),
+            )
+          }
 
-    // Price range filter
-    filteredProperties = filteredProperties.filter(
-      (property) =>
-        property.price_per_night >= filters.priceRange[0] && property.price_per_night <= filters.priceRange[1],
-    )
+          filteredProperties = filteredProperties.filter(
+            (property) =>
+              property.price_per_night >= filters.priceRange[0] && property.price_per_night <= filters.priceRange[1],
+          )
 
-    // Bedrooms filter
-    if (filters.bedrooms) {
-      const bedroomCount = Number.parseInt(filters.bedrooms)
-      if (bedroomCount === 4) {
-        filteredProperties = filteredProperties.filter((property) => property.bedrooms >= 4)
-      } else {
-        filteredProperties = filteredProperties.filter((property) => property.bedrooms === bedroomCount)
+          if (filters.bedrooms && filters.bedrooms !== "any") {
+            const bedroomCount = Number.parseInt(filters.bedrooms)
+            if (bedroomCount === 4) {
+              filteredProperties = filteredProperties.filter((property) => property.bedrooms >= 4)
+            } else {
+              filteredProperties = filteredProperties.filter((property) => property.bedrooms === bedroomCount)
+            }
+          }
+
+          if (filters.propertyType && filters.propertyType !== "any") {
+            filteredProperties = filteredProperties.filter((property) => property.property_type === filters.propertyType)
+          }
+
+          if (filters.amenities.length > 0) {
+            filteredProperties = filteredProperties.filter((property) =>
+              filters.amenities.every((amenity) => property.amenities.includes(amenity)),
+            )
+          }
+
+          setProperties(filteredProperties)
+        } else {
+          setProperties([])
+        }
+      } catch (error) {
+        setProperties([])
+      } finally {
+        setLoading(false)
       }
     }
 
-    // Property type filter
-    if (filters.propertyType) {
-      filteredProperties = filteredProperties.filter((property) => property.property_type === filters.propertyType)
-    }
-
-    // Amenities filter
-    if (filters.amenities.length > 0) {
-      filteredProperties = filteredProperties.filter((property) =>
-        filters.amenities.every((amenity) => property.amenities.includes(amenity)),
-      )
-    }
-
-    setProperties(filteredProperties)
-    setLoading(false)
-  }, [searchQuery, filters])
+    fetchProperties()
+  }, [searchQuery, filters, refreshTrigger])
 
   const handleWishlistToggle = (property: Property) => {
     if (isInWishlist(property.id)) {

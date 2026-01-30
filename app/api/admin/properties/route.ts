@@ -1,6 +1,8 @@
 import { verifyAdmin } from "@/lib/auth/admin-guard"
 import { type NextRequest, NextResponse } from "next/server"
 import { revalidatePath, revalidateTag } from "next/cache"
+import { splitPropertyMedia } from "@/lib/property-media"
+import { withListingType } from "@/lib/property-listing"
 
 export async function GET() {
   const { supabase, error: authError } = await verifyAdmin()
@@ -36,6 +38,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const propertyData = await request.json()
+    const media = splitPropertyMedia(propertyData.images)
+    const amenities = withListingType(propertyData.amenities, propertyData.listing_type)
 
     const { data: product, error: productError } = await supabase
       .from("products")
@@ -44,7 +48,7 @@ export async function POST(request: NextRequest) {
         slug: propertyData.title.toLowerCase().replace(/\s+/g, "-"),
         description: propertyData.description,
         price: propertyData.booking_price_per_night,
-        images: propertyData.images,
+        images: media.images,
         category_id: null, // Properties don't need categories
         status: "active",
         is_active: propertyData.is_available_for_booking,
@@ -59,6 +63,7 @@ export async function POST(request: NextRequest) {
       .from("real_estate_properties")
       .insert({
         ...propertyData,
+        amenities,
         product_id: product.id,
       })
       .select()
@@ -84,10 +89,15 @@ export async function PUT(request: NextRequest) {
   try {
     const propertyData = await request.json()
     const { id, ...updateData } = propertyData
+    const media = splitPropertyMedia(updateData.images)
+    const amenities = withListingType(updateData.amenities, updateData.listing_type)
 
     const { data: property, error: propertyError } = await supabase
       .from("real_estate_properties")
-      .update(updateData)
+      .update({
+        ...updateData,
+        amenities,
+      })
       .eq("id", id)
       .select()
       .single()
@@ -102,7 +112,7 @@ export async function PUT(request: NextRequest) {
           name: updateData.title,
           description: updateData.description,
           price: updateData.booking_price_per_night,
-          images: updateData.images,
+          images: media.images,
           is_active: updateData.is_available_for_booking,
         })
         .eq("id", property.product_id)

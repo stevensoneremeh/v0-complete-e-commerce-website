@@ -12,21 +12,21 @@ import { PropertyForm } from "@/components/admin/property-form"
 import { Plus, Edit, Trash2, Building2, Search, Filter, MapPin, Eye } from "lucide-react"
 import { toast } from "sonner"
 import Link from "next/link"
+import { splitPropertyMedia } from "@/lib/property-media"
 
 interface Property {
   id: string
-  name: string
+  title: string
   description: string
-  category_id: string
+  location: string
   bedrooms: number
   bathrooms: number
-  max_guests: number
-  price_per_night: number
-  location: string
+  booking_price_per_night: number
   status: string
   images: string[]
   amenities: string[]
-  is_active: boolean
+  property_type?: string
+  is_available_for_booking?: boolean
   created_at: string
 }
 
@@ -47,7 +47,18 @@ export default function PropertiesPage() {
       const response = await fetch("/api/admin/properties")
       if (response.ok) {
         const data = await response.json()
-        setProperties(data.properties || data || [])
+        const raw = Array.isArray(data) ? data : data.properties || []
+        const mapped = raw.map((item: any) => {
+          const media = splitPropertyMedia(item.images || item.products?.images)
+          return {
+            ...item,
+            title: item.title || item.products?.name || "Untitled Property",
+            description: item.description || item.products?.description || "",
+            booking_price_per_night: Number(item.booking_price_per_night ?? item.products?.price ?? 0),
+            images: media.images,
+          }
+        })
+        setProperties(mapped)
       }
     } catch (error) {
       toast.error("Failed to fetch properties")
@@ -102,7 +113,7 @@ export default function PropertiesPage() {
 
   const filteredProperties = properties.filter((property) => {
     const matchesSearch =
-      property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.location.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = filterStatus === "all" || property.status === filterStatus
     return matchesSearch && matchesStatus
@@ -189,7 +200,7 @@ export default function PropertiesPage() {
                       {property.images?.[0] ? (
                         <img
                           src={property.images[0] || "/placeholder.svg"}
-                          alt={property.name}
+                          alt={property.title}
                           className="w-12 h-12 object-cover rounded"
                         />
                       ) : (
@@ -199,12 +210,12 @@ export default function PropertiesPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{property.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {property.bedrooms} bed, {property.bathrooms} bath
+                        <div>
+                          <div className="font-medium">{property.title}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {property.bedrooms} bed, {property.bathrooms} bath
+                          </div>
                         </div>
-                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -212,8 +223,8 @@ export default function PropertiesPage() {
                         {property.location}
                       </div>
                     </TableCell>
-                    <TableCell>${property.price_per_night.toFixed(2)}</TableCell>
-                    <TableCell>{property.max_guests} guests</TableCell>
+                    <TableCell>${property.booking_price_per_night.toFixed(2)}</TableCell>
+                    <TableCell>{Math.max(1, (property.bedrooms || 1) * 2)} guests</TableCell>
                     <TableCell>
                       <Badge variant={property.status === "available" ? "default" : "secondary"}>
                         {property.status}

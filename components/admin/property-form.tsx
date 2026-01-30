@@ -15,6 +15,8 @@ import { Switch } from "@/components/ui/switch"
 import { X, Plus, Upload, Save, Eye, Tag, MapPin, Home } from "lucide-react"
 import { toast } from "sonner"
 import { FileUpload } from "@/components/admin/file-upload"
+import { buildPropertyMediaPayload, splitPropertyMedia } from "@/lib/property-media"
+import { extractListingType, withListingType } from "@/lib/property-listing"
 
 interface PropertyFormProps {
   property?: any
@@ -23,22 +25,27 @@ interface PropertyFormProps {
 }
 
 export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) {
+  const initialMedia = splitPropertyMedia(property?.images)
+  const listingInfo = extractListingType(property?.amenities)
   const [formData, setFormData] = useState({
     title: property?.title || "",
     description: property?.description || "",
     property_type: property?.property_type || "apartment",
+    listing_type: listingInfo.listingType || "rent",
     bedrooms: property?.bedrooms || 1,
     bathrooms: property?.bathrooms || 1,
     booking_price_per_night: property?.booking_price_per_night || 0,
-    location_details: property?.location_details || { address: "", city: "", country: "" },
-    amenities: property?.amenities || [],
-    images: property?.images || [],
+    location: property?.location || "",
+    amenities: listingInfo.amenities || [],
+    images: initialMedia.images,
+    videos: initialMedia.videos,
     is_available_for_booking: property?.is_available_for_booking ?? true,
     status: property?.status || "available",
   })
 
   const [newAmenity, setNewAmenity] = useState("")
   const [newImage, setNewImage] = useState("")
+  const [newVideo, setNewVideo] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +53,14 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
     setIsLoading(true)
 
     try {
-      await onSave(formData)
+      const mediaPayload = buildPropertyMediaPayload(formData.images, formData.videos)
+      const { videos, listing_type, ...rest } = formData
+      const amenitiesWithListing = withListingType(rest.amenities, listing_type)
+      await onSave({
+        ...rest,
+        amenities: amenitiesWithListing,
+        images: mediaPayload,
+      })
     } catch (error) {
       toast.error("Failed to save property. Please try again.")
     } finally {
@@ -85,6 +99,23 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
     setFormData((prev) => ({
       ...prev,
       images: prev.images.filter((img: string) => img !== image),
+    }))
+  }
+
+  const addVideo = () => {
+    if (newVideo.trim() && !formData.videos.includes(newVideo.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        videos: [...prev.videos, newVideo.trim()],
+      }))
+      setNewVideo("")
+    }
+  }
+
+  const removeVideo = (video: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      videos: prev.videos.filter((url: string) => url !== video),
     }))
   }
 
@@ -150,7 +181,7 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                 />
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="bedrooms">Bedrooms</Label>
                   <Input
@@ -189,6 +220,23 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="listing_type">Listing Type</Label>
+                  <Select
+                    value={formData.listing_type}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, listing_type: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rent">Rent</SelectItem>
+                      <SelectItem value="sale">Sale</SelectItem>
+                      <SelectItem value="short_stay">Short Stay</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={formData.status}
@@ -222,49 +270,14 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
             <TabsContent value="details" className="space-y-6 mt-4">
               <div className="space-y-4">
                 <Label>Location Details</Label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      value={formData.location_details.address}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          location_details: { ...prev.location_details, address: e.target.value },
-                        }))
-                      }
-                      placeholder="123 Main Street"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      value={formData.location_details.city}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          location_details: { ...prev.location_details, city: e.target.value },
-                        }))
-                      }
-                      placeholder="New York"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      value={formData.location_details.country}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          location_details: { ...prev.location_details, country: e.target.value },
-                        }))
-                      }
-                      placeholder="USA"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
+                    placeholder="City, State, Country"
+                  />
                 </div>
               </div>
 
@@ -362,6 +375,43 @@ export function PropertyForm({ property, onSave, onCancel }: PropertyFormProps) 
                     </div>
                   </div>
                 )}
+
+                <div className="space-y-3 pt-2">
+                  <Label>Property Videos (optional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={newVideo}
+                      onChange={(e) => setNewVideo(e.target.value)}
+                      placeholder="Paste video URL (mp4, webm)"
+                      onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addVideo())}
+                    />
+                    <Button type="button" onClick={addVideo} size="sm">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {formData.videos.length > 0 && (
+                    <div>
+                      <Label className="mb-2 block">Current Videos ({formData.videos.length})</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {formData.videos.map((video: string, index: number) => (
+                          <div key={index} className="relative group">
+                            <video src={video} controls className="w-full h-40 object-cover rounded-lg" />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeVideo(video)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </TabsContent>
           </Tabs>

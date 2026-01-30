@@ -29,6 +29,7 @@ interface Property {
   amenities: string[]
   features: string[]
   images: string[]
+  videos?: string[]
   available: boolean
   featured: boolean
   virtual_tour_url?: string
@@ -139,6 +140,13 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                     className="object-cover"
                   />
                 </button>
+              ))}
+            </div>
+          )}
+          {property.videos && property.videos.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {property.videos.map((video, index) => (
+                <video key={index} src={video} controls className="w-full rounded-lg" />
               ))}
             </div>
           )}

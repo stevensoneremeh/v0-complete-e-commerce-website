@@ -8,19 +8,21 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowLeft, Edit, Trash2, Eye, MapPin, Users, Bed, Bath } from "lucide-react"
 import { toast } from "sonner"
+import { splitPropertyMedia } from "@/lib/property-media"
 
 interface Property {
   id: string
-  name: string
+  title: string
   description: string
   location: string
   bedrooms: number
   bathrooms: number
-  max_guests: number
-  price_per_night: number
+  booking_price_per_night: number
   images: string[]
+  videos: string[]
   amenities: string[]
-  is_active: boolean
+  is_available_for_booking?: boolean
+  status?: string
   created_at: string
 }
 
@@ -41,7 +43,16 @@ export default function PropertyDetailPage() {
       const response = await fetch(`/api/admin/properties/${propertyId}`)
       if (response.ok) {
         const data = await response.json()
-        setProperty(data.property || data)
+        const raw = data.property || data
+        const media = splitPropertyMedia(raw.images || raw.products?.images)
+        setProperty({
+          ...raw,
+          title: raw.title || raw.products?.name || "Property",
+          description: raw.description || raw.products?.description || "",
+          booking_price_per_night: Number(raw.booking_price_per_night ?? raw.products?.price ?? 0),
+          images: media.images,
+          videos: media.videos,
+        })
       } else {
         toast.error("Property not found")
         router.push("/admin/properties")
@@ -80,14 +91,13 @@ export default function PropertyDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="outline" onClick={() => router.push("/admin/properties")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{property.name}</h1>
+            <h1 className="text-3xl font-bold">{property.title}</h1>
             <div className="flex items-center gap-1 text-muted-foreground">
               <MapPin className="h-4 w-4" />
               {property.location}
@@ -110,14 +120,13 @@ export default function PropertyDetailPage() {
         </div>
       </div>
 
-      {/* Status */}
       <div className="flex gap-2">
-        <Badge variant={property.is_active ? "default" : "destructive"}>
-          {property.is_active ? "Active" : "Inactive"}
+        <Badge variant={property.is_available_for_booking ? "default" : "secondary"}>
+          {property.is_available_for_booking ? "Available" : "Unavailable"}
         </Badge>
+        {property.status && <Badge variant="outline">{property.status}</Badge>}
       </div>
 
-      {/* Main Content */}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -150,13 +159,13 @@ export default function PropertyDetailPage() {
                 <div className="p-4 bg-muted rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Users className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Max Guests</p>
+                    <p className="text-sm text-muted-foreground">Est. Guests</p>
                   </div>
-                  <p className="text-2xl font-bold">{property.max_guests}</p>
+                  <p className="text-2xl font-bold">{Math.max(1, (property.bedrooms || 1) * 2)}</p>
                 </div>
                 <div className="p-4 bg-muted rounded-lg">
                   <p className="text-sm text-muted-foreground">Price/Night</p>
-                  <p className="text-2xl font-bold">${property.price_per_night.toFixed(2)}</p>
+                  <p className="text-2xl font-bold">${property.booking_price_per_night.toFixed(2)}</p>
                 </div>
               </div>
               <div>
@@ -183,6 +192,16 @@ export default function PropertyDetailPage() {
                   />
                 ))}
               </div>
+              {property.videos.length > 0 && (
+                <div className="mt-6">
+                  <CardTitle className="text-base mb-3">Videos</CardTitle>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {property.videos.map((video, index) => (
+                      <video key={index} src={video} controls className="w-full h-48 rounded border object-cover" />
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -219,3 +238,4 @@ export default function PropertyDetailPage() {
     </div>
   )
 }
+      </Tabs>
