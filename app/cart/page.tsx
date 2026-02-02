@@ -106,24 +106,24 @@ export default function CartPage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-16">
+        <main className="responsive-container py-20 sm:py-24 md:py-32">
           <div className="text-center space-y-6 max-w-md mx-auto">
-            <div className="p-6 rounded-full bg-muted w-fit mx-auto">
+            <div className="p-8 rounded-2xl bg-secondary/30 w-fit mx-auto">
               <ShoppingBag className="h-16 w-16 text-muted-foreground" />
             </div>
-            <div className="space-y-3">
-              <h1 className="text-2xl sm:text-3xl font-bold">Your cart is empty</h1>
-              <p className="text-muted-foreground">
-                Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
+            <div className="space-y-4">
+              <h1 className="text-3xl sm:text-4xl font-bold text-balance">Your cart is empty</h1>
+              <p className="text-base sm:text-lg text-muted-foreground">
+                Discover our premium collection and add items to get started
               </p>
             </div>
-            <div className="space-y-3">
-              <Button asChild size="lg" className="w-full sm:w-auto">
+            <div className="space-y-4 pt-2">
+              <Button asChild size="lg" className="luxury-button w-full">
                 <Link href="/products">Start Shopping</Link>
               </Button>
               <div className="text-sm text-muted-foreground">
-                <Link href="/products?category=featured" className="text-primary hover:underline">
-                  Browse Featured Products
+                <Link href="/categories" className="text-primary hover:text-primary/80 transition-colors font-medium">
+                  Browse Categories
                 </Link>
               </div>
             </div>
@@ -137,25 +137,22 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 space-y-4 sm:space-y-0">
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Link href="/" className="hover:text-primary">
-                Home
-              </Link>
-              <span>/</span>
-              <span>Shopping Cart</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold">
-              Shopping Cart ({itemCount} {itemCount === 1 ? "item" : "items"})
-            </h1>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button variant="outline" onClick={handleClearCart} className="bg-transparent">
+      <main className="responsive-container py-12 sm:py-16 md:py-20">
+        <div className="mb-10 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2">
+            Shopping Cart
+          </h1>
+          <p className="text-muted-foreground text-base sm:text-lg">
+            {itemCount} {itemCount === 1 ? "item" : "items"} in your cart
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-between">
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleClearCart} className="luxury-button-outline text-sm h-10 bg-transparent">
               Clear Cart
             </Button>
-            <Button variant="outline" asChild className="bg-transparent">
+            <Button variant="outline" asChild className="luxury-button-outline text-sm h-10 bg-transparent">
               <Link href="/products">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Continue Shopping
@@ -164,7 +161,7 @@ export default function CartPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => (

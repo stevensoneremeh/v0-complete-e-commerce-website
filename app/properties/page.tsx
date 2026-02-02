@@ -19,21 +19,27 @@ export default function PropertiesPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+      <main className="responsive-container py-12 sm:py-16 md:py-20">
+        <div className="mb-10 sm:mb-12 md:mb-16">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 text-balance leading-tight">
             Luxury Properties
           </h1>
-          <p className="text-muted-foreground text-lg">Discover premium apartments and luxury accommodations</p>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-3xl text-pretty">
+            Discover our curated collection of premium apartments and luxury accommodations for your perfect stay
+          </p>
         </div>
 
-        <PropertySearch onSearch={setSearchQuery} />
+        <div className="mb-8 sm:mb-10">
+          <PropertySearch onSearch={setSearchQuery} />
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
-          <div className="lg:col-span-1">
-            <PropertyFilters filters={filters} onFiltersChange={setFilters} />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 md:gap-8">
+          <div className="lg:col-span-1 order-2 lg:order-1">
+            <div className="sticky top-24 lg:top-20">
+              <PropertyFilters filters={filters} onFiltersChange={setFilters} />
+            </div>
           </div>
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4 order-1 lg:order-2">
             <PropertyGrid searchQuery={searchQuery} filters={filters} />
           </div>
         </div>

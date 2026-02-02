@@ -36,7 +36,7 @@ Answer these 5 questions to decide:
 **Score each backend for your needs:**
 
 ### **Supabase Current Setup**
-```
+\`\`\`
 Product Management:      ⭐⭐⭐ (works, scattered)
 Admin Dashboard:         ⭐⭐ (manual, complex)
 Real Estate Features:    ⭐⭐⭐⭐⭐ (perfect fit)
@@ -49,10 +49,10 @@ Cost:                   ⭐⭐⭐⭐ (cheap)
 Maintenance:            ⭐⭐ (lots of custom code)
 ────────────────────────
 Total Score:            28/50
-```
+\`\`\`
 
 ### **Medusa for E-Commerce Only**
-```
+\`\`\`
 Product Management:      ⭐⭐⭐⭐⭐ (best-in-class)
 Admin Dashboard:         ⭐⭐⭐⭐⭐ (fully featured)
 Real Estate Features:    ⭐ (would need plugins)
@@ -65,10 +65,10 @@ Cost:                   ⭐⭐⭐ (add fees)
 Maintenance:            ⭐⭐⭐⭐ (less custom code)
 ────────────────────────
 Total Score:            32/50 (IF e-commerce only)
-```
+\`\`\`
 
 ### **Hybrid (Medusa + Supabase)**
-```
+\`\`\`
 Product Management:      ⭐⭐⭐⭐⭐ (Medusa)
 Admin Dashboard:         ⭐⭐⭐⭐⭐ (Medusa)
 Real Estate Features:    ⭐⭐⭐⭐⭐ (Supabase)
@@ -81,7 +81,7 @@ Cost:                   ⭐⭐⭐ (both systems)
 Maintenance:            ⭐⭐⭐⭐ (clear boundaries)
 ────────────────────────
 Total Score:            42/50 (BEST OVERALL)
-```
+\`\`\`
 
 ---
 
@@ -96,7 +96,7 @@ Total Score:            42/50 (BEST OVERALL)
 
 ### **Best Path Forward: HYBRID APPROACH**
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────┐
 │         Next.js 15 Frontend (keep as-is)        │
 │  80+ components, responsive, production-ready   │
@@ -117,7 +117,7 @@ Total Score:            42/50 (BEST OVERALL)
        │ Frontend API Routes (/api/*)         │
        │ Unified interface, transparent proxy │
        └──────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 

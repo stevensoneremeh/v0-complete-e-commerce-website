@@ -31,7 +31,7 @@ An open-source headless e-commerce platform built on Node.js:
 ## 📊 DATA MAPPING: SUPABASE → MEDUSA
 
 ### **Products**
-```
+\`\`\`
 Supabase Table: products
 ├── id → product.id
 ├── name → product.title
@@ -50,10 +50,10 @@ Medusa Concepts:
 - ProductVariant: Size, color, etc.
 - ProductType: Categorization
 - Price: Per currency/region
-```
+\`\`\`
 
 ### **Orders**
-```
+\`\`\`
 Supabase Table: orders
 ├── id → order.id
 ├── customer_id → order.customer_id
@@ -69,10 +69,10 @@ Medusa Also Provides:
 - Return/exchange management
 - Order timeline
 - Payment capture workflows
-```
+\`\`\`
 
 ### **Customers**
-```
+\`\`\`
 Supabase Table: profiles (users)
 ├── id → customer.id
 ├── email → customer.email
@@ -83,10 +83,10 @@ Supabase Table: profiles (users)
 └── is_admin → customer.metadata.is_admin
 
 Note: Medusa separates customers from admin users
-```
+\`\`\`
 
 ### **Categories**
-```
+\`\`\`
 Supabase Table: categories
 ├── id → product_category.id
 ├── name → product_category.name
@@ -94,10 +94,10 @@ Supabase Table: categories
 ├── slug → product_category.handle
 ├── parent_id → product_category.parent_category_id
 └── is_active → product_category.is_active
-```
+\`\`\`
 
 ### **Coupons/Discounts**
-```
+\`\`\`
 Supabase Table: coupons
 ├── code → discount.code
 ├── discount_value → discount.rule.value
@@ -110,7 +110,7 @@ Medusa Enhancement:
 - Automatic usage tracking
 - Region-specific discounts
 - Advanced allocation rules
-```
+\`\`\`
 
 ---
 
@@ -118,7 +118,7 @@ Medusa Enhancement:
 
 ### **Step 1: Set Up Medusa Backend**
 
-```bash
+\`\`\`bash
 # Install Medusa CLI
 npm install -g @medusajs/medusa-cli
 
@@ -133,22 +133,22 @@ npm install
 npm run dev
 # Admin panel: http://localhost:7001
 # API: http://localhost:9000
-```
+\`\`\`
 
 ### **Step 2: Database Setup**
 
-```bash
+\`\`\`bash
 # Medusa uses PostgreSQL by default
 # Update .env.local
 DATABASE_URL=postgres://user:password@localhost:5432/medusa_store
 
 # Run migrations
 npm run migrations run
-```
+\`\`\`
 
 ### **Step 3: Export Data from Supabase**
 
-```typescript
+\`\`\`typescript
 // scripts/export-supabase.ts
 import { createClient } from '@supabase/supabase-js'
 
@@ -178,11 +178,11 @@ async function exportData() {
 }
 
 exportData()
-```
+\`\`\`
 
 ### **Step 4: Create Data Import Scripts**
 
-```typescript
+\`\`\`typescript
 // scripts/import-to-medusa.ts
 import medusaRequest from "@medusajs/medusa-js"
 
@@ -257,12 +257,12 @@ async function runImport() {
 }
 
 runImport()
-```
+\`\`\`
 
 ### **Step 5: Update Frontend API Routes**
 
 **Before (Supabase):**
-```typescript
+\`\`\`typescript
 // app/api/products/route.ts
 import { supabase } from '@/lib/supabase/server'
 
@@ -274,10 +274,10 @@ export async function GET() {
   
   return Response.json(data)
 }
-```
+\`\`\`
 
 **After (Medusa):**
-```typescript
+\`\`\`typescript
 // app/api/products/route.ts
 export async function GET() {
   const response = await fetch(
@@ -292,21 +292,21 @@ export async function GET() {
   const { products } = await response.json()
   return Response.json(products)
 }
-```
+\`\`\`
 
 ### **Step 6: Authentication Changes**
 
 **Before (Supabase):**
-```typescript
+\`\`\`typescript
 // JWT + Supabase Auth
 const { data } = await supabase.auth.signInWithPassword({
   email,
   password,
 })
-```
+\`\`\`
 
 **After (Medusa):**
-```typescript
+\`\`\`typescript
 // Keep Supabase Auth for customers, but manage admin separately
 export async function loginAdmin(email: string, password: string) {
   const response = await fetch(
@@ -322,7 +322,7 @@ export async function loginAdmin(email: string, password: string) {
   // Store token in HTTP-only cookie
   return access_token
 }
-```
+\`\`\`
 
 ### **Step 7: Replace Admin Dashboard**
 
@@ -342,7 +342,7 @@ export async function loginAdmin(email: string, password: string) {
   - Reporting & analytics
   - User management
 
-```typescript
+\`\`\`typescript
 // app/admin/redirect/page.tsx
 'use client'
 
@@ -355,12 +355,12 @@ export default function AdminRedirect() {
 
   return <div>Redirecting to admin panel...</div>
 }
-```
+\`\`\`
 
 ### **Step 8: Handle Real Estate & Hire Services**
 
 **Option A: Custom Plugins**
-```typescript
+\`\`\`typescript
 // Create custom Medusa plugin for properties
 // medusa-plugin-properties/index.ts
 
@@ -375,7 +375,7 @@ export default async (
     // Handle property creation
   })
 }
-```
+\`\`\`
 
 **Option B: Keep in Separate Supabase**
 - Keep properties & hire services in Supabase
@@ -386,7 +386,7 @@ export default async (
 
 ## ⚙️ ENVIRONMENT VARIABLES
 
-```env
+\`\`\`env
 # Medusa
 MEDUSA_BACKEND_URL=http://localhost:9000
 MEDUSA_API_TOKEN=your_api_token
@@ -400,14 +400,14 @@ SUPABASE_SERVICE_ROLE_KEY=your_key
 # Payment Providers
 PAYSTACK_SECRET_KEY=your_key
 PAYSTACK_PUBLIC_KEY=your_key
-```
+\`\`\`
 
 ---
 
 ## 🔌 COMMON CUSTOMIZATIONS
 
 ### **Custom Product Attributes (for variants)**
-```typescript
+\`\`\`typescript
 // medusa-plugin-custom-attributes/index.ts
 const attributes = [
   { name: 'Size', values: ['S', 'M', 'L', 'XL'] },
@@ -418,26 +418,26 @@ export const productOptions = attributes.map(attr => ({
   title: attr.name,
   option_values: attr.values,
 }))
-```
+\`\`\`
 
 ### **Multi-Currency Support**
-```typescript
+\`\`\`typescript
 // Already built-in to Medusa
 const price = {
   currency_code: 'usd',
   amount: 9999, // $99.99
 }
-```
+\`\`\`
 
 ### **Inventory Management**
-```typescript
+\`\`\`typescript
 // Medusa handles this automatically
 const variant = {
   manage_inventory: true,
   inventory_quantity: 100,
   sku: 'PROD-001',
 }
-```
+\`\`\`
 
 ---
 

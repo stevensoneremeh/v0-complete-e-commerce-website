@@ -11,7 +11,7 @@
 ## 📊 CURRENT ARCHITECTURE
 
 ### **Frontend Structure (80+ Components)**
-```
+\`\`\`
 User-Facing Pages:
 ├── Homepage (/) - Hero, Featured Products/Properties
 ├── Products (/products) - Product catalog with filters
@@ -45,7 +45,7 @@ Admin Dashboard (37+ Pages):
 ├── Reviews (/admin/reviews)
 ├── Settings (/admin/settings)
 └── + More specialized pages
-```
+\`\`\`
 
 ### **Component Architecture**
 - **UI Components (80+):** Button, Card, Dialog, Form, Table, Chart, etc.
@@ -102,7 +102,7 @@ Admin Dashboard (37+ Pages):
 ## 🔌 API ROUTES (42 Endpoints)
 
 ### **Admin API Endpoints:**
-```
+\`\`\`
 POST   /api/admin/products           - Create product
 GET    /api/admin/products           - List products
 PUT    /api/admin/products/[id]      - Update product
@@ -119,10 +119,10 @@ PUT    /api/admin/orders/[id]        - Update order
 DELETE /api/admin/orders/[id]        - Delete order
 
 + Similar patterns for: coupons, customers, properties, bookings, reviews, notifications, hire services
-```
+\`\`\`
 
 ### **Public API Endpoints:**
-```
+\`\`\`
 GET    /api/products                 - Fetch products (with filters)
 GET    /api/products/[id]            - Single product
 GET    /api/categories               - Fetch categories
@@ -130,20 +130,20 @@ GET    /api/orders                   - User orders
 POST   /api/orders                   - Create order
 GET    /api/coupons/validate         - Validate coupon
 + Similar endpoints for properties, bookings, hire services
-```
+\`\`\`
 
 ### **Authentication Endpoints:**
-```
+\`\`\`
 POST   /api/auth/verify-admin        - Check admin status
 POST   /api/auth/setup-profile       - Create user profile
 POST   /api/auth/create-profile      - Alternative profile creation
-```
+\`\`\`
 
 ### **File Management:**
-```
+\`\`\`
 POST   /api/upload                   - Upload image
 DELETE /api/upload/delete            - Delete image
-```
+\`\`\`
 
 ---
 
@@ -158,13 +158,13 @@ Every table has RLS enabled with specific policies:
 - **Hire Services:** Public read, admins full access
 
 ### **Authentication Flow:**
-```
+\`\`\`
 1. User signs up/logs in via Supabase Auth
 2. JWT token stored in secure HTTP-only cookie
 3. Each API call includes token verification
 4. Admin routes check is_admin flag in profiles table
 5. Service role key bypasses RLS for admin operations
-```
+\`\`\`
 
 ---
 
@@ -332,7 +332,7 @@ Your platform combines THREE distinct business models:
 
 Use Medusa for e-commerce, keep Supabase for properties & hire services:
 
-```
+\`\`\`
 Frontend (Next.js - shared)
     ↓
     ├─→ Medusa Backend (E-commerce)
@@ -340,7 +340,7 @@ Frontend (Next.js - shared)
     │
     └─→ Supabase Backend (Properties, Hire Services)
         └─→ Bookings, Services
-```
+\`\`\`
 
 **Advantages:**
 - Best-in-class e-commerce with Medusa

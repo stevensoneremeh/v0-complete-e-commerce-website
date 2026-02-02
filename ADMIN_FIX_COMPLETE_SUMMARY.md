@@ -21,7 +21,7 @@ The problem was in `/lib/auth/admin-guard.ts`:
 Modified `/lib/auth/admin-guard.ts` to implement a two-step approach:
 
 ### Step 1: Authentication & Authorization
-```typescript
+\`\`\`typescript
 // Use SSR client with anon key for auth verification
 const authClient = createServerClient(supabaseUrl, supabaseAnonKey, {...})
 const { data: { user } } = await authClient.auth.getUser()
@@ -32,10 +32,10 @@ const { data: profile } = await authClient
   .select("is_admin, role")
   .eq("id", user.id)
   .maybeSingle()
-```
+\`\`\`
 
 ### Step 2: Database Operations
-```typescript
+\`\`\`typescript
 // Return a service role client for database operations
 // This properly bypasses RLS for admin operations
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -46,7 +46,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 return { supabase, error: null }
-```
+\`\`\`
 
 ## What This Fixes
 
@@ -105,9 +105,9 @@ return { supabase, error: null }
 ### Option 1: Manual Testing (Recommended)
 
 1. **Start the development server** (if not running):
-   ```bash
+   \`\`\`bash
    pnpm dev
-   ```
+   \`\`\`
 
 2. **Log in as admin** at http://localhost:3000/admin
 
@@ -146,31 +146,31 @@ return { supabase, error: null }
 
 If you have environment variables configured:
 
-```bash
+\`\`\`bash
 # Set environment variables
 export NEXT_PUBLIC_SUPABASE_URL="your_url"
 export SUPABASE_SERVICE_ROLE_KEY="your_key"
 
 # Run the test script
 pnpm dlx tsx scripts/test-admin-natasha.ts
-```
+\`\`\`
 
 ## Technical Details
 
 ### Why the Previous Code Failed
 
-```typescript
+\`\`\`typescript
 // ❌ This doesn't properly bypass RLS
 const supabase = createServerClient(supabaseUrl, supabaseServiceKey, {
   cookies: {...}
 })
-```
+\`\`\`
 
 **Problem**: `createServerClient` is designed for SSR and cookie-based auth. Even with the service role key, it doesn't bypass RLS as expected because it's still operating in the context of the authenticated user's session.
 
 ### Why the New Code Works
 
-```typescript
+\`\`\`typescript
 // ✅ This properly bypasses RLS
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
@@ -178,7 +178,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     persistSession: false
   }
 })
-```
+\`\`\`
 
 **Solution**: `createClient` from `@supabase/supabase-js` with the service role key creates a client that operates with superuser privileges, bypassing all RLS policies. This is exactly what's needed for admin operations.
 

@@ -73,11 +73,18 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <main className="container mx-auto px-4 py-16 text-center">
-          <h1 className="text-2xl font-bold mb-4">Please sign in to view your profile</h1>
-          <Button asChild>
-            <a href="/auth">Sign In</a>
-          </Button>
+        <main className="responsive-container py-20 sm:py-24 md:py-32 text-center">
+          <div className="max-w-md mx-auto space-y-6">
+            <div className="space-y-3">
+              <h1 className="text-3xl sm:text-4xl font-bold">Sign in required</h1>
+              <p className="text-base sm:text-lg text-muted-foreground">
+                Please sign in to view and manage your profile
+              </p>
+            </div>
+            <Button asChild size="lg" className="luxury-button w-full">
+              <a href="/auth">Sign In to Your Account</a>
+            </Button>
+          </div>
         </main>
         <Footer />
       </div>

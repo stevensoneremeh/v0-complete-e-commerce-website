@@ -425,7 +425,7 @@
 - [ ] PARTIAL - Some tests passed (see notes below)
 
 ### Issues Found
-```
+\`\`\`
 1. Issue: _______________
    Severity: High / Medium / Low
    Fix: _______________
@@ -433,7 +433,7 @@
 2. Issue: _______________
    Severity: High / Medium / Low
    Fix: _______________
-```
+\`\`\`
 
 ### Notes
 _______________________________________________________________________________

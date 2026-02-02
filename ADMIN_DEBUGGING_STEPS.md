@@ -14,13 +14,13 @@
 1. Open your app in browser
 2. Go to: `http://localhost:3000/api/test-connection`
 3. You should see JSON response like:
-   ```json
+   \`\`\`json
    {
      "status": "success",
      "message": "Connection successful",
      "categoriesCount": 5
    }
-   ```
+   \`\`\`
 4. **If you see success:** Connection works! Go to Step 2.
 5. **If you see error:** The issue is environment variables or Supabase access. Use Supabase AI prompt.
 
@@ -38,34 +38,34 @@
 2. Fill in name: **"Test Category"**
 3. Click "Create"
 4. **Watch the console** for logs like:
-   ```
+   \`\`\`
    [v0] Form submitted { formData: {...} }
    [v0] Sending request to: /api/test-admin/categories
    [v0] Response status: 201
-   ```
+   \`\`\`
 
 5. **Check possible outcomes:**
 
    **GOOD (Status 201):**
-   ```
+   \`\`\`
    [v0] Response status: 201
    [v0] Success! Fetching updated categories
    Toast shows: "Category created successfully!"
-   ```
+   \`\`\`
    ✅ Everything works! The category should appear in the list.
 
    **BAD (Status 400):**
-   ```
+   \`\`\`
    [v0] Response status: 400
    [v0] Save error: { error: "..." }
-   ```
+   \`\`\`
    Check error message - likely validation issue.
 
    **BAD (Status 500):**
-   ```
+   \`\`\`
    [v0] Response status: 500
    [v0] Save error: { error: "..." }
-   ```
+   \`\`\`
    Database issue - see Supabase AI troubleshooting.
 
    **NO LOGS AT ALL:**
@@ -140,7 +140,7 @@ Once you do the above steps, please share:
 4. Whether `/api/test-connection` shows success or error
 
 **Example of what to share:**
-```
+\`\`\`
 Browser Console Logs:
 [v0] Form submitted { formData: { name: 'Furniture', description: '', is_active: true } }
 [v0] Sending request to: /api/test-admin/categories
@@ -150,7 +150,7 @@ Browser Console Logs:
 Test Connection Result:
 status: "error"
 error: "connection refused"
-```
+\`\`\`
 
 ---
 

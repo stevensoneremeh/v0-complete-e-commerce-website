@@ -18,11 +18,11 @@ When an admin creates, updates, or deletes a product/category/property, the chan
 
 ### 3. Next.js Cache Invalidation (KEY STEP)
 The API route calls:
-```typescript
+\`\`\`typescript
 revalidatePath("/products")        // Clear products page cache
 revalidatePath("/")                // Clear homepage cache  
 revalidateTag("products")          // Clear product-related caches
-```
+\`\`\`
 
 This forces Next.js to rebuild those pages with fresh data.
 
@@ -42,7 +42,7 @@ This forces Next.js to rebuild those pages with fresh data.
 
 ## Data Flow Diagram
 
-```
+\`\`\`
 Admin Action (Create/Update/Delete)
        ↓
 Form Submission to API Route
@@ -60,7 +60,7 @@ Supabase Real-time Event
 Client Components Refresh
        ↓
 User Sees Updated Data
-```
+\`\`\`
 
 ## Verification Steps
 
@@ -96,16 +96,16 @@ User Sees Updated Data
 
 ### Cache Invalidation
 Located in: `/app/api/admin/products/[id]/route.ts`
-```typescript
+\`\`\`typescript
 revalidatePath("/products")
 revalidatePath("/")
 revalidatePath(`/products/${id}`)
 revalidateTag("products")
-```
+\`\`\`
 
 ### Real-Time Subscription
 Located in: `/hooks/use-realtime-products.ts`
-```typescript
+\`\`\`typescript
 // Subscribes to realtime changes on products table
 supabase
   .channel('products')
@@ -113,17 +113,17 @@ supabase
     // Trigger re-fetch
   })
   .subscribe()
-```
+\`\`\`
 
 ### Product Grid Integration
 Located in: `/components/product-grid.tsx`
-```typescript
+\`\`\`typescript
 // Re-fetch when real-time changes occur
 const realtimeTrigger = useRealtimeProducts()
 useEffect(() => {
   fetchProducts()
 }, [realtimeTrigger])
-```
+\`\`\`
 
 ## Troubleshooting
 
@@ -194,7 +194,7 @@ After implementing these changes, you should see:
 
 Supabase real-time requires replication enabled:
 
-```sql
+\`\`\`sql
 -- Enable replication for products table
 ALTER TABLE products REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE products;
@@ -206,7 +206,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE categories;
 -- Enable replication for properties table
 ALTER TABLE real_estate_properties REPLICA IDENTITY FULL;
 ALTER PUBLICATION supabase_realtime ADD TABLE real_estate_properties;
-```
+\`\`\`
 
 ## Performance Notes
 

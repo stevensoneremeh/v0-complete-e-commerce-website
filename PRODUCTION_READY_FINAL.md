@@ -76,11 +76,11 @@ This document confirms your platform is production-ready with the following veri
 
 ### Admin Required
 User must have in profiles table:
-```sql
+\`\`\`sql
 is_admin: true
 OR
 role: 'admin'
-```
+\`\`\`
 
 ## Responsive Design Checklist
 
@@ -116,13 +116,13 @@ role: 'admin'
 
 ## Environment Variables Required
 
-```env
+\`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 DATABASE_URL=your_postgres_url
-```
+\`\`\`
 
 ## Authentication Flow
 
@@ -136,7 +136,7 @@ DATABASE_URL=your_postgres_url
 
 ## Data Flow: Admin → User
 
-```
+\`\`\`
 Admin Updates Product
   ↓
 API Route validates request (verifyAdmin)
@@ -148,7 +148,7 @@ Next.js cache invalidated (revalidatePath)
 User site rebuilds with new data
   ↓
 User sees changes instantly
-```
+\`\`\`
 
 ## Production Deployment Checklist
 

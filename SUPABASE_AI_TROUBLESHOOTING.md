@@ -15,7 +15,7 @@ If the connection test fails or the admin dashboard buttons don't work, use this
 
 ### **PROMPT TO USE:**
 
-```
+\`\`\`
 I have a Next.js e-commerce admin dashboard that's not saving data to Supabase. 
 
 Here's my situation:
@@ -49,7 +49,7 @@ Please provide SQL to:
 - Verify the Service Role has proper permissions
 - Add or fix any policies needed for admin inserts
 - Test an insert directly via SQL
-```
+\`\`\`
 
 ---
 
@@ -109,7 +109,7 @@ Added comprehensive logging to help debug:
 
 You can also test directly in Supabase SQL Editor:
 
-```sql
+\`\`\`sql
 -- Test 1: Check RLS policies on categories table
 SELECT tablename, policyname, qual, cmd 
 FROM pg_policies 
@@ -122,7 +122,7 @@ RETURNING *;
 
 -- Test 3: Check if record was created
 SELECT * FROM categories WHERE name = 'Test Category';
-```
+\`\`\`
 
 ---
 

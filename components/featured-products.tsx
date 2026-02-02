@@ -152,32 +152,34 @@ export function FeaturedProducts() {
   }
 
   return (
-    <section className="py-6 sm:py-8 md:py-12 lg:py-16">
-      <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-        <div className="text-center mb-6 sm:mb-8 md:mb-10 lg:mb-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 md:mb-4 text-balance">
-            Featured Products
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-secondary/30">
+      <div className="responsive-container">
+        <div className="text-center mb-8 sm:mb-12 md:mb-16 lg:mb-20">
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-4 sm:mb-6">
+            <span className="text-sm font-semibold text-primary">CURATED FOR YOU</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 md:mb-6 text-balance leading-tight">
+            Featured Premium Collection
           </h2>
-          <p className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-2xl mx-auto text-pretty px-2">
-            Discover our handpicked selection of premium perfumes, luxury wigs, quality cars, fine wines, and body care
-            products
+          <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty px-2 sm:px-0">
+            Handpicked luxury selections featuring premium perfumes, wigs, automobiles, wines, and skincare products
           </p>
         </div>
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 xs:gap-3 sm:gap-4 md:gap-5 lg:gap-6">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
           {products.map((product) => {
             const { average: rating, count: reviewCount } = getProductRating(product.id)
 
             return (
-              <Card key={product.id} className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+              <Card key={product.id} className="group luxury-card-premium h-full flex flex-col overflow-hidden border-border/50">
                 <CardContent className="p-0 flex-1">
-                  <div className="relative overflow-hidden">
+                  <div className="relative overflow-hidden rounded-lg bg-muted/20">
                     <Link href={`/products/${product.id}`}>
                       <Image
                         src={product.image || "/placeholder.svg"}
                         alt={product.name}
                         width={300}
                         height={300}
-                        className="w-full h-32 xs:h-40 sm:h-48 md:h-52 lg:h-56 xl:h-60 object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                        className="w-full h-32 xs:h-40 sm:h-48 md:h-52 lg:h-56 xl:h-60 object-cover group-hover:scale-110 transition-transform duration-500 ease-out cursor-pointer"
                       />
                     </Link>
                     <Badge

@@ -92,34 +92,37 @@ export function FeaturedProperties() {
   }
 
   return (
-    <section className="py-16 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-background">
+      <div className="responsive-container">
+        <div className="text-center mb-12 sm:mb-16 md:mb-20">
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-4 sm:mb-6">
+            <span className="text-xs sm:text-sm font-semibold text-primary uppercase tracking-wide">LUXURY STAYS</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-balance leading-tight">
             Featured Properties
           </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Discover our handpicked selection of luxury apartments and premium accommodations
+          <p className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto text-pretty px-2 sm:px-0">
+            Handpicked luxury apartments and premium accommodations for an unforgettable stay
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-8">
           {properties.map((property) => (
             <Card
               key={property.id}
-              className="group overflow-hidden border-0 premium-shadow hover:shadow-2xl transition-all duration-300 elegant-hover"
+              className="group overflow-hidden luxury-card-premium border-border/50 hover:premium-shadow transition-all duration-300"
             >
-              <div className="relative overflow-hidden">
+              <div className="relative overflow-hidden rounded-xl bg-muted/20">
                 <Image
                   src={property.images[0] || "/placeholder.svg"}
                   alt={property.title}
                   width={400}
                   height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-56 sm:h-64 object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
                 />
-                <Badge className="absolute top-4 left-4 bg-primary text-white">{property.property_type}</Badge>
-                <div className="absolute top-4 right-4 flex items-center space-x-1 bg-black/50 text-white px-2 py-1 rounded-full text-sm">
-                  <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground text-xs font-semibold">{property.property_type}</Badge>
+                <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-background/80 backdrop-blur-sm text-foreground px-3 py-1.5 rounded-full text-xs font-semibold">
+                  <Star className="h-3.5 w-3.5 fill-accent text-accent" />
                   <span>{property.rating}</span>
                 </div>
               </div>

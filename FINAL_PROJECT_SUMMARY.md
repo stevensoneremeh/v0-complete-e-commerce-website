@@ -142,7 +142,7 @@ See `E2E_TESTING_CHECKLIST.md` for comprehensive testing guide with 12 sections 
 
 ## File Structure
 
-```
+\`\`\`
 app/
 ├── admin/                 # Admin dashboard pages
 │   ├── page.tsx          # Main dashboard
@@ -173,7 +173,7 @@ lib/
 hooks/
 ├── use-realtime-products.ts  # Real-time updates
 └── ...                       # Other hooks
-```
+\`\`\`
 
 ---
 
@@ -227,9 +227,9 @@ hooks/
 ## Next Steps for Production
 
 1. **Deploy to Vercel**
-   ```bash
+   \`\`\`bash
    vercel deploy
-   ```
+   \`\`\`
 
 2. **Set up Custom Domain**
    - Go to Vercel project settings

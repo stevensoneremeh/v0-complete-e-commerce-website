@@ -103,7 +103,7 @@ A **complete, working, luxury e-commerce platform** with:
 
 ### **The Hybrid Architecture:**
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────┐
 │       Your Next.js Frontend (stays as-is)        │
 │     • All 80+ components work with both APIs    │
@@ -131,7 +131,7 @@ A **complete, working, luxury e-commerce platform** with:
     │  • /api/properties → Supabase           │
     │  • /api/bookings → Supabase             │
     └─────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 

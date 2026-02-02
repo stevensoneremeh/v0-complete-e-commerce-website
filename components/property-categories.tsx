@@ -54,21 +54,22 @@ const propertyCategories = [
 
 export function PropertyCategories() {
   return (
-    <section className="section-padding bg-gradient-to-b from-background via-muted/30 to-background">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-secondary/20">
       <div className="responsive-container">
-        <div className="text-center mb-16 fade-in">
-          <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-full px-4 py-2 mb-6">
+        <div className="text-center mb-12 sm:mb-16 md:mb-20 fade-in">
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-4 sm:mb-6">
             <Building2 className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Premium Accommodations</span>
+            <span className="text-xs sm:text-sm font-semibold text-primary uppercase tracking-wide">ACCOMMODATIONS</span>
           </div>
-          <h2 className="display-2 mb-6 text-balance">Property Categories</h2>
-          <p className="body-large text-muted-foreground max-w-3xl mx-auto text-pretty">
-            Choose from our diverse selection of premium accommodations, each offering unique experiences and luxury
-            amenities
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-balance leading-tight">
+            Luxury Stay Categories
+          </h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-4xl mx-auto text-pretty px-2 sm:px-0">
+            Curated selection of premium accommodations, each offering unique experiences and exceptional amenities
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 slide-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 lg:gap-8 slide-up">
           {propertyCategories.map((category, index) => {
             const IconComponent = category.icon
             return (

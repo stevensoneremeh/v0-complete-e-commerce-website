@@ -9,9 +9,9 @@
 ## 📋 Quick Testing Steps
 
 ### 1. Start Server (if needed)
-```bash
+\`\`\`bash
 pnpm dev
-```
+\`\`\`
 
 ### 2. Login as Admin
 Navigate to: `http://localhost:3000/admin`
@@ -19,40 +19,40 @@ Navigate to: `http://localhost:3000/admin`
 ### 3. Test Each Section
 
 #### ✅ Categories (`/admin/categories`)
-```
+\`\`\`
 Click "Add Category"
 Name: Natasha Test Category
 Description: Testing fix
 ✓ Save
-```
+\`\`\`
 
 #### ✅ Products (`/admin/products`)
-```
+\`\`\`
 Click "Add Product"
 Name: Natasha Test Product
 Category: Natasha Test Category
 Price: 99.99
 Stock: 100
 ✓ Save
-```
+\`\`\`
 
 #### ✅ Hire Services (`/admin/hire-services`)
-```
+\`\`\`
 Click "Add Service"
 Name: Natasha Test Car
 Type: car
 Price/Day: 150.00
 ✓ Save
-```
+\`\`\`
 
 #### ✅ Properties (`/admin/properties`)
-```
+\`\`\`
 Click "Add Property"
 Title: Natasha Test Apartment
 Location: Lagos
 Price/Night: 299.99
 ✓ Save
-```
+\`\`\`
 
 ### 4. Verify Updates Work
 - Edit any "Natasha" item

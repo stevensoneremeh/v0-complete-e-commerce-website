@@ -10,30 +10,30 @@
 ## What You Need To Do RIGHT NOW
 
 ### STEP 1: Test The Connection (2 minutes)
-```
+\`\`\`
 1. Open: http://localhost:3000/api/test-connection
 2. What you'll see: JSON response
 3. Look for: "status": "success" or "status": "error"
 4. Take a screenshot and tell me the result
-```
+\`\`\`
 
 ### STEP 2: Open Browser DevTools (1 minute)
-```
+\`\`\`
 1. Press F12 in your browser
 2. Click on "Console" tab
 3. You should see logs like "[v0]" and "[SERVER]"
 4. Keep this open for the next steps
-```
+\`\`\`
 
 ### STEP 3: Test Adding A Category (3 minutes)
-```
+\`\`\`
 1. Go to: http://localhost:3000/admin/quick-categories
 2. Click "Add Category" button
 3. Fill in name: "Test123"
 4. Click "Create"
 5. LOOK AT CONSOLE - copy all logs that appear
 6. Check if category appears in the list
-```
+\`\`\`
 
 ### STEP 4: Share The Exact Output
 Tell me:

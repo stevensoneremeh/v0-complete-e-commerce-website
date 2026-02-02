@@ -11,7 +11,7 @@
 - This properly bypasses RLS and allows admin CRUD operations
 
 ### Changes Made:
-```typescript
+\`\`\`typescript
 // OLD: Used createServerClient with service role (doesn't bypass RLS properly)
 const supabase = createServerClient(supabaseUrl, supabaseServiceKey, {...})
 
@@ -30,7 +30,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     persistSession: false
   }
 })
-```
+\`\`\`
 
 ## ✅ What's Now Fixed
 
@@ -116,14 +116,14 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 
 If you have environment variables set up, you can run the automated test script:
 
-```bash
+\`\`\`bash
 # Make sure environment variables are set
 export NEXT_PUBLIC_SUPABASE_URL="your_supabase_url"
 export SUPABASE_SERVICE_ROLE_KEY="your_service_role_key"
 
 # Run the test script
 pnpm dlx tsx scripts/test-admin-natasha.ts
-```
+\`\`\`
 
 This will automatically:
 - Create test items with "natasha" in the name
@@ -141,11 +141,11 @@ This will automatically:
 ### Issue: "Forbidden - Admin access required"
 - Your user account doesn't have admin privileges
 - Run this SQL in Supabase:
-  ```sql
+  \`\`\`sql
   UPDATE profiles 
   SET is_admin = true, role = 'admin' 
   WHERE id = 'your-user-id';
-  ```
+  \`\`\`
 
 ### Issue: "Service not configured"
 - Environment variables are missing

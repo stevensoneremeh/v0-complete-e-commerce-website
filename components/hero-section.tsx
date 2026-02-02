@@ -94,29 +94,36 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative overflow-hidden min-h-[90vh] flex items-center luxury-gradient-subtle">
-      <div className="absolute inset-0 z-0">
+    <section className="relative overflow-hidden min-h-screen sm:min-h-[100vh] flex items-center lg:items-stretch bg-background">
+      <div className="absolute inset-0 z-0 lg:static lg:w-1/2">
         <video
           ref={videoRef}
           muted
           loop
           playsInline
           preload="auto"
-          className="w-full h-full object-cover"
+          className="hidden lg:block w-full h-full object-cover"
           poster="/luxury-living-room.jpeg"
         >
-          <source src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/64bb5c83-2bb1-4c22-8f9f-642334f46cac-d87osryg91ycSMO0JRVMoOSmYnhH4e.mp4" type="video/mp4" />
+          <source src="/images/64bb5c83-2bb1-4c22-8f9f-642334f46cac.mp4" type="video/mp4" />
           <source src="/luxury-apartment-video.webm" type="video/webm" />
           Your browser does not support the video tag.
         </video>
-        <div className="absolute inset-0 bg-gradient-to-br from-background/90 via-background/60 to-background/80"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-accent/20"></div>
+        <Image
+          src="/luxury-living-room.jpeg"
+          alt="Luxury Living"
+          width={800}
+          height={600}
+          className="lg:hidden w-full h-96 sm:h-full object-cover"
+        />
+        <div className="absolute lg:hidden inset-0 bg-gradient-to-b from-transparent via-background/30 to-background"></div>
+        <div className="hidden lg:block absolute inset-0 bg-gradient-to-r from-background/95 via-background/40 to-transparent"></div>
       </div>
 
       <button
         onClick={toggleVideo}
         disabled={!isVideoLoaded || hasError}
-        className="absolute bottom-6 right-6 sm:top-6 sm:bottom-auto z-20 glass-effect hover:bg-white/20 rounded-full p-3 elegant-hover disabled:opacity-50 disabled:cursor-not-allowed"
+        className="hidden lg:flex absolute bottom-8 right-8 z-20 glass-effect hover:bg-white/20 rounded-full p-4 elegant-hover disabled:opacity-50 disabled:cursor-not-allowed items-center justify-center"
         aria-label={isPlaying ? "Pause video" : "Play video"}
       >
         {hasError ? (
@@ -130,9 +137,9 @@ export function HeroSection() {
         )}
       </button>
 
-      <div className="responsive-container section-padding relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-16 items-center">
-          <div className="space-y-8 fade-in">
+      <div className="responsive-container py-12 sm:py-16 md:py-20 lg:py-24 relative z-10 lg:w-1/2 lg:flex lg:items-center">
+        <div className="w-full">
+          <div className="space-y-6 sm:space-y-8 fade-in">
             <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-full px-4 py-2 slide-up">
               <Sparkles className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium text-primary">ABL Natasha Enterprises 2024</span>

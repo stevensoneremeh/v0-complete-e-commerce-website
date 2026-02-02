@@ -71,21 +71,22 @@ const categories = [
 
 export function Categories() {
   return (
-    <section className="section-padding luxury-gradient-subtle">
+    <section className="py-12 sm:py-16 md:py-20 lg:py-24 bg-background">
       <div className="responsive-container">
-        <div className="text-center mb-16 fade-in">
-          <div className="inline-flex items-center space-x-2 bg-primary/10 backdrop-blur-sm border border-primary/20 rounded-full px-4 py-2 mb-6">
+        <div className="text-center mb-12 sm:mb-16 md:mb-20 lg:mb-24 fade-in">
+          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-4 sm:mb-6">
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Premium Categories</span>
+            <span className="text-xs sm:text-sm font-semibold text-primary uppercase tracking-wide">SHOP BY CATEGORY</span>
           </div>
-          <h2 className="display-2 mb-6 text-balance">Shop by Category</h2>
-          <p className="body-large text-muted-foreground max-w-3xl mx-auto text-pretty">
-            Explore our curated collection of luxury products across diverse categories, each carefully selected for
-            exceptional quality and elegance
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 text-balance leading-tight">
+            Discover Premium Collections
+          </h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-4xl mx-auto text-pretty px-2 sm:px-0">
+            Explore our carefully curated selection of luxury products across distinctive categories, each selected for exceptional quality
           </p>
         </div>
 
-        <div className="responsive-grid slide-up">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 slide-up">
           {categories.map((category, index) => (
             <Link key={category.id} href={`/categories/${category.slug}`} className="group">
               <Card

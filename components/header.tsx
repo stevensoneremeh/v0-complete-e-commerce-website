@@ -96,67 +96,60 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
-      <div className="responsive-container flex h-16 xs:h-18 sm:h-20 items-center justify-between gap-2 xs:gap-3 sm:gap-4">
-        <Link href="/" className="flex items-center space-x-2 xs:space-x-3 group flex-shrink-0">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+      <div className="responsive-container flex h-16 sm:h-18 lg:h-20 items-center justify-between gap-2 sm:gap-3 lg:gap-4 py-2 sm:py-2.5">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group flex-shrink-0 hover:opacity-80 transition-opacity">
           <div className="relative">
-            <div className="h-12 w-12 xs:h-14 xs:w-14 sm:h-16 sm:w-16 md:h-18 md:w-18 lg:h-20 lg:w-20 rounded-lg xs:rounded-xl bg-card flex items-center justify-center premium-shadow group-hover:scale-105 elegant-hover overflow-hidden border border-primary/20">
+            <div className="h-11 w-11 sm:h-13 sm:w-13 lg:h-15 lg:w-15 rounded-xl bg-card flex items-center justify-center premium-shadow-sm group-hover:premium-shadow elegant-hover overflow-hidden border border-border">
               <Image
                 src="/abl-natasha-logo.png"
                 alt="ABL Natasha Enterprises"
-                width={64}
-                height={64}
-                className="object-contain w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16"
+                width={56}
+                height={56}
+                className="object-contain w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9"
+                priority
               />
             </div>
-            <div className="absolute -top-0.5 xs:-top-1 -right-0.5 xs:-right-1 h-2 w-2 xs:h-3 xs:w-3 bg-primary rounded-full animate-pulse"></div>
           </div>
-          <div className="flex flex-col mobile-hidden">
-            <span className="font-bold text-sm xs:text-base sm:text-lg md:text-xl text-gradient">ABL Natasha</span>
-            <span className="text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs text-muted-foreground font-medium tracking-wider uppercase">
-              Enterprises
+          <div className="hidden sm:flex flex-col gap-0.5">
+            <span className="font-bold text-sm lg:text-base leading-tight tracking-tight">ABL</span>
+            <span className="text-[10px] lg:text-xs text-muted-foreground font-semibold tracking-wider">
+              NATASHA
             </span>
           </div>
         </Link>
 
-        <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
-          <Link href="/" className="text-sm font-medium hover:text-primary transition-colors relative group">
+        <nav className="hidden lg:flex items-center gap-1">
+          <Link href="/" className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors duration-200">
             Home
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors relative group">
+          <Link href="/products" className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors duration-200">
             Products
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="/properties" className="text-sm font-medium hover:text-primary transition-colors relative group">
+          <Link href="/properties" className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors duration-200">
             Properties
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="/hire" className="text-sm font-medium hover:text-primary transition-colors relative group">
+          <Link href="/hire" className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors duration-200">
             Hire
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="/categories" className="text-sm font-medium hover:text-primary transition-colors relative group">
+          <Link href="/categories" className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors duration-200">
             Categories
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors relative group">
+          <Link href="/about" className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors duration-200">
             About
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
           </Link>
-          <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors relative group">
+          <Link href="/contact" className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors duration-200">
             Contact
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
           </Link>
         </nav>
 
-        <div className="hidden md:flex items-center space-x-2 flex-1 max-w-sm lg:max-w-md xl:max-w-lg mx-4 lg:mx-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 lg:left-3 top-2.5 lg:top-3 h-3.5 w-3.5 lg:h-4 lg:w-4 text-muted-foreground" />
+        <div className="hidden md:flex items-center flex-1 max-w-sm lg:max-w-md xl:max-w-xl mx-3 lg:mx-6">
+          <div className="relative w-full">
+            <Search className="absolute left-3.5 lg:left-4 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-4.5 lg:w-4.5 text-muted-foreground pointer-events-none" />
             <Input
               type="search"
-              placeholder="Search luxury products..."
-              className="luxury-input pl-8 lg:pl-10 h-10 lg:h-12 rounded-lg lg:rounded-xl transition-all duration-300 border-2 focus:border-primary/30 text-sm lg:text-base"
+              placeholder="Search products, properties..."
+              className="w-full pl-10 lg:pl-12 h-11 lg:h-12 rounded-xl luxury-input border border-border focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-sm lg:text-base placeholder:text-muted-foreground/60"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -164,18 +157,18 @@ export function Header() {
               onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             />
             {showSuggestions && (
-              <div className="absolute top-full left-0 right-0 luxury-card mt-2 overflow-hidden z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl overflow-hidden z-50 shadow-lg">
                 {filteredSuggestions.map((suggestion, index) => (
                   <button
                     key={suggestion}
-                    className={`w-full text-left px-3 lg:px-4 py-2 lg:py-3 hover:bg-muted/50 transition-colors ${
-                      index === selectedSuggestionIndex ? "bg-muted/50" : ""
+                    className={`w-full text-left px-4 lg:px-5 py-2.5 lg:py-3 hover:bg-muted/30 transition-colors text-sm lg:text-base ${
+                      index === selectedSuggestionIndex ? "bg-muted/20" : ""
                     }`}
                     onClick={() => handleSuggestionClick(suggestion)}
                   >
-                    <div className="flex items-center space-x-2 lg:space-x-3">
-                      <Search className="h-3.5 w-3.5 xs:h-4 xs:w-4 text-muted-foreground" />
-                      <span className="text-xs lg:text-sm">{suggestion}</span>
+                    <div className="flex items-center gap-3">
+                      <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-foreground/80">{suggestion}</span>
                     </div>
                   </button>
                 ))}
