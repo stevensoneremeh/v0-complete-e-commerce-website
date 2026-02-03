@@ -238,4 +238,3 @@ export default function PropertyDetailPage() {
     </div>
   )
 }
-      </Tabs>

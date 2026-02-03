@@ -91,37 +91,37 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="responsive-container py-8 sm:py-12 md:py-16">
       {/* Breadcrumb */}
-      <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
-        <Link href="/" className="hover:text-primary">
+      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8 overflow-x-auto pb-2">
+        <Link href="/" className="hover:text-primary transition-colors whitespace-nowrap">
           Home
         </Link>
-        <span>/</span>
-        <Link href="/properties" className="hover:text-primary">
+        <span className="text-muted-foreground/50">/</span>
+        <Link href="/properties" className="hover:text-primary transition-colors whitespace-nowrap">
           Properties
         </Link>
-        <span>/</span>
-        <span className="text-foreground">{property.title}</span>
+        <span className="text-muted-foreground/50">/</span>
+        <span className="text-foreground whitespace-nowrap truncate">{property.title}</span>
       </div>
 
       {/* Back Button */}
-      <Button variant="outline" onClick={() => router.back()} className="mb-6">
+      <Button variant="ghost" onClick={() => router.back()} className="mb-6 sm:mb-8 h-9 px-3 text-sm">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back
       </Button>
 
       {/* Property Images */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-10 sm:mb-12">
         <div className="space-y-4">
-          <div className="relative aspect-video rounded-lg overflow-hidden">
+          <div className="relative aspect-video rounded-2xl overflow-hidden border border-border bg-muted/20">
             <Image
               src={property.images[selectedImageIndex] || "/placeholder.svg?height=400&width=600&text=Property+Image"}
               alt={property.title}
               fill
-              className="object-cover"
+              className="object-cover hover:scale-105 transition-transform duration-300"
             />
-            {property.featured && <Badge className="absolute top-4 left-4">Featured</Badge>}
+            {property.featured && <Badge className="absolute top-4 left-4 text-xs sm:text-sm">Featured</Badge>}
           </div>
           {property.images.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
@@ -129,8 +129,8 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                 <button
                   key={index}
                   onClick={() => setSelectedImageIndex(index)}
-                  className={`relative aspect-video rounded-lg overflow-hidden border-2 ${
-                    selectedImageIndex === index ? "border-primary" : "border-transparent"
+                  className={`relative aspect-video rounded-xl overflow-hidden border-2 transition-all ${
+                    selectedImageIndex === index ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/50"
                   }`}
                 >
                   <Image
@@ -146,71 +146,71 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
           {property.videos && property.videos.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {property.videos.map((video, index) => (
-                <video key={index} src={video} controls className="w-full rounded-lg" />
+                <video key={index} src={video} controls className="w-full rounded-xl border border-border" />
               ))}
             </div>
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 sm:space-y-8">
           <div>
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">{property.title}</h1>
-                <div className="flex items-center text-muted-foreground mb-2">
-                  <MapPin className="h-4 w-4 mr-1" />
+            <div className="flex items-start justify-between mb-4 sm:mb-6 gap-4">
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 leading-tight text-balance">{property.title}</h1>
+                <div className="flex items-center text-muted-foreground mb-2 text-sm sm:text-base">
+                  <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
                   <span>{property.location}</span>
                 </div>
-                <p className="text-sm text-muted-foreground">{property.address}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{property.address}</p>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex gap-2 flex-shrink-0">
                 <Button
                   variant="outline"
                   size="icon"
+                  className="h-10 w-10 bg-transparent"
                   onClick={handleWishlistToggle}
-                  className={isInWishlist(property.id) ? "text-red-500" : ""}
                 >
-                  <Heart className={`h-4 w-4 ${isInWishlist(property.id) ? "fill-current" : ""}`} />
+                  <Heart className={`h-5 w-5 ${isInWishlist(property.id) ? "fill-accent text-accent" : ""}`} />
                 </Button>
-                <Button variant="outline" size="icon" onClick={handleShare}>
-                  <Share2 className="h-4 w-4" />
+                <Button variant="outline" size="icon" className="h-10 w-10 bg-transparent" onClick={handleShare}>
+                  <Share2 className="h-5 w-5" />
                 </Button>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4 mb-4">
-              <Badge variant="secondary">{property.property_type}</Badge>
-              <Badge variant="outline">{property.listing_type}</Badge>
-              {property.available && <Badge className="bg-green-100 text-green-800">Available</Badge>}
+            <div className="flex items-center gap-2 mb-4 sm:mb-6 flex-wrap">
+              <Badge className="text-xs sm:text-sm">{property.property_type}</Badge>
+              <Badge variant="outline" className="text-xs sm:text-sm">{property.listing_type}</Badge>
+              {property.available && <Badge className="bg-accent/20 text-accent text-xs sm:text-sm font-semibold">Available</Badge>}
             </div>
 
-            <div className="text-3xl font-bold text-primary mb-4">
-              <DualCurrencyDisplay usdAmount={property.price} size="lg" variant="primary" showBoth={true} />
-              {property.listing_type === "rent" && (
-                <span className="text-lg font-normal text-muted-foreground">/month</span>
-              )}
-              {property.booking_price_per_night && (
-                <span className="text-lg font-normal text-muted-foreground">/night</span>
-              )}
+            <div className="mb-6 sm:mb-8 space-y-2">
+              <div className="text-2xl sm:text-3xl md:text-4xl font-bold">
+                <DualCurrencyDisplay usdAmount={property.price} size="lg" variant="primary" showBoth={true} />
+              </div>
+              <div className="text-sm sm:text-base text-muted-foreground font-medium">
+                {property.listing_type === "rent" && <span>/month</span>}
+                {property.booking_price_per_night && <span>/night</span>}
+              </div>
             </div>
           </div>
 
           {/* Property Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-muted rounded-lg">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="text-center p-4 sm:p-5 bg-secondary/40 rounded-xl border border-border/50">
               <Bed className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <div className="font-semibold">{property.bedrooms}</div>
-              <div className="text-sm text-muted-foreground">Bedrooms</div>
+              <div className="font-semibold text-sm sm:text-base">{property.bedrooms}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Bedrooms</div>
             </div>
-            <div className="text-center p-4 bg-muted rounded-lg">
+            <div className="text-center p-4 sm:p-5 bg-secondary/40 rounded-xl border border-border/50">
               <Bath className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <div className="font-semibold">{property.bathrooms}</div>
-              <div className="text-sm text-muted-foreground">Bathrooms</div>
+              <div className="font-semibold text-sm sm:text-base">{property.bathrooms}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Bathrooms</div>
             </div>
-            <div className="text-center p-4 bg-muted rounded-lg">
+            <div className="text-center p-4 sm:p-5 bg-secondary/40 rounded-xl border border-border/50">
               <Square className="h-6 w-6 mx-auto mb-2 text-primary" />
-              <div className="font-semibold">{property.area}</div>
-              <div className="text-sm text-muted-foreground">Sq Ft</div>
+              <div className="font-semibold text-sm sm:text-base">{property.area}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Sq Ft</div>
             </div>
           </div>
 
@@ -222,11 +222,11 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
                 price: property.price,
                 category: "Real Estate",
               }}
-              className="w-full"
+              className="w-full luxury-button"
               size="lg"
             />
             {property.virtual_tour_url && (
-              <Button variant="outline" className="w-full bg-transparent" asChild>
+              <Button variant="outline" className="w-full luxury-button-outline bg-transparent" asChild>
                 <Link href={property.virtual_tour_url} target="_blank">
                   Virtual Tour
                 </Link>

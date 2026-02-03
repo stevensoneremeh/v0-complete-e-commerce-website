@@ -92,62 +92,81 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-      <div className="absolute top-4 left-4 z-10">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-          <div className="h-4 w-px bg-border" />
-          <Link href="/">
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur-xl">
+        <div className="responsive-container flex items-center justify-between h-16 sm:h-18">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center overflow-hidden border border-primary/20">
+              <Image
+                src="/abl-natasha-logo.png"
+                alt="ABL Natasha Enterprises"
+                width={28}
+                height={28}
+                className="object-contain"
+              />
+            </div>
+            <div className="hidden sm:flex flex-col gap-0">
+              <span className="font-bold text-xs sm:text-sm leading-tight">ABL</span>
+              <span className="text-[9px] sm:text-[10px] text-muted-foreground font-semibold">NATASHA</span>
+            </div>
+          </Link>
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="sm"
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+              onClick={() => router.back()}
+              className="h-9 px-2 text-xs sm:text-sm"
             >
-              <Home className="h-4 w-4" />
-              Home
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back
             </Button>
-          </Link>
+            <div className="hidden sm:block h-5 w-px bg-border" />
+            <Link href="/">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2 text-xs sm:text-sm hidden sm:flex"
+              >
+                <Home className="h-4 w-4 mr-1" />
+                Home
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Card className="w-full max-w-md shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
-          <CardHeader className="text-center space-y-4">
-            <div className="flex items-center justify-center space-x-3 mb-2">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden border border-primary/20">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 py-12 sm:py-16">
+        <Card className="w-full max-w-md luxury-card-premium border-border/50">
+          <CardHeader className="text-center space-y-4 pt-6 sm:pt-8">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-primary/10 flex items-center justify-center overflow-hidden border border-primary/20">
                 <Image
                   src="/abl-natasha-logo.png"
                   alt="ABL Natasha Enterprises"
-                  width={28}
-                  height={28}
+                  width={32}
+                  height={32}
                   className="object-contain"
                 />
               </div>
-              <div>
-                <h1 className="font-bold text-xl text-foreground">ABL Natasha</h1>
-                <p className="text-xs text-muted-foreground">Enterprises</p>
+              <div className="flex flex-col gap-0.5">
+                <h1 className="font-bold text-base sm:text-lg leading-tight">ABL Natasha</h1>
+                <p className="text-xs text-muted-foreground font-semibold">Premium Portal</p>
               </div>
             </div>
             <div>
-              <CardTitle className="text-2xl font-bold">Welcome</CardTitle>
-              <CardDescription className="text-base mt-2">Sign in to your account or create a new one</CardDescription>
+              <CardTitle className="text-2xl sm:text-3xl font-bold">Welcome Back</CardTitle>
+              <CardDescription className="text-sm sm:text-base mt-2 text-muted-foreground">
+                Sign in or create an account to continue
+              </CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pb-6 sm:pb-8">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-                <TabsTrigger value="login" className="data-[state=active]:bg-background">
+              <TabsList className="grid w-full grid-cols-2 bg-secondary/40 p-1 rounded-lg h-10">
+                <TabsTrigger value="login" className="data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm rounded-md">
                   Sign In
                 </TabsTrigger>
-                <TabsTrigger value="signup" className="data-[state=active]:bg-background">
+                <TabsTrigger value="signup" className="data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs sm:text-sm rounded-md">
                   Sign Up
                 </TabsTrigger>
               </TabsList>
@@ -155,29 +174,29 @@ export default function AuthPage() {
               <TabsContent value="login" className="space-y-4 mt-6">
                 <form onSubmit={handleLogin} className="space-y-4">
                   {loginError && (
-                    <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
-                      <AlertDescription>{loginError}</AlertDescription>
+                    <Alert variant="destructive" className="border-destructive/30 bg-destructive/5 rounded-lg">
+                      <AlertDescription className="text-xs sm:text-sm">{loginError}</AlertDescription>
                     </Alert>
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-sm font-medium">
-                      Email
+                    <Label htmlFor="login-email" className="text-xs sm:text-sm font-semibold">
+                      Email Address
                     </Label>
                     <Input
                       id="login-email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="you@example.com"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
-                      className="h-11 bg-background/50 border-border/50 focus:border-primary/50"
+                      className="h-10 sm:h-11 bg-secondary/30 border-border/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/10 rounded-lg text-sm"
                       autoComplete="email"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="login-password" className="text-sm font-medium">
+                    <Label htmlFor="login-password" className="text-xs sm:text-sm font-semibold">
                       Password
                     </Label>
                     <div className="relative">
@@ -187,7 +206,7 @@ export default function AuthPage() {
                         placeholder="Enter your password"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
-                        className="h-11 bg-background/50 border-border/50 focus:border-primary/50 pr-10"
+                        className="h-10 sm:h-11 bg-secondary/30 border-border/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/10 pr-10 rounded-lg text-sm"
                         autoComplete="current-password"
                         required
                       />
@@ -195,7 +214,7 @@ export default function AuthPage() {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute right-0 top-0 h-11 w-10 hover:bg-transparent"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-secondary/50"
                         onClick={() => setShowLoginPassword(!showLoginPassword)}
                       >
                         {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -203,13 +222,13 @@ export default function AuthPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
+                  <div className="text-right">
+                    <Link href="/auth/forgot-password" className="text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors font-medium">
                       Forgot password?
                     </Link>
                   </div>
 
-                  <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
+                  <Button type="submit" className="w-full h-10 sm:h-11 luxury-button text-sm sm:text-base font-semibold" disabled={isLoading}>
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
                 </form>
@@ -218,61 +237,61 @@ export default function AuthPage() {
               <TabsContent value="signup" className="space-y-4 mt-6">
                 <form onSubmit={handleSignup} className="space-y-4">
                   {signupError && (
-                    <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
-                      <AlertDescription>{signupError}</AlertDescription>
+                    <Alert variant="destructive" className="border-destructive/30 bg-destructive/5 rounded-lg">
+                      <AlertDescription className="text-xs sm:text-sm">{signupError}</AlertDescription>
                     </Alert>
                   )}
 
                   {signupSuccess && (
-                    <Alert className="border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400">
-                      <AlertDescription>{signupSuccess}</AlertDescription>
+                    <Alert className="border-accent/30 bg-accent/5 text-accent rounded-lg">
+                      <AlertDescription className="text-xs sm:text-sm">{signupSuccess}</AlertDescription>
                     </Alert>
                   )}
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name" className="text-sm font-medium">
+                    <Label htmlFor="signup-name" className="text-xs sm:text-sm font-semibold">
                       Full Name
                     </Label>
                     <Input
                       id="signup-name"
                       type="text"
-                      placeholder="Enter your full name"
+                      placeholder="John Doe"
                       value={signupName}
                       onChange={(e) => setSignupName(e.target.value)}
-                      className="h-11 bg-background/50 border-border/50 focus:border-primary/50"
+                      className="h-10 sm:h-11 bg-secondary/30 border-border/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/10 rounded-lg text-sm"
                       autoComplete="name"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-sm font-medium">
-                      Email
+                    <Label htmlFor="signup-email" className="text-xs sm:text-sm font-semibold">
+                      Email Address
                     </Label>
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="you@example.com"
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
-                      className="h-11 bg-background/50 border-border/50 focus:border-primary/50"
+                      className="h-10 sm:h-11 bg-secondary/30 border-border/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/10 rounded-lg text-sm"
                       autoComplete="email"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-sm font-medium">
+                    <Label htmlFor="signup-password" className="text-xs sm:text-sm font-semibold">
                       Password
                     </Label>
                     <div className="relative">
                       <Input
                         id="signup-password"
                         type={showSignupPassword ? "text" : "password"}
-                        placeholder="Create a password"
+                        placeholder="At least 6 characters"
                         value={signupPassword}
                         onChange={(e) => setSignupPassword(e.target.value)}
-                        className="h-11 bg-background/50 border-border/50 focus:border-primary/50 pr-10"
+                        className="h-10 sm:h-11 bg-secondary/30 border-border/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/10 pr-10 rounded-lg text-sm"
                         autoComplete="new-password"
                         required
                       />
@@ -280,7 +299,7 @@ export default function AuthPage() {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute right-0 top-0 h-11 w-10 hover:bg-transparent"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-secondary/50"
                         onClick={() => setShowSignupPassword(!showSignupPassword)}
                       >
                         {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -289,7 +308,7 @@ export default function AuthPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password" className="text-sm font-medium">
+                    <Label htmlFor="confirm-password" className="text-xs sm:text-sm font-semibold">
                       Confirm Password
                     </Label>
                     <div className="relative">
@@ -299,7 +318,7 @@ export default function AuthPage() {
                         placeholder="Confirm your password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="h-11 bg-background/50 border-border/50 focus:border-primary/50 pr-10"
+                        className="h-10 sm:h-11 bg-secondary/30 border-border/50 focus:border-primary/40 focus:ring-2 focus:ring-primary/10 pr-10 rounded-lg text-sm"
                         autoComplete="new-password"
                         required
                       />
@@ -307,7 +326,7 @@ export default function AuthPage() {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute right-0 top-0 h-11 w-10 hover:bg-transparent"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-secondary/50"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       >
                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -315,7 +334,7 @@ export default function AuthPage() {
                     </div>
                   </div>
 
-                  <Button type="submit" className="w-full h-11 font-medium" disabled={isLoading}>
+                  <Button type="submit" className="w-full h-10 sm:h-11 luxury-button text-sm sm:text-base font-semibold mt-2" disabled={isLoading}>
                     {isLoading ? "Creating account..." : "Create Account"}
                   </Button>
                 </form>

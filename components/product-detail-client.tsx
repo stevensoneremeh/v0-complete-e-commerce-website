@@ -90,53 +90,53 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="responsive-container py-8 sm:py-12 md:py-16">
       {/* Breadcrumb */}
-      <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
-        <Link href="/" className="hover:text-primary">
+      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8 overflow-x-auto pb-2">
+        <Link href="/" className="hover:text-primary transition-colors whitespace-nowrap">
           Home
         </Link>
-        <span>/</span>
-        <Link href="/products" className="hover:text-primary">
+        <span className="text-muted-foreground/50">/</span>
+        <Link href="/products" className="hover:text-primary transition-colors whitespace-nowrap">
           Products
         </Link>
-        <span>/</span>
-        <Link href={`/categories/${product.category.toLowerCase()}`} className="hover:text-primary">
+        <span className="text-muted-foreground/50">/</span>
+        <Link href={`/categories/${product.category.toLowerCase()}`} className="hover:text-primary transition-colors whitespace-nowrap">
           {product.category}
         </Link>
-        <span>/</span>
-        <span className="text-foreground">{product.name}</span>
+        <span className="text-muted-foreground/50">/</span>
+        <span className="text-foreground whitespace-nowrap truncate">{product.name}</span>
       </div>
 
       {/* Back Button */}
-      <Button variant="ghost" className="mb-6" asChild>
+      <Button variant="ghost" className="mb-6 sm:mb-8 h-9 px-3 text-sm" asChild>
         <Link href="/products">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Products
+          Back
         </Link>
       </Button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 md:gap-12">
         {/* Product Images */}
         <div className="space-y-4">
-          <div className="aspect-square overflow-hidden rounded-lg border">
+          <div className="aspect-square overflow-hidden rounded-2xl border border-border bg-muted/20">
             <Image
               src={product.images[selectedImage] || "/placeholder.svg"}
               alt={product.name}
               width={500}
               height={500}
-              className="w-full h-full object-cover cursor-zoom-in"
+              className="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-transform duration-300"
             />
           </div>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-3">
             {product.images.map((image, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
-                className={`aspect-square overflow-hidden rounded-lg border-2 transition-all ${
+                className={`aspect-square overflow-hidden rounded-xl border-2 transition-all hover:border-primary/50 ${
                   selectedImage === index
                     ? "border-primary ring-2 ring-primary/20"
-                    : "border-muted hover:border-primary/50"
+                    : "border-border"
                 }`}
               >
                 <Image
@@ -152,62 +152,64 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         </div>
 
         {/* Product Info */}
-        <div className="space-y-6">
+        <div className="space-y-6 sm:space-y-8">
           <div>
-            <div className="flex items-center space-x-2 mb-2">
-              <Badge className="mb-2">{product.badge}</Badge>
-              <Badge variant="outline">{product.brand}</Badge>
+            <div className="flex items-center gap-2 mb-3 sm:mb-4 flex-wrap">
+              <Badge className="text-xs sm:text-sm font-semibold">{product.badge}</Badge>
+              <Badge variant="outline" className="text-xs sm:text-sm">{product.brand}</Badge>
             </div>
-            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="flex items-center">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 leading-tight text-balance">{product.name}</h1>
+            <div className="flex items-center gap-4 mb-4 sm:mb-6 flex-wrap">
+              <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-5 w-5 ${i < Math.floor(rating) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${i < Math.floor(rating) ? "text-accent fill-accent" : "text-muted-foreground"}`}
                   />
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground">
-                {rating > 0 ? `${rating} (${reviewCount} reviews)` : "No reviews yet"}
+              <span className="text-xs sm:text-sm text-muted-foreground">
+                {rating > 0 ? `${rating.toFixed(1)} (${reviewCount} reviews)` : "No reviews yet"}
               </span>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-6 sm:mb-8 space-y-2">
               <DualCurrencyDisplay usdAmount={product.price} size="lg" variant="primary" />
               {product.originalPrice && product.originalPrice > product.price && (
-                <div className="mt-2 flex items-center space-x-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <DualCurrencyDisplay
                     usdAmount={product.originalPrice}
                     size="lg"
                     variant="muted"
-                    className="line-through"
+                    className="line-through text-sm"
                   />
-                  <Badge variant="destructive">Save ${(product.originalPrice - product.price).toFixed(2)}</Badge>
+                  <Badge variant="destructive" className="text-xs sm:text-sm">Save ${(product.originalPrice - product.price).toFixed(2)}</Badge>
                 </div>
               )}
             </div>
           </div>
 
-          <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+          <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{product.description}</p>
 
           {/* Quantity and Add to Cart */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <span className="font-medium">Quantity:</span>
-              <div className="flex items-center space-x-2">
+          <div className="space-y-4 sm:space-y-5">
+            <div className="flex items-center gap-4">
+              <span className="font-medium text-sm sm:text-base">Quantity:</span>
+              <div className="flex items-center border border-border rounded-lg p-1">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
+                  className="h-8 w-8"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={quantity <= 1 || !product.inStock}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="w-12 text-center font-medium">{quantity}</span>
+                <span className="w-12 text-center font-semibold text-sm">{quantity}</span>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
+                  className="h-8 w-8"
                   onClick={() => setQuantity(quantity + 1)}
                   disabled={!product.inStock}
                 >
@@ -216,18 +218,18 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               </div>
             </div>
 
-            <div className="flex space-x-4">
-              <Button size="lg" className="flex-1" onClick={handleAddToCart} disabled={!product.inStock}>
+            <div className="flex gap-3 flex-col sm:flex-row">
+              <Button size="lg" className="luxury-button flex-1" onClick={handleAddToCart} disabled={!product.inStock}>
                 <ShoppingCart className="h-5 w-5 mr-2" />
-                {product.inStock ? "Add to Cart" : "Out of Stock"}
+                <span className="text-sm sm:text-base">{product.inStock ? "Add to Cart" : "Out of Stock"}</span>
               </Button>
               <Button
                 size="lg"
                 variant="outline"
                 onClick={handleWishlistToggle}
-                className={isInWishlist(product.id) ? "text-red-500 border-red-200" : ""}
+                className={`luxury-button-outline ${isInWishlist(product.id) ? "text-accent border-accent/30" : ""}`}
               >
-                <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
+                <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? "fill-accent" : ""}`} />
               </Button>
             </div>
 
@@ -244,8 +246,8 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
           {/* Stock Status */}
           <div
-            className={`flex items-center space-x-2 p-4 rounded-lg ${
-              product.inStock ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
+            className={`flex items-center gap-3 p-4 rounded-xl text-sm sm:text-base border ${
+              product.inStock ? "bg-accent/5 border-accent/20 text-accent" : "bg-destructive/5 border-destructive/20 text-destructive"
             }`}
           >
             <div className={`w-3 h-3 rounded-full ${product.inStock ? "bg-green-500" : "bg-red-500"}`}></div>

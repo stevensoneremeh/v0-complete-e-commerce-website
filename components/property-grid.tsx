@@ -62,7 +62,7 @@ export function PropertyGrid({ searchQuery, filters }: PropertyGridProps) {
               price_per_night: Number(item.booking_price_per_night ?? item.products?.price ?? 0),
               bedrooms,
               bathrooms: Number(item.bathrooms ?? 1),
-              guests: Number(item.max_guests ?? bedrooms * 2 || 1),
+              guests: Number((item.max_guests ?? bedrooms * 2) || 1),
               rating: Number(item.rating ?? 4.8),
               images: media.images,
               amenities: Array.isArray(item.amenities) ? item.amenities : [],
