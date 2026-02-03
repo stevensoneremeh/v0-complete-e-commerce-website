@@ -218,18 +218,17 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               </div>
             </div>
 
-            <div className="flex gap-3 flex-col sm:flex-row">
-              <Button size="lg" className="luxury-button flex-1" onClick={handleAddToCart} disabled={!product.inStock}>
-                <ShoppingCart className="h-5 w-5 mr-2" />
-                <span className="text-sm sm:text-base">{product.inStock ? "Add to Cart" : "Out of Stock"}</span>
+            <div className="flex gap-2 sm:gap-3 flex-col sm:flex-row">
+              <Button className="luxury-button flex-1 h-10 sm:h-11 text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-2.5" onClick={handleAddToCart} disabled={!product.inStock}>
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">{product.inStock ? "Add to Cart" : "Out of Stock"}</span>
               </Button>
               <Button
-                size="lg"
                 variant="outline"
                 onClick={handleWishlistToggle}
-                className={`luxury-button-outline ${isInWishlist(product.id) ? "text-accent border-accent/30" : ""}`}
+                className={`luxury-button-outline h-10 sm:h-11 px-2.5 sm:px-3 py-2 sm:py-2.5 flex-shrink-0 ${isInWishlist(product.id) ? "text-accent border-accent/30" : ""}`}
               >
-                <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? "fill-accent" : ""}`} />
+                <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${isInWishlist(product.id) ? "fill-accent" : ""}`} />
               </Button>
             </div>
 
@@ -239,8 +238,8 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 price: product.price,
                 category: product.category,
               }}
-              className="w-full"
-              size="lg"
+              className="w-full h-10 sm:h-11"
+              size="default"
             />
           </div>
 

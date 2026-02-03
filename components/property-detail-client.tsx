@@ -215,18 +215,18 @@ export function PropertyDetailClient({ property }: PropertyDetailClientProps) {
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-3">
+          <div className="space-y-2.5 sm:space-y-3">
             <WhatsAppButton
               product={{
                 name: property.title,
                 price: property.price,
                 category: "Real Estate",
               }}
-              className="w-full luxury-button"
-              size="lg"
+              className="w-full h-10 sm:h-11"
+              size="default"
             />
             {property.virtual_tour_url && (
-              <Button variant="outline" className="w-full luxury-button-outline bg-transparent" asChild>
+              <Button variant="outline" className="w-full luxury-button-outline h-10 sm:h-11 text-sm sm:text-base px-4 py-2 sm:py-2.5 bg-transparent" asChild>
                 <Link href={property.virtual_tour_url} target="_blank">
                   Virtual Tour
                 </Link>

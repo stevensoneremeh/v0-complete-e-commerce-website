@@ -147,15 +147,15 @@ export default function CartPage() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-between">
+        <div className="flex flex-col sm:flex-row gap-3 mb-8 justify-between">
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleClearCart} className="luxury-button-outline text-sm h-10 bg-transparent">
+            <Button variant="outline" onClick={handleClearCart} className="luxury-button-outline h-10 text-xs sm:text-sm px-3 sm:px-4 py-2 bg-transparent">
               Clear Cart
             </Button>
-            <Button variant="outline" asChild className="luxury-button-outline text-sm h-10 bg-transparent">
-              <Link href="/products">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Continue Shopping
+            <Button variant="outline" asChild className="luxury-button-outline h-10 text-xs sm:text-sm px-3 sm:px-4 py-2 bg-transparent">
+              <Link href="/products" className="flex items-center">
+                <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                <span>Continue Shopping</span>
               </Link>
             </Button>
           </div>
@@ -356,11 +356,11 @@ export default function CartPage() {
                   )}
                 </div>
 
-                <div className="space-y-3">
-                  <Button className="w-full" size="lg" asChild>
+                <div className="space-y-2.5 sm:space-y-3">
+                  <Button className="luxury-button w-full h-10 sm:h-11 text-sm sm:text-base px-4 py-2 sm:py-2.5" asChild>
                     <Link href="/checkout">Proceed to Checkout</Link>
                   </Button>
-                  <WhatsAppButton message={generateCartWhatsAppMessage()} className="w-full" variant="outline" />
+                  <WhatsAppButton message={generateCartWhatsAppMessage()} className="w-full h-10 sm:h-11" variant="outline" />
                 </div>
 
                 <p className="text-xs text-muted-foreground text-center">Secure checkout with SSL encryption</p>

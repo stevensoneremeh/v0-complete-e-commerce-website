@@ -92,14 +92,13 @@ export function WhatsAppButton({
   return (
     <Button
       variant={variant}
-      size={size}
       onClick={handleWhatsAppClick}
-      className={`bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 transition-all duration-200 ${
-        variant === "outline" ? "bg-transparent text-green-600 hover:bg-green-600 hover:text-white" : ""
+      className={`bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 transition-all duration-200 h-10 sm:h-11 text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-2.5 font-medium ${
+        variant === "outline" ? "bg-transparent text-green-600 hover:bg-green-600 hover:text-white border border-green-600/30 hover:border-green-600" : ""
       } ${className}`}
     >
-      <MessageCircle className="h-2.5 w-2.5 xs:h-3 xs:w-3 sm:h-4 sm:w-4 mr-1 xs:mr-1.5 sm:mr-2 flex-shrink-0" />
-      <span className="truncate min-w-0">
+      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+      <span className="truncate min-w-0 text-xs sm:text-sm">
         {children ||
           (product?.name || productName ? (
             <>

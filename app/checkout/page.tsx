@@ -621,12 +621,12 @@ export default function CheckoutPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
-                    <WhatsAppButton message={generateCartWhatsAppMessage()} className="w-full" variant="outline" />
+                  <div className="space-y-2.5 sm:space-y-3">
+                    <WhatsAppButton message={generateCartWhatsAppMessage()} className="w-full h-10 sm:h-11" variant="outline" />
                   </div>
 
                   {paymentMethod !== "paystack" && (
-                    <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
+                    <Button type="submit" className="luxury-button w-full h-10 sm:h-11 text-sm sm:text-base px-4 py-2 sm:py-2.5" disabled={isProcessing}>
                       {isProcessing ? "Processing..." : `Place Order - $${finalTotal.toFixed(2)}`}
                     </Button>
                   )}
