@@ -2,12 +2,12 @@ const VIDEO_EXT_REGEX = /\.(mp4|mov|m4v|webm|ogv|ogg)(\?|#|$)/i
 
 const isVideoUrl = (url: string) => VIDEO_EXT_REGEX.test(url)
 
-type MediaItem =
-  | string
-  | {
-      url?: string
-      type?: string
-    }
+type MediaItemObject = {
+  url?: string
+  type?: string
+}
+
+type MediaItem = string | MediaItemObject
 
 export function splitPropertyMedia(input: unknown) {
   const images: string[] = []
@@ -24,10 +24,11 @@ export function splitPropertyMedia(input: unknown) {
         }
         return
       }
-      if (typeof item === "object") {
-        const candidate = (item as MediaItem).url
+      if (typeof item === "object" && item !== null && !Array.isArray(item)) {
+        const mediaObj = item as MediaItemObject
+        const candidate = mediaObj.url
         if (!candidate) return
-        const type = (item as MediaItem).type
+        const type = mediaObj.type
         if (type === "video" || isVideoUrl(candidate)) {
           videos.push(candidate)
         } else {
