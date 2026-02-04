@@ -21,9 +21,10 @@ interface ProductFormProps {
   categories: any[]
   onSubmit: (data: any) => void
   onCancel: () => void
+  isSubmitting?: boolean
 }
 
-export function EnhancedProductForm({ product, categories, onSubmit, onCancel }: ProductFormProps) {
+export function EnhancedProductForm({ product, categories, onSubmit, onCancel, isSubmitting = false }: ProductFormProps) {
   const [formData, setFormData] = useState({
     name: product?.name || "",
     description: product?.description || "",
@@ -296,10 +297,12 @@ export function EnhancedProductForm({ product, categories, onSubmit, onCancel }:
       </Tabs>
 
       <div className="flex justify-end space-x-2 pt-4 border-t sticky bottom-0 bg-background">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
           Cancel
         </Button>
-        <Button type="submit">{product ? "Update Product" : "Create Product"}</Button>
+        <Button type="submit" disabled={isSubmitting || !formData.name || !formData.description || !formData.price || !formData.category_id}>
+          {isSubmitting ? "Saving..." : product ? "Update Product" : "Create Product"}
+        </Button>
       </div>
     </form>
   )
